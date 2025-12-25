@@ -11,7 +11,6 @@ class CreatePayrollItems < ActiveRecord::Migration[7.1]
       t.text :notes, null: true
       t.timestamps
     end
-    add_index :payroll_items, [:employee_id, :year, :month], unique: true
     add_index :payroll_items, [:company_id, :year, :month]
   end
 end

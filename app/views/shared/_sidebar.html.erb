@@ -164,6 +164,28 @@
       </span>
     <% end %>
 
+    <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition" do %>
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z" />
+      </svg>
+      <span data-sidebar-target="label" class="text-sm font-medium">Funcionários</span>
+    <% end %>
+
+    <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition" do %>
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 3h8l3 3v15a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 11h8M8 15h8M8 19h5" />
+      </svg>
+      <span data-sidebar-target="label" class="text-sm font-medium">Folha</span>
+    <% end %>
+
     <%= link_to financial_entries_path,
       class: "flex items-center gap-3 px-3 py-2 rounded-lg
               text-gray-700 dark:text-gray-200

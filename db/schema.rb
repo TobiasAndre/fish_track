@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_25_145051) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -60,8 +60,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_145051) do
     t.string "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "salary_cents", default: 0, null: false
     t.index ["company_id", "name"], name: "index_employees_on_company_id_and_name"
     t.index ["company_id"], name: "index_employees_on_company_id"
+    t.index ["salary_cents"], name: "index_employees_on_salary_cents"
   end
 
   create_table "financial_entries", force: :cascade do |t|
@@ -76,10 +78,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_145051) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "payroll_item_id"
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
     t.index ["company_id", "occurred_on"], name: "index_financial_entries_on_company_id_and_occurred_on"
     t.index ["company_id"], name: "index_financial_entries_on_company_id"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
+    t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
   end
@@ -93,10 +97,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_145051) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "item_type", default: "salary", null: false
+    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
     t.index ["company_id", "year", "month"], name: "index_payroll_items_on_company_id_and_year_and_month"
     t.index ["company_id"], name: "index_payroll_items_on_company_id"
-    t.index ["employee_id", "year", "month"], name: "index_payroll_items_on_employee_id_and_year_and_month", unique: true
     t.index ["employee_id"], name: "index_payroll_items_on_employee_id"
+    t.index ["occurred_on"], name: "index_payroll_items_on_occurred_on"
   end
 
   create_table "ponds", force: :cascade do |t|
@@ -148,6 +154,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_145051) do
   add_foreign_key "employees", "companies"
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "companies"
+  add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "units"
   add_foreign_key "payroll_items", "companies"
   add_foreign_key "payroll_items", "employees"

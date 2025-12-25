@@ -17,6 +17,11 @@ Rails.application.routes.draw do
     end
     resource :dashboard, only: [:show]
     resources :financial_entries
+    resources :employees
+    resource :payroll, only: [:show, :update], controller: "payroll"
+
+    resources :payroll_items, only: [:create, :destroy]
+
     root "dashboard#show"
   end
 end

@@ -151,34 +151,65 @@ employees << company.employees.create!(name: "Maria Souza", role: "Administrativ
 employees << company.employees.create!(name: "Carlos Pereira", role: "Gerente")
 employees << company.employees.create!(name: "Ana Oliveira", role: "Técnica")
 
-puts "🧾 Criando folha (payroll_items) - últimos 3 meses..."
-today = Date.current
-months = [today.prev_month(2), today.prev_month(1), today]
+puts "🧾 Criando folha (salários + adiantamentos)..."
 
-months.each do |d|
-  employees.each do |emp|
+today = Date.current
+year  = today.year
+month = today.month
+
+employees.each do |emp|
+  salario = rand(4_000_00..7_500_00)
+
+  PayrollItem.create!(
+    company: company,
+    employee: emp,
+    year: year,
+    month: month,
+    item_type: "salary",
+    amount_cents: salario,
+    occurred_on: Date.new(year, month, 5),
+    notes: "Salário base #{month}/#{year}"
+  )
+
+  # adiantamentos (0 a 2)
+  rand(0..2).times do |i|
     PayrollItem.create!(
       company: company,
       employee: emp,
-      year: d.year,
-      month: d.month,
-      amount_cents: rand(3_500_00..8_500_00),
-      notes: "Salário #{d.month}/#{d.year}"
+      year: year,
+      month: month,
+      item_type: "advance",
+      amount_cents: rand(500_00..1_500_00),
+      occurred_on: Date.new(year, month, 10 + i * 5),
+      notes: "Adiantamento #{i + 1}"
     )
   end
-
-  total_month = PayrollItem.where(company: company, year: d.year, month: d.month).sum(:amount_cents)
-
-  FinancialEntry.create!(
-    company: company,
-    entry_type: "expense",
-    stage: "general",
-    occurred_on: Date.new(d.year, d.month, 28),
-    amount_cents: total_month,
-    description: "Folha de pagamento #{d.month}/#{d.year}",
-    notes: "Consolidado"
-  )
 end
+
+puts "💸 Gerando lançamento financeiro da folha (líquido)..."
+
+items = PayrollItem.where(company: company, year: year, month: month)
+
+total = items.sum do |i|
+  case i.item_type
+  when "salary", "bonus"
+    i.amount_cents
+  when "advance", "discount"
+    -i.amount_cents
+  else
+    0
+  end
+end
+
+FinancialEntry.create!(
+  company: company,
+  entry_type: "expense",
+  stage: "general",
+  occurred_on: Date.new(year, month, 28),
+  amount_cents: total,
+  description: "Folha de pagamento #{month}/#{year}",
+  notes: "Salários + adiantamentos (líquido)"
+)
 
 puts "💰 Criando lançamentos financeiros (valores altos)..."
 FinancialEntry.create!(
