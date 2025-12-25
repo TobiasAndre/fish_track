@@ -1,0 +1,148 @@
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Financeiro</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Lançamentos por fase (Juvenil, Engorda, Geral Sede).
+      </p>
+    </div>
+
+    <%= link_to "Novo lançamento", new_financial_entry_path,
+      class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white text-sm font-medium transition" %>
+  </div>
+
+  <!-- Totais -->
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Entradas</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <%= number_to_currency(@total_income_cents / 100.0) %>
+      </p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Saídas</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <%= number_to_currency(@total_expense_cents / 100.0) %>
+      </p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Saldo</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <%= number_to_currency(@balance_cents / 100.0) %>
+      </p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="mt-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+    <%= form_with url: financial_entries_path, method: :get, class: "grid grid-cols-1 sm:grid-cols-5 gap-3" do %>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fase</label>
+        <%= select_tag :stage,
+          options_for_select([["Todas", ""], ["Juvenil", "juvenile"], ["Engorda", "growout"], ["Geral Sede", "general"]], @q_stage),
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tipo</label>
+        <%= select_tag :entry_type,
+          options_for_select([["Todos", ""], ["Entrada", "income"], ["Saída", "expense"]], @q_type),
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">De</label>
+        <%= date_field_tag :from, @q_from,
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Até</label>
+        <%= date_field_tag :to, @q_to,
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div class="flex items-end gap-2">
+        <%= submit_tag "Filtrar",
+          class: "px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800
+                  dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition" %>
+
+        <%= link_to "Limpar", financial_entries_path,
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                  hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Tabela -->
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Data</th>
+          <th class="text-left px-4 py-3 font-medium">Fase</th>
+          <th class="text-left px-4 py-3 font-medium">Descrição</th>
+          <th class="text-left px-4 py-3 font-medium">Vínculo</th>
+          <th class="text-right px-4 py-3 font-medium">Valor</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @entries.each do |e| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.stage.humanize %></td>
+            <td class="px-4 py-3">
+              <div class="font-medium text-gray-900 dark:text-gray-100"><%= e.description %></div>
+              <% if e.notes.present? %>
+                <div class="text-xs text-gray-500 dark:text-gray-400"><%= e.notes %></div>
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <% if e.batch.present? %>
+                Lote: <%= e.batch.name %>
+              <% elsif e.unit.present? %>
+                Unidade: <%= e.unit.name %>
+              <% else %>
+                <span class="text-gray-400 dark:text-gray-500">—</span>
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-right font-medium">
+              <% css = e.entry_type == "income" ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300" %>
+              <span class="<%= css %>">
+                <%= number_to_currency(e.amount_cents.to_i / 100.0) %>
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_financial_entry_path(e),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <%= button_to "Excluir", financial_entry_path(e), method: :delete,
+                  data: { turbo_confirm: "Excluir lançamento?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @entries.empty? %>
+          <tr>
+            <td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+              Nenhum lançamento encontrado.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

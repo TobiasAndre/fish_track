@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     resources :batches do
       resources :batch_events, only: [:index, :new, :create, :edit, :update, :destroy]
     end
-    root "home#index"
+    resource :dashboard, only: [:show]
+    resources :financial_entries
+    root "dashboard#show"
   end
 end
