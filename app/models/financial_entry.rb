@@ -8,12 +8,7 @@ class FinancialEntry < ApplicationRecord
     income: "income"
   }
 
-  enum stage: {
-    nursery: "nursery",
-    juvenile: "juvenile",
-    growout: "growout",
-    general: "general" # geral/sede
-  }
+  enum stage: { nursery: "nursery", juvenile: "juvenile", growout: "growout", general: "general" }
 
   validates :entry_type, presence: true
   validates :stage, presence: true

@@ -104,7 +104,51 @@
       </span>
     <% end %>
 
-    <%= link_to root_path,
+    <%= link_to(edit_company_path(current_user.company),
+      class: "flex items-center gap-3 px-3 py-2 rounded-lg
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition") do %>
+
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 21V7a2 2 0 0 1 2-2h6v16" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M14 21V3h4a2 2 0 0 1 2 2v16" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 9h1M8 13h1M16 9h1M16 13h1" />
+      </svg>
+
+      <span data-sidebar-target="label" class="text-sm font-medium">Empresa</span>
+    <% end %>
+
+    <%= link_to(units_path,
+      class: "flex items-center gap-3 px-3 py-2 rounded-lg
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition") do %>
+
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 21s7-4.5 7-11a7 7 0 0 0-14 0c0 6.5 7 11 7 11z" />
+        <circle cx="12" cy="10" r="2" stroke-width="2" />
+      </svg>
+
+      <span data-sidebar-target="label" class="text-sm font-medium">Unidades</span>
+    <% end %>
+
+    <%= link_to ponds_path,
+      class: "flex items-center gap-3 px-3 py-2 rounded-lg
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition" do %>
+
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3s6 6 6 11a6 6 0 0 1-12 0c0-5 6-11 6-11z" />
+      </svg>
+
+      <span data-sidebar-target="label" class="text-sm font-medium">Açudes</span>
+    <% end %>
+
+    <%= link_to batches_path,
       class: "flex items-center gap-3 px-3 py-2 rounded-lg
               text-gray-700 dark:text-gray-200
               hover:bg-gray-100 dark:hover:bg-gray-800 transition" do %>

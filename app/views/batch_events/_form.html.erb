@@ -1,0 +1,77 @@
+<%= form_with model: [@batch, @event],
+  data: { controller: "batch-event-form" },
+  class: "mt-6 space-y-4" do |f| %>
+
+  <%= render "shared/form_errors", resource: @event %>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :event_type, "Tipo", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.select :event_type,
+        BatchEvent.event_types.keys.map { |k| [k.humanize, k] },
+        {},
+        data: { "batch-event-form-target": "type", action: "change->batch-event-form#toggle" },
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.date_field :occurred_on, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                             bg-white dark:bg-gray-950
+                                             border-gray-300 dark:border-gray-700
+                                             text-gray-900 dark:text-gray-100
+                                             focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <div data-batch-event-form-target="quantityRow" class="hidden">
+    <%= f.label :quantity, "Quantidade (ex: peixes)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.number_field :quantity, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                          bg-white dark:bg-gray-950
+                                          border-gray-300 dark:border-gray-700
+                                          text-gray-900 dark:text-gray-100
+                                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div data-batch-event-form-target="avgWeightRow" class="hidden">
+    <%= f.label :avg_weight_g, "Peso médio (g)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.number_field :avg_weight_g, step: 0.01, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                          bg-white dark:bg-gray-950
+                                                          border-gray-300 dark:border-gray-700
+                                                          text-gray-900 dark:text-gray-100
+                                                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div data-batch-event-form-target="feedKgRow" class="hidden">
+    <%= f.label :feed_kg, "Ração (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.number_field :feed_kg, step: 0.001, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                      bg-white dark:bg-gray-950
+                                                      border-gray-300 dark:border-gray-700
+                                                      text-gray-900 dark:text-gray-100
+                                                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div>
+    <%= f.label :notes, "Observações (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.text_area :notes, rows: 3, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                            bg-white dark:bg-gray-950
+                                            border-gray-300 dark:border-gray-700
+                                            text-gray-900 dark:text-gray-100
+                                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit "Salvar",
+      class: "flex-1 bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white font-medium py-2.5 rounded-lg transition" %>
+
+    <%= link_to "Cancelar", batch_path(@batch),
+      class: "px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700
+              hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+  </div>
+<% end %>

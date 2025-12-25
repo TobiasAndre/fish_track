@@ -1,0 +1,81 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Lotes</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Gerencie lotes por açude e acompanhe status e fase.
+      </p>
+    </div>
+
+    <%= link_to "Novo lote", new_batch_path,
+      class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white text-sm font-medium transition" %>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Unidade</th>
+          <th class="text-left px-4 py-3 font-medium">Açude</th>
+          <th class="text-left px-4 py-3 font-medium">Lote</th>
+          <th class="text-left px-4 py-3 font-medium">Fase</th>
+          <th class="text-left px-4 py-3 font-medium">Status</th>
+          <th class="text-left px-4 py-3 font-medium">Início</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @batches.each do |batch| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= batch.unit.name %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= batch.pond.name %></td>
+
+            <td class="px-4 py-3">
+              <%= link_to batch.name, batch_path(batch),
+                class: "font-medium text-gray-900 dark:text-gray-100 hover:underline" %>
+              <% if batch.species.present? %>
+                <div class="text-xs text-gray-500 dark:text-gray-400"><%= batch.species %></div>
+              <% end %>
+            </td>
+
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <%= batch.stage.humanize %>
+            </td>
+
+            <td class="px-4 py-3">
+              <% badge = batch.active? ? "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200" %>
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium <%= badge %>">
+                <%= batch.status.humanize %>
+              </span>
+            </td>
+
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <%= batch.started_on %>
+            </td>
+
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <!-- + Evento -->
+                <%= link_to "Eventos", batch_batch_events_path(batch),
+                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= link_to "Editar", edit_batch_path(batch),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", batch_path(batch),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir lote #{batch.name}?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

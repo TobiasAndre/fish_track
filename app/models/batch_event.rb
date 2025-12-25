@@ -1,23 +1,31 @@
 class BatchEvent < ApplicationRecord
   belongs_to :batch
-  has_one :company, through: :batch
 
   enum event_type: {
-    biometrics: "biometrics",     # biometria
-    mortality: "mortality",       # mortalidade
-    feeding: "feeding",           # arraçoamento / ração
-    daily_care: "daily_care",     # trato diário
-    loading: "loading",           # carregamento (movimentação/saída)
-    transfer: "transfer"          # transferência (opcional)
+    biometrics: "biometrics",
+    mortality: "mortality",
+    feeding: "feeding",
+    daily_care: "daily_care",
+    loading: "loading"
   }
 
-  validates :event_type, presence: true
-  validates :occurred_on, presence: true
+  validates :occurred_on, :event_type, presence: true
+  validates :quantity, presence: true, if: -> { mortality? }
+  validates :avg_weight_g, presence: true, if: -> { biometrics? }
 
-  # campos comuns
-  validates :quantity, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validate :batch_must_be_active
 
-  # campos por tipo (você pode refinar depois)
-  validates :avg_weight_g, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :feed_kg, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  after_commit :recalculate_batch!, on: [:create, :update, :destroy]
+
+  private
+
+  def recalculate_batch!
+    batch.recalculate_from_events!
+  end
+
+  def batch_must_be_active
+    return if batch.active?
+
+    errors.add(:base, "Este lote já está fechado e não pode receber novos eventos.")
+  end
 end

@@ -1,0 +1,115 @@
+<%= form_with model: @batch, class: "mt-6 space-y-4" do |f| %>
+  <%= render "shared/form_errors", resource: @batch %>
+
+  <div>
+    <%= f.label :pond_id, "Açude", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.collection_select :pond_id,
+      current_user.company.ponds.includes(:unit).order("units.name ASC, ponds.name ASC"),
+      :id,
+      ->(p) { "#{p.unit.name} — #{p.name}" },
+      { prompt: "Selecione um açude" },
+      class: "w-full rounded-lg border px-3 py-2 text-sm
+              bg-white dark:bg-gray-950
+              border-gray-300 dark:border-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :name, "Nome do lote", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.text_field :name, placeholder: "Ex: Lote 2026-01", class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                                      bg-white dark:bg-gray-950
+                                                                      border-gray-300 dark:border-gray-700
+                                                                      text-gray-900 dark:text-gray-100
+                                                                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :species, "Espécie (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.text_field :species, placeholder: "Ex: Tilápia", class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                                     bg-white dark:bg-gray-950
+                                                                     border-gray-300 dark:border-gray-700
+                                                                     text-gray-900 dark:text-gray-100
+                                                                     focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div>
+      <%= f.label :stage, "Fase", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.select :stage,
+        Batch.stages.keys.map { |k| [k.humanize, k] },
+        {},
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :status, "Status", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.select :status,
+        Batch.statuses.keys.map { |k| [k.humanize, k] },
+        {},
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :started_on, "Data de início", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.date_field :started_on, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                            bg-white dark:bg-gray-950
+                                            border-gray-300 dark:border-gray-700
+                                            text-gray-900 dark:text-gray-100
+                                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div>
+      <%= f.label :initial_quantity, "Qtde inicial", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.number_field :initial_quantity, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                    bg-white dark:bg-gray-950
+                                                    border-gray-300 dark:border-gray-700
+                                                    text-gray-900 dark:text-gray-100
+                                                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :current_quantity, "Qtde atual (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.number_field :current_quantity, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                    bg-white dark:bg-gray-950
+                                                    border-gray-300 dark:border-gray-700
+                                                    text-gray-900 dark:text-gray-100
+                                                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Depois vamos calcular isso automaticamente via eventos.
+      </p>
+    </div>
+
+    <div>
+      <%= f.label :avg_weight_g, "Peso médio (g) (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.number_field :avg_weight_g, step: 0.01, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                                            bg-white dark:bg-gray-950
+                                                            border-gray-300 dark:border-gray-700
+                                                            text-gray-900 dark:text-gray-100
+                                                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit "Salvar",
+      class: "flex-1 bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white font-medium py-2.5 rounded-lg transition" %>
+
+    <%= link_to "Cancelar", batches_path,
+      class: "px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700
+              hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+  </div>
+<% end %>

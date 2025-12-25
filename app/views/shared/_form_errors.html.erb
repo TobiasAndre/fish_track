@@ -1,0 +1,12 @@
+<% return if resource.errors.blank? %>
+
+<div class="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4">
+  <p class="font-medium text-red-700 dark:text-red-300">
+    Corrija os erros abaixo:
+  </p>
+  <ul class="mt-2 list-disc list-inside text-sm text-red-700 dark:text-red-300">
+    <% resource.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+  </ul>
+</div>
