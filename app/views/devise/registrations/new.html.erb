@@ -1,0 +1,103 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+  <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/40
+              p-8 border border-gray-100 dark:border-gray-800">
+
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 text-center mb-6">
+      Sign up
+    </h2>
+
+    <%= form_for(resource,
+      as: resource_name,
+      url: registration_path(resource_name),
+      html: { class: "space-y-5" }) do |f| %>
+
+      <!-- Error messages -->
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <!-- Name -->
+      <div>
+        <%= f.label :name, class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.text_field :name,
+          autofocus: true,
+          autocomplete: "name",
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  placeholder:text-gray-400 dark:placeholder:text-gray-500
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                  dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
+        %>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <%= f.label :email, class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.email_field :email,
+          autofocus: true,
+          autocomplete: "email",
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  placeholder:text-gray-400 dark:placeholder:text-gray-500
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                  dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
+        %>
+      </div>
+
+      <!-- Password -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <%= f.label :password, class: "block text-sm font-medium text-gray-700 dark:text-gray-200" %>
+          <% if @minimum_password_length %>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              <%= @minimum_password_length %> characters minimum
+            </span>
+          <% end %>
+        </div>
+
+        <%= f.password_field :password,
+          autocomplete: "new-password",
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  placeholder:text-gray-400 dark:placeholder:text-gray-500
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                  dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
+        %>
+      </div>
+
+      <!-- Password confirmation -->
+      <div>
+        <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.password_field :password_confirmation,
+          autocomplete: "new-password",
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  placeholder:text-gray-400 dark:placeholder:text-gray-500
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                  dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
+        %>
+      </div>
+
+      <!-- Submit -->
+      <div>
+        <%= f.submit "Create account",
+          class: "w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400
+                  text-white font-medium py-2.5 rounded-lg transition duration-200
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                  dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900"
+        %>
+      </div>
+    <% end %>
+
+    <!-- Links -->
+    <div class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+</div>

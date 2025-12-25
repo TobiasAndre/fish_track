@@ -1,0 +1,54 @@
+<div
+  class="relative"
+  data-controller="dropdown"
+  data-action="
+    click@window->dropdown#closeOnClickOutside
+    keydown@window->dropdown#closeOnEscape
+  "
+>
+  <!-- Trigger -->
+  <button
+    data-action="click->dropdown#toggle"
+    class="flex items-center gap-2 px-3 py-2 rounded-lg
+           bg-gray-200 dark:bg-gray-800 cursor-pointer
+           text-gray-800 dark:text-gray-100
+           hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+
+    <span class="text-sm font-medium">
+      <%= current_user.email %>
+    </span>
+
+    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  <!-- Menu -->
+  <div
+    data-dropdown-target="menu"
+    class="hidden absolute right-0 mt-2 w-44
+           bg-white dark:bg-gray-900
+           border border-gray-200 dark:border-gray-800
+           rounded-lg shadow-lg overflow-hidden z-50">
+
+    <!-- Profile -->
+    <%= link_to edit_user_registration_path,
+      class: "block px-4 py-2 text-sm
+              text-gray-700 dark:text-gray-200
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition" do %>
+      👤 Profile
+    <% end %>
+
+    <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+    <!-- Logout -->
+    <%= button_to destroy_user_session_path,
+      method: :delete,
+      class: "w-full text-left px-4 py-2 text-sm
+              text-red-600 dark:text-red-400
+              hover:bg-red-50 dark:hover:bg-red-950 transition" do %>
+      🚪 Logout
+    <% end %>
+  </div>
+</div>
