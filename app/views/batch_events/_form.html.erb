@@ -8,7 +8,7 @@
     <div>
       <%= f.label :event_type, "Tipo", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
       <%= f.select :event_type,
-        BatchEvent.event_types.keys.map { |k| [k.humanize, k] },
+        BatchEvent.event_types.keys.map { |k| [enum_t(BatchEvent.new(event_type: k), :event_type), k] },
         {},
         data: { "batch-event-form-target": "type", action: "change->batch-event-form#toggle" },
         class: "w-full rounded-lg border px-3 py-2 text-sm

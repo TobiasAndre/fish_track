@@ -100,7 +100,7 @@
         <% @entries.each do |e| %>
           <tr>
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
-            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.stage.humanize %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= enum_t(e, :stage) %></td>
             <td class="px-4 py-3">
               <div class="font-medium text-gray-900 dark:text-gray-100"><%= e.description %></div>
               <% if e.notes.present? %>

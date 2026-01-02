@@ -1,31 +1,69 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
-  hello: "Hello world"
+  activerecord:
+    attributes:
+      companies:
+        name: Name
+      batch_events:
+        event_type: Event Type
+        occurred_on: Occurred On
+        quantity: Quantity
+        avg_weight_g: Average Weight (g)
+        feed_kg: Feed (kg)
+        notes: Notes
+      batches:
+        name: Name
+        species: Species
+        status: Status
+        stage: Stage
+        started_on: Started On
+        closed_on: Closed On
+        initial_quantity: Initial Quantity
+        current_quantity: Current Quantity
+        avg_weight_g: Average Weight (g)
+      employees:
+        name: Name
+        role: Role
+        salary_cents: Salary (cents)
+      financial_entries:
+        entry_type: Entry Type
+        stage: Stage
+        occurred_on: Occurred On
+        amount_cents: Amount (cents)
+        description: Description
+        notes: Notes
+      payroll_items:
+        year: Year
+        month: Month
+        amount_cents: Amount (cents)
+        notes: Notes
+        item_type: Item Type
+        occurred_on: Occurred On
+      ponds:
+        name: Name
+        capacity: Capacity
+        capacity_unit: Unit
+      units:
+        name: Name
+      users:
+        name: Name
+        email: E-mail
+        password: Password
+        password_confirmation: Password Confirmation
+  enums:
+    batch:
+      stage:
+        juvenile: Juvenile
+        growout: Growout
+        nursery: Nursery
+      status:
+        active: Active
+        closed: Closed
+    batch_event:
+      event_type:
+        loading: Loading
+        biometrics: Biometrics
+        stocking: Stocking
+        feeding: Feeding
+        mortality: Mortality
+        harvesting: Harvesting
+        treatment: Treatment

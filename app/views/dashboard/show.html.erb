@@ -66,7 +66,7 @@
             <div class="mt-3 flex flex-wrap gap-2">
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Fase: <%= b.stage.humanize %>
+                Fase: <%= enum_t(b, :stage) %>
               </span>
 
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
@@ -103,7 +103,8 @@
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  <%= e.event_type.humanize %>
+                  <%= enum_t(e, :event_type) %>
+                  
                   <span class="text-gray-500 dark:text-gray-400 font-normal">• <%= e.occurred_on %></span>
                 </p>
 

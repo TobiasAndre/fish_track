@@ -39,7 +39,7 @@
     <div>
       <%= f.label :stage, "Fase", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
       <%= f.select :stage,
-        Batch.stages.keys.map { |k| [k.humanize, k] },
+        Batch.stages.keys.map { |k| [enum_t(Batch.new(stage: k), :stage), k] },
         {},
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
@@ -51,7 +51,7 @@
     <div>
       <%= f.label :status, "Status", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
       <%= f.select :status,
-        Batch.statuses.keys.map { |k| [k.humanize, k] },
+        Batch.statuses.keys.map { |k| [enum_t(Batch.new(status: k), :status), k] },
         {},
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
