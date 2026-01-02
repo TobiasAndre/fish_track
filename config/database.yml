@@ -84,6 +84,6 @@ production:
   database: fish_track
   url: <%= ENV['DATABASE_URL'] %>
   sslmode: verify-full
-  sslrootcert: ./db/certs/ca_certificate_db.crt
-  sslcert: ./db/certs/ca_certificate_db.crt
-  sslkey: ./db/certs/private_key_db.key
+  sslrootcert: ./db/certs/ca_certificate.crt
+  sslcert: ./db/certs/ca_certificate.crt
+  sslkey: ./db/certs/private_key.key
