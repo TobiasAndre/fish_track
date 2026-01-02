@@ -79,6 +79,8 @@ test:
 #
 production:
   <<: *default
+  adapter: postgresql
+  encoding: unicode
   database: fish_track
   url: <%= ENV['DATABASE_URL'] %>
   sslmode: verify-full
