@@ -79,6 +79,9 @@ test:
 #
 production:
   <<: *default
-  database: saas_app_production
-  username: saas_app
-  password: <%= ENV["SAAS_APP_DATABASE_PASSWORD"] %>
+  database: fish_track
+  url: <%= ENV['DATABASE_URL'] %>
+  sslmode: verify-full
+  sslrootcert: ./db/certs/ca-certificate.crt
+  sslcert: ./db/certs/ca-certificate.crt
+  sslkey: ./db/certs/private-key.key
