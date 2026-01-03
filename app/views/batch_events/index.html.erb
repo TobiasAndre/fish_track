@@ -1,0 +1,108 @@
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Eventos</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Lote: <span class="font-medium"><%= @batch.name %></span>
+        • <%= @batch.unit.name %> • <%= @batch.pond.name %>
+      </p>
+    </div>
+
+    <div class="flex gap-2">
+      <%= link_to "Novo evento", new_batch_batch_event_path(@batch),
+        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                dark:bg-indigo-500 dark:hover:bg-indigo-400
+                text-white text-sm font-medium transition" %>
+
+      <%= link_to "Voltar", batch_path(@batch),
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+    <%= form_with url: batch_batch_events_path(@batch), method: :get, class: "grid grid-cols-1 sm:grid-cols-3 gap-3" do %>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tipo</label>
+        <%= select_tag :event_type,
+          options_for_select([["Todos", ""]] + BatchEvent.event_types.keys.map { |k| [enum_t(BatchEvent.new(event_type: k), :event_type), k] }, params[:event_type]),
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Data</label>
+        <%= date_field_tag :date, params[:date],
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div class="flex items-end gap-2">
+        <%= submit_tag "Filtrar",
+          class: "px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800
+                  dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition" %>
+
+        <%= link_to "Limpar", batch_batch_events_path(@batch),
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                  hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Data</th>
+          <th class="text-left px-4 py-3 font-medium">Tipo</th>
+          <th class="text-left px-4 py-3 font-medium">Detalhes</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @events.each do |e| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
+            <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">
+              <%= enum_t(e, :event_type) %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <% parts = [] %>
+              <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
+              <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
+              <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
+              <%= parts.any? ? parts.join(" • ") : "—" %>
+              <% if e.notes.present? %>
+                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= e.notes %></div>
+              <% end %>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_batch_batch_event_path(@batch, e),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", batch_batch_event_path(@batch, e),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir este evento?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @events.empty? %>
+          <tr>
+            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+              Nenhum evento registrado ainda.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

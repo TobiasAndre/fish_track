@@ -1,0 +1,141 @@
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Dashboard</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Visão geral dos lotes e atividades recentes.
+      </p>
+    </div>
+
+    <div class="flex gap-2">
+      <%= link_to "Lotes", batches_path,
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      <%= link_to "Açudes", ponds_path,
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+    </div>
+  </div>
+
+  <!-- Badges / Cards resumo -->
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Lotes ativos</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @active_batches_count %></p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Açudes cadastrados</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @active_ponds_count %></p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Quantidade total (lotes ativos)</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @total_current_quantity %></p>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Lotes ativos (cards) -->
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Lotes ativos</h2>
+        <%= link_to "Ver todos", batches_path, class: "text-sm text-indigo-600 dark:text-indigo-400 hover:underline" %>
+      </div>
+
+      <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <% @active_batches.each do |b| %>
+          <%= link_to batch_path(b),
+            class: "rounded-xl border border-gray-200 dark:border-gray-800
+                    hover:bg-gray-50 dark:hover:bg-gray-800/40 transition p-4" do %>
+
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="font-medium text-gray-900 dark:text-gray-100"><%= b.name %></p>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <%= b.unit.name %> • <%= b.pond.name %>
+                </p>
+              </div>
+
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium
+                           bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300">
+                Ativo
+              </span>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                Fase: <%= enum_t(b, :stage) %>
+              </span>
+
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                Qtde: <%= b.current_quantity || "—" %>
+              </span>
+
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                Peso: <%= b.avg_weight_g ? "#{b.avg_weight_g}g" : "—" %>
+              </span>
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if @active_batches.empty? %>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Nenhum lote ativo ainda. <%= link_to "Criar um lote", new_batch_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Eventos recentes -->
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Eventos recentes</h2>
+        <%= link_to "Ver todos", batches_path, class: "text-sm text-indigo-600 dark:text-indigo-400 hover:underline" %>
+      </div>
+
+      <div class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @recent_events.each do |e| %>
+          <div class="px-4 py-3">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <%= enum_t(e, :event_type) %>
+                  
+                  <span class="text-gray-500 dark:text-gray-400 font-normal">• <%= e.occurred_on %></span>
+                </p>
+
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <%= e.batch.unit.name %> • <%= e.batch.pond.name %> •
+                  <%= link_to e.batch.name, batch_batch_events_path(e.batch), class: "hover:underline" %>
+                </p>
+
+                <% parts = [] %>
+                <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
+                <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
+                <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
+
+                <% if parts.any? %>
+                  <p class="mt-1 text-xs text-gray-600 dark:text-gray-300"><%= parts.join(" • ") %></p>
+                <% end %>
+              </div>
+
+              <%= link_to "Abrir", batch_batch_events_path(e.batch),
+                class: "shrink-0 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                        hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @recent_events.empty? %>
+          <div class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400">
+            Nenhum evento registrado ainda.
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

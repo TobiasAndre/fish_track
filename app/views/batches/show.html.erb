@@ -1,0 +1,98 @@
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @batch.name %></h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <%= @batch.unit.name %> • <%= @batch.pond.name %> • <%= @batch.stage.humanize %> • <%= @batch.status.humanize %>
+      </p>
+    </div>
+
+    <% if @batch.closed? %>
+      <span class="inline-flex items-center px-2 py-1 rounded-lg
+                  bg-gray-200 text-gray-800
+                  dark:bg-gray-800 dark:text-gray-200
+                  text-xs font-medium">
+        Lote fechado em <%= @batch.closed_on %>
+      </span>
+    <% end %>
+
+    <div class="flex gap-2">
+      <%= link_to "Editar", edit_batch_path(@batch),
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+      <%= link_to "Voltar", batches_path,
+        class: "px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800
+                dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition" %>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Quantidade inicial</p>
+      <p class="mt-1 text-lg font-semibold"><%= @batch.initial_quantity || "—" %></p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Quantidade atual</p>
+      <p class="mt-1 text-lg font-semibold"><%= @batch.current_quantity || "—" %></p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Peso médio (g)</p>
+      <p class="mt-1 text-lg font-semibold"><%= @batch.avg_weight_g || "—" %></p>
+    </div>
+  </div>
+
+  <div class="mt-8 flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Eventos</h2>
+
+    <% if @batch.active? %>
+      <%= link_to "Adicionar evento", new_batch_batch_event_path(@batch),
+        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                dark:bg-indigo-500 dark:hover:bg-indigo-400
+                text-white text-sm font-medium transition" %>
+    <% end %>
+  </div>
+
+  <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Data</th>
+          <th class="text-left px-4 py-3 font-medium">Tipo</th>
+          <th class="text-left px-4 py-3 font-medium">Detalhes</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @batch.batch_events.order(occurred_on: :desc, created_at: :desc).each do |e| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
+            <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium"><%= e.event_type.humanize %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <% parts = [] %>
+              <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
+              <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
+              <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
+              <%= parts.any? ? parts.join(" • ") : "—" %>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_batch_batch_event_path(@batch, e),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", batch_batch_event_path(@batch, e),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir este evento?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

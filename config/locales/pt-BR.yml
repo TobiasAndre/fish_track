@@ -1,0 +1,76 @@
+pt-BR:
+  activerecord:
+    attributes:
+      companies:
+        name: Nome
+      batch_event:
+        event_type: Tipo de Evento
+        occurred_on: Data de Ocorrência
+        quantity: Quantidade
+        avg_weight_g: Peso Médio (g)
+        feed_kg: Ração (kg)
+        notes: Notas
+      batch:
+        name: Nome
+        species: Espécie
+        status: Status
+        stage: Estágio
+        started_on: Data de Início
+        closed_on: Data de Fechamento
+        initial_quantity: Quantidade Inicial
+        current_quantity: Quantidade Atual
+        avg_weight_g: Peso Médio (g)
+      employees:
+        name: Nome
+        role: Função
+        salary_cents: Salário (centavos)
+      financial_entries:
+        entry_type: Tipo de Lançamento
+        stage: Etapa
+        occurred_on: Data de Ocorrência
+        amount_cents: Valor (centavos)
+        description: Descrição
+        notes: Notas
+      payroll_items:
+        year: Ano
+        month: Mês
+        amount_cents: Valor (centavos)
+        notes: Notas
+        item_type: Tipo de Item
+        occurred_on: Data de Ocorrência
+      ponds:
+        name: Nome
+        capacity: Capacidade
+        capacity_unit: Unid.
+      units:
+        name: Nome
+      users:
+        name: Nome
+        email: E-mail
+        password: Senha
+        password_confirmation: Confirmação de Senha
+  enums:
+    batch:
+      stage:
+        juvenile: Juvenil
+        growout: Engorda
+        nursery: Berçário
+        general: Geral
+      status:
+        active: Ativo
+        closed: Encerrado
+    batch_event:
+      event_type:
+        loading: Carregamento
+        biometrics: Biometria
+        stocking: Estocagem
+        feeding: Alimentação
+        mortality: Mortalidade
+        harvesting: Colheita
+        treatment: Tratamento
+    financial_entry:
+      stage:
+        juvenile: Juvenil
+        growout: Engorda
+        nursery: Berçário
+        general: Geral

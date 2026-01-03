@@ -38,5 +38,12 @@ module SaasApp
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+    config.time_zone = "America/Sao_Paulo"
+    config.active_record.default_timezone = :utc
+    config.i18n.default_locale = :"pt-BR"
+    config.i18n.available_locales = [:"pt-BR"]
+    config.i18n.load_path += Dir[
+      Rails.root.join("config/locales/**/*.{rb,yml}")
+    ]
   end
 end
