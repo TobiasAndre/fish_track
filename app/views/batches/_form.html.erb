@@ -4,7 +4,7 @@
   <div>
     <%= f.label :pond_id, "Açude", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
     <%= f.collection_select :pond_id,
-      current_user.company.ponds.includes(:unit).order("units.name ASC, ponds.name ASC"),
+      Pond.includes(:unit).order("units.name ASC, ponds.name ASC"),
       :id,
       ->(p) { "#{p.unit.name} — #{p.name}" },
       { prompt: "Selecione um açude" },

@@ -4,7 +4,7 @@
   <div>
     <%= f.label :unit_id, "Unidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
     <%= f.collection_select :unit_id,
-      current_user.company.units.order(:name),
+      Unit.order(:name),
       :id, :name,
       { prompt: "Selecione uma unidade" },
       class: "w-full rounded-lg border px-3 py-2 text-sm

@@ -34,6 +34,14 @@
         %>
       </div>
 
+      <div>
+        <%= f.label :tenant_name, "Empresa" %>
+        <%= f.select :tenant_name,
+          @companies.map { |c| [c.name, c.tenant_name] },
+          { include_blank: "Selecione..." },
+          { required: true } %>
+      </div>
+
       <div class="flex items-center justify-between">
         <% if devise_mapping.rememberable? %>
           <div class="flex items-center gap-2">

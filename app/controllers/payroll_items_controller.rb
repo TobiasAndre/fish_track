@@ -1,11 +1,8 @@
 class PayrollItemsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
-
+  
   def create
-    company = current_user.company
-
-    item = company.payroll_items.new(payroll_item_params)
+    item = PayrollItem.new(payroll_item_params)
     item.item_type ||= "advance"
 
     item.save!
@@ -16,8 +13,7 @@ class PayrollItemsController < ApplicationController
   end
 
   def destroy
-    company = current_user.company
-    item = company.payroll_items.find(params[:id])
+    item = PayrollItem.find(params[:id])
 
     year  = item.year
     month = item.month
@@ -27,10 +23,6 @@ class PayrollItemsController < ApplicationController
   end
 
   private
-
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
 
   def payroll_item_params
     params.require(:payroll_item).permit(:employee_id, :year, :month, :amount_cents, :notes, :item_type)

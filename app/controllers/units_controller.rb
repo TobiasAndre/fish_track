@@ -1,18 +1,17 @@
 class UnitsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
   before_action :set_unit, only: [:edit, :update, :destroy]
 
   def index
-    @units = current_user.company.units.order(:name)
+    @units = Unit.order(:name)
   end
 
   def new
-    @unit = current_user.company.units.new
+    @unit = Unit.new
   end
 
   def create
-    @unit = current_user.company.units.new(unit_params)
+    @unit = Unit.new(unit_params)
 
     if @unit.save
       redirect_to units_path, notice: "Unidade criada!"
@@ -38,12 +37,8 @@ class UnitsController < ApplicationController
 
   private
 
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
-
   def set_unit
-    @unit = current_user.company.units.find(params[:id])
+    @unit = Unit.find(params[:id])
   end
 
   def unit_params

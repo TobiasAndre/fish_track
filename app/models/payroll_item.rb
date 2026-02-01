@@ -1,5 +1,4 @@
 class PayrollItem < ApplicationRecord
-  belongs_to :company
   belongs_to :employee
 
   has_one :financial_entry, dependent: :destroy
@@ -15,7 +14,6 @@ class PayrollItem < ApplicationRecord
 
   def create_financial_entry!
     FinancialEntry.create!(
-      company: company,
       entry_type: "expense",
       stage: "general",
       occurred_on: occurred_on,

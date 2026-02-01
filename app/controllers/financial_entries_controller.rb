@@ -1,19 +1,15 @@
 class FinancialEntriesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
   before_action :set_entry, only: [:edit, :update, :destroy]
 
   def index
-    company = current_user.company
-
     @q_stage = params[:stage].presence
     @q_from  = params[:from].presence
     @q_to    = params[:to].presence
     @q_type  = params[:entry_type].presence
 
-    @entries = company.financial_entries
-                     .includes(:unit, :batch)
-                     .order(occurred_on: :desc, created_at: :desc)
+    @entries = FinancialEntry.includes(:unit, :batch)
+                             .order(occurred_on: :desc, created_at: :desc)
 
     @entries = @entries.where(stage: @q_stage) if @q_stage.present?
     @entries = @entries.where(entry_type: @q_type) if @q_type.present?
@@ -26,7 +22,7 @@ class FinancialEntriesController < ApplicationController
   end
 
   def new
-    @entry = current_user.company.financial_entries.new(
+    @entry = FinancialEntry.new(
       entry_type: "expense",
       stage: "general",
       occurred_on: Date.current
@@ -34,7 +30,7 @@ class FinancialEntriesController < ApplicationController
   end
 
   def create
-    @entry = current_user.company.financial_entries.new(financial_entry_params)
+    @entry = FinancialEntry.new(financial_entry_params)
 
     if @entry.save
       redirect_to financial_entries_path, notice: "Lançamento criado!"
@@ -60,12 +56,8 @@ class FinancialEntriesController < ApplicationController
 
   private
 
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
-
   def set_entry
-    @entry = current_user.company.financial_entries.find(params[:id])
+    @entry = FinancialEntry.find(params[:id])
   end
 
   def financial_entry_params

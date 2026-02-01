@@ -1,6 +1,5 @@
 class BatchEventsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
   before_action :set_batch
   before_action :set_event, only: [:edit, :update, :destroy]
 
@@ -42,12 +41,8 @@ class BatchEventsController < ApplicationController
 
   private
 
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
-
   def set_batch
-    @batch = current_user.company.batches.find(params[:batch_id])
+    @batch = Batch.find(params[:batch_id])
   end
 
   def set_event

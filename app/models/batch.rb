@@ -1,7 +1,6 @@
 class Batch < ApplicationRecord
- belongs_to :pond
+  belongs_to :pond
   has_one :unit, through: :pond
-  has_one :company, through: :unit
 
   has_many :batch_events, dependent: :destroy
   has_many :financial_entries, dependent: :nullify

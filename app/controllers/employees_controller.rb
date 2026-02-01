@@ -1,21 +1,19 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
   before_action :set_employee, only: [:show, :edit, :update, :destroy]
 
   def index
-    @employees = current_user.company.employees.order(:name)
+    @employees = Employee.order(:name)
   end
 
   def show; end
 
   def new
-    @employee = current_user.company.employees.new
+    @employee = Employee.new
   end
 
   def create
-    @employee = current_user.company.employees.new(employee_params)
-
+    @employee = Employee.new(employee_params)
     if @employee.save
       redirect_to employees_path, notice: "Funcionário criado!"
     else
@@ -40,12 +38,8 @@ class EmployeesController < ApplicationController
 
   private
 
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
-
   def set_employee
-    @employee = current_user.company.employees.find(params[:id])
+    @employee = Employee.find(params[:id])
   end
 
   def employee_params

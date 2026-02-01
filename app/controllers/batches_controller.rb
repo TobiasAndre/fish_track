@@ -1,12 +1,18 @@
 class BatchesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_company!
   before_action :set_batch, only: [:edit, :update, :show, :destroy]
 
   def index
-    @batches = current_user.company.batches
-                        .includes(pond: :unit)
-                        .order("batches.status ASC, units.name ASC, ponds.name ASC, batches.started_on DESC")
+    @batches = @batches = Batch.joins(pond: :unit)
+                               .includes(pond: :unit)
+                               .order(
+                                 Arel.sql(
+                                   "batches.status ASC,
+                                   units.name ASC,
+                                   ponds.name ASC,
+                                   batches.started_on DESC"
+                                 )
+                               )
   end
 
   def show; end
@@ -46,17 +52,13 @@ class BatchesController < ApplicationController
 
   private
 
-  def require_company!
-    redirect_to new_company_path, alert: "Crie sua empresa primeiro." if current_user.company.blank?
-  end
-
   def set_batch
-    @batch = current_user.company.batches.find(params[:id])
+    @batch = Batch.find(params[:id])
   end
 
   def ensure_scoped_pond!(pond_id)
     return if pond_id.blank?
-    current_user.company.ponds.find(pond_id) # levanta ActiveRecord::RecordNotFound se não for da empresa
+    Pond.find(pond_id) # levanta ActiveRecord::RecordNotFound se não for da empresa
   end
 
   def batch_params

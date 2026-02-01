@@ -3,7 +3,6 @@ class Payroll::CreateItem
     return if item.item_type == "discount"
 
     FinancialEntry.create!(
-      company: item.company,
       entry_type: "expense",
       stage: "general",
       occurred_on: Date.new(item.year, item.month, 28),

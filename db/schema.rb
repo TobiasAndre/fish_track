@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_01_205926) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -52,22 +52,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "tenant_name", default: "", null: false
+    t.index ["tenant_name"], name: "index_companies_on_tenant_name", unique: true
   end
 
   create_table "employees", force: :cascade do |t|
-    t.bigint "company_id", null: false
     t.string "name", null: false
     t.string "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "salary_cents", default: 0, null: false
-    t.index ["company_id", "name"], name: "index_employees_on_company_id_and_name"
-    t.index ["company_id"], name: "index_employees_on_company_id"
+    t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
   end
 
   create_table "financial_entries", force: :cascade do |t|
-    t.bigint "company_id", null: false
     t.bigint "unit_id"
     t.bigint "batch_id"
     t.string "entry_type", null: false
@@ -80,16 +79,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
     t.datetime "updated_at", null: false
     t.bigint "payroll_item_id"
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
-    t.index ["company_id", "occurred_on"], name: "index_financial_entries_on_company_id_and_occurred_on"
-    t.index ["company_id"], name: "index_financial_entries_on_company_id"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
     t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
   end
 
-  create_table "payroll_items", force: :cascade do |t|
+  create_table "memberships", force: :cascade do |t|
+    t.bigint "user_id", null: false
     t.bigint "company_id", null: false
+    t.string "role", default: "member", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_memberships_on_company_id"
+    t.index ["user_id", "company_id"], name: "index_memberships_on_user_id_and_company_id", unique: true
+    t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "payroll_items", force: :cascade do |t|
     t.bigint "employee_id", null: false
     t.integer "year", null: false
     t.integer "month", null: false
@@ -99,10 +106,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
     t.datetime "updated_at", null: false
     t.string "item_type", default: "salary", null: false
     t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
-    t.index ["company_id", "year", "month"], name: "index_payroll_items_on_company_id_and_year_and_month"
-    t.index ["company_id"], name: "index_payroll_items_on_company_id"
     t.index ["employee_id"], name: "index_payroll_items_on_employee_id"
     t.index ["occurred_on"], name: "index_payroll_items_on_occurred_on"
+    t.index ["year", "month"], name: "index_payroll_items_on_year_and_month"
   end
 
   create_table "ponds", force: :cascade do |t|
@@ -116,13 +122,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
     t.index ["unit_id"], name: "index_ponds_on_unit_id"
   end
 
+  create_table "profiles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "display_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
+  end
+
   create_table "units", force: :cascade do |t|
-    t.bigint "company_id", null: false
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["company_id", "name"], name: "index_units_on_company_id_and_name", unique: true
-    t.index ["company_id"], name: "index_units_on_company_id"
+    t.index ["name"], name: "index_units_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -142,8 +154,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
     t.datetime "locked_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "company_id"
-    t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
@@ -151,14 +161,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_25_195522) do
 
   add_foreign_key "batch_events", "batches"
   add_foreign_key "batches", "ponds"
-  add_foreign_key "employees", "companies"
   add_foreign_key "financial_entries", "batches"
-  add_foreign_key "financial_entries", "companies"
   add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "units"
-  add_foreign_key "payroll_items", "companies"
+  add_foreign_key "memberships", "companies"
+  add_foreign_key "memberships", "users"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
-  add_foreign_key "units", "companies"
-  add_foreign_key "users", "companies"
 end
