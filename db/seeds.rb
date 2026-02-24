@@ -123,6 +123,132 @@ Apartment::Tenant.switch(TENANT_NAME) do
     puts "⚠️ [tenant=#{TENANT_NAME}] Profile não existe (migration não aplicada ainda)."
   end
 
+    # ----------------------------
+  # 4) TENANT: Customers + Suppliers
+  # ----------------------------
+  puts "👥 Criando clientes..."
+  if defined?(Customer)
+    customers_data = [
+      {
+        name: "Mercado Bom Peixe LTDA",
+        email: "compras@bombpeixe.com.br",
+        tax_id: "12.345.678/0001-90",
+        state_registration: "123.456.789.000",
+        postal_code: "80010-000",
+        address: "Rua XV de Novembro",
+        address_number: "1000",
+        address_complement: "Sala 12",
+        neighborhood: "Centro",
+        city: "Curitiba",
+        state: "PR",
+        phone: "(41) 99999-0001"
+      },
+      {
+        name: "Restaurante Sabor do Mar",
+        email: "financeiro@sabordomar.com.br",
+        tax_id: "98.765.432/0001-10",
+        state_registration: "987.654.321.000",
+        postal_code: "88010-400",
+        address: "Av. Beira-Mar Norte",
+        address_number: "250",
+        address_complement: "Loja 03",
+        neighborhood: "Centro",
+        city: "Florianópolis",
+        state: "SC",
+        phone: "(48) 98888-1000"
+      },
+      {
+        name: "Peixaria do Bairro",
+        email: "contato@peixariadobairro.com.br",
+        tax_id: "123.456.789-09", # cpf exemplo
+        state_registration: nil,
+        postal_code: "01001-000",
+        address: "Praça da Sé",
+        address_number: "1",
+        address_complement: "",
+        neighborhood: "Sé",
+        city: "São Paulo",
+        state: "SP",
+        phone: "(11) 97777-2222"
+      }
+    ]
+
+    customers_data.each do |attrs|
+      customer = Customer.new
+
+      # seta somente atributos que existirem no model/tabela
+      attrs.each do |k, v|
+        setter = "#{k}="
+        customer.public_send(setter, v) if customer.respond_to?(setter)
+      end
+
+      customer.save!
+    end
+  else
+    puts "⚠️ Customer não existe (migration não aplicada ainda)."
+  end
+
+  puts "🏪 Criando fornecedores..."
+  if defined?(Supplier)
+    suppliers_data = [
+      {
+        name: "Rações Aqua Forte",
+        email: "vendas@aquaforte.com.br",
+        tax_id: "45.678.901/0001-22",
+        state_registration: "245.778.990.000",
+        postal_code: "83005-100",
+        address: "Rodovia BR-277",
+        address_number: "5000",
+        address_complement: "Galpão B",
+        neighborhood: "Industrial",
+        city: "São José dos Pinhais",
+        state: "PR",
+        phone: "(41) 93333-4444"
+      },
+      {
+        name: "FarmVet Insumos",
+        email: "comercial@farmvet.com.br",
+        tax_id: "33.222.111/0001-55",
+        state_registration: "112.233.445.000",
+        postal_code: "80050-200",
+        address: "Rua João Negrão",
+        address_number: "700",
+        address_complement: "Térreo",
+        neighborhood: "Rebouças",
+        city: "Curitiba",
+        state: "PR",
+        phone: "(41) 92222-1111"
+      },
+      {
+        name: "Manutenção & Bombas Hidro",
+        email: "atendimento@hidrobombas.com.br",
+        tax_id: "77.888.999/0001-00",
+        state_registration: nil,
+        postal_code: "13400-123",
+        address: "Av. Independência",
+        address_number: "1200",
+        address_complement: "Fundos",
+        neighborhood: "Centro",
+        city: "Piracicaba",
+        state: "SP",
+        phone: "(19) 98888-7777"
+      }
+    ]
+
+    suppliers_data.each do |attrs|
+      supplier = Supplier.new
+
+      attrs.each do |k, v|
+        setter = "#{k}="
+        supplier.public_send(setter, v) if supplier.respond_to?(setter)
+      end
+
+      supplier.save!
+    end
+  else
+    puts "⚠️ Supplier não existe (migration não aplicada ainda)."
+  end
+
   puts "🏭 Criando unidades..."
   unit1 = Unit.new(name: "Fazenda Principal")
   unit2 = Unit.new(name: "Unidade Experimental")

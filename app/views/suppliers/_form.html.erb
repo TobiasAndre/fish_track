@@ -1,0 +1,147 @@
+<%= form_with model: @supplier, local: true do |form| %>
+  <div 
+    data-controller="cep"
+    data-cep-url-value="https://viacep.com.br/ws/%{cep}/json/" 
+    class="space-y-6">
+
+    <div>
+      <%= form.label :name, "Nome", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_field :name,
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :email, "Email", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.email_field :email, class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :tax_id, "CPF/CNPJ", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :tax_id, class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :phone, "Telefone", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.telephone_field :phone, class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="sm:col-span-1">
+          <%= form.label :postal_code, "CEP", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :postal_code,
+                placeholder: "00000-000",
+                data: { action: "input->cep#onCepInput blur->cep#lookup", cep_target: "cep" },
+                class: "w-full rounded-lg border px-3 py-2 text-sm
+                        bg-white dark:bg-gray-950
+                        border-gray-300 dark:border-gray-700
+                        text-gray-900 dark:text-gray-100
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <%= form.label :address, "Logradouro", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :address, data: { cep_target: "street" }, class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="sm:col-span-1">
+          <%= form.label :address_number, "Número", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :address_number, class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <%= form.label :address_complement, "Complemento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :address_complement, class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="sm:col-span-1">
+          <%= form.label :neighborhood, "Bairro", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :neighborhood, data: { cep_target: "neighborhood" }, class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div class="sm:col-span-1">
+          <%= form.label :city, "Cidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :city, data: { cep_target: "city" }, class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div class="sm:col-span-1">
+          <%= form.label :state, "UF", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :state, placeholder: "PR", data: { cep_target: "state" }, class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+      <%= link_to "Cancelar", suppliers_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+      <%= form.submit "Salvar", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+<% end %>

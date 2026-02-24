@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :customers
   devise_for :users, controllers: { sessions: "users/sessions" }
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -18,6 +19,8 @@ Rails.application.routes.draw do
     resource :dashboard, only: [:show]
     resources :financial_entries
     resources :employees
+    resources :suppliers
+    resources :customers
     resource :payroll, only: [:show, :update], controller: "payroll"
 
     resources :payroll_items, only: [:create, :destroy]

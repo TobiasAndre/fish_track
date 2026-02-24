@@ -1,0 +1,57 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Clientes</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Gerencie clientes e acompanhe suas informações.
+      </p>
+    </div>
+
+    <%= link_to "Novo cliente", new_customer_path,
+      class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white text-sm font-medium transition" %>
+  </div>
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Nome</th>
+          <th class="text-left px-4 py-3 font-medium">Email</th>
+          <th class="text-left px-4 py-3 font-medium">CPF/CNPJ</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @customers.each do |c| %>
+          <tr>
+            <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= c.name %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= c.email.presence || "—" %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= c.tax_id.presence || "—" %></td>
+
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_customer_path(c),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", customer_path(c),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir #{c.name}?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @customers.empty? %>
+          <tr>
+            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+              Nenhum cliente cadastrado.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_01_205926) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_24_092805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -54,6 +54,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_01_205926) do
     t.datetime "updated_at", null: false
     t.string "tenant_name", default: "", null: false
     t.index ["tenant_name"], name: "index_companies_on_tenant_name", unique: true
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "name"
+    t.string "tax_id"
+    t.string "state_registration"
+    t.string "email"
+    t.string "address"
+    t.string "address_number"
+    t.string "address_complement"
+    t.string "neighborhood"
+    t.string "postal_code"
+    t.string "city"
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "employees", force: :cascade do |t|
@@ -128,6 +144,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_01_205926) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
+  end
+
+  create_table "suppliers", force: :cascade do |t|
+    t.string "name"
+    t.string "tax_id"
+    t.string "email"
+    t.string "state_registration"
+    t.string "address"
+    t.string "address_number"
+    t.string "address_complement"
+    t.string "neighborhood"
+    t.string "postal_code"
+    t.string "city"
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "units", force: :cascade do |t|
