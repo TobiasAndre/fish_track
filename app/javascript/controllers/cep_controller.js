@@ -2,9 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["cep", "street", "neighborhood", "city", "state", "error", "loading"]
-  static values = {
-    url: String,
-  }
+  static values = { url: String }
 
   connect() {
     this._lastCep = null
@@ -14,12 +12,19 @@ export default class extends Controller {
     const raw = this.cepTarget.value || ""
     const digits = raw.replace(/\D/g, "").slice(0, 8)
 
-    // Máscara simples 00000-000
+    // Máscara 00000-000
     const masked = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits
     if (masked !== raw) this.cepTarget.value = masked
 
-    // Se completou 8 dígitos, busca automático
-    if (digits.length === 8) this.lookup()
+    // Se ainda não tem 8 dígitos, libera nova consulta e limpa erro
+    if (digits.length < 8) {
+      this._lastCep = null
+      this._clearError()
+      return
+    }
+
+    // Completou 8 dígitos -> busca
+    this.lookup()
   }
 
   async lookup() {
@@ -28,9 +33,8 @@ export default class extends Controller {
     const digits = (this.cepTarget.value || "").replace(/\D/g, "")
     if (digits.length !== 8) return
 
-    // evita buscar o mesmo CEP repetido
+    // evita refetch do mesmo CEP já consultado com sucesso
     if (digits === this._lastCep) return
-    this._lastCep = digits
 
     try {
       this._setLoading(true)
@@ -38,7 +42,7 @@ export default class extends Controller {
       const urlTemplate = this.urlValue || "https://viacep.com.br/ws/%{cep}/json/"
       const url = urlTemplate.replace("%{cep}", digits)
 
-      const res = await fetch(url, { headers: { "Accept": "application/json" } })
+      const res = await fetch(url, { headers: { Accept: "application/json" } })
       if (!res.ok) throw new Error("Falha ao consultar o CEP")
 
       const data = await res.json()
@@ -47,14 +51,16 @@ export default class extends Controller {
         return
       }
 
-      // Preenche campos (sem sobrescrever se o usuário já digitou algo manualmente)
-      this._fillIfEmpty(this.streetTarget, data.logradouro)
-      this._fillIfEmpty(this.neighborhoodTarget, data.bairro)
-      this._fillIfEmpty(this.cityTarget, data.localidade)
-      this._fillIfEmpty(this.stateTarget, data.uf)
+      this._setValue(this.streetTarget, data.logradouro)
+      this._setValue(this.neighborhoodTarget, data.bairro)
+      this._setValue(this.cityTarget, data.localidade)
+      this._setValue(this.stateTarget, data.uf)
 
-      // Foca no número depois de preencher (se existir no DOM)
-      const numberField = this.element.querySelector('[name$="[address_number]"], [name="customer[address_number]"], [name="supplier[address_number]"]')
+      this._lastCep = digits
+
+      const numberField = this.element.querySelector(
+        '[name$="[address_number]"], [name="customer[address_number]"], [name="supplier[address_number]"]'
+      )
       if (numberField) numberField.focus()
     } catch (e) {
       this._showError("Não foi possível consultar o CEP. Tente novamente.")
@@ -63,10 +69,10 @@ export default class extends Controller {
     }
   }
 
-  _fillIfEmpty(input, value) {
+  _setValue(input, value) {
     if (!input) return
-    const current = (input.value || "").trim()
-    if (current.length === 0 && value) input.value = value
+    input.value = value || ""
+    input.dispatchEvent(new Event("input", { bubbles: true }))
   }
 
   _setLoading(on) {
