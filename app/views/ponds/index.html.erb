@@ -1,13 +1,13 @@
 <div class="max-w-4xl mx-auto">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Açudes</h1>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Tanques</h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-        Cadastre os açudes/tanques por unidade.
+        Cadastre os Tanques/tanques por unidade.
       </p>
     </div>
 
-    <%= link_to "Novo açude", new_pond_path,
+    <%= link_to "Novo Tanque", new_pond_path,
       class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
               dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white text-sm font-medium transition" %>
@@ -18,7 +18,7 @@
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
         <tr>
           <th class="text-left px-4 py-3 font-medium">Unidade</th>
-          <th class="text-left px-4 py-3 font-medium">Açude</th>
+          <th class="text-left px-4 py-3 font-medium">Tanque</th>
           <th class="text-left px-4 py-3 font-medium">Capacidade</th>
           <th class="text-right px-4 py-3 font-medium">Ações</th>
         </tr>
@@ -44,7 +44,7 @@
 
                 <%= button_to "Excluir", pond_path(pond),
                   method: :delete,
-                  data: { turbo_confirm: "Excluir açude #{pond.name}?" },
+                  data: { turbo_confirm: "Excluir Tanque #{pond.name}?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
               </div>
             </td>

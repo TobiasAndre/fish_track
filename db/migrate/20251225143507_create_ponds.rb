@@ -4,7 +4,7 @@ class CreatePonds < ActiveRecord::Migration[7.1]
       t.references :unit, null: false, foreign_key: true
       t.string :name, null: false
 
-      # opcional (capacidade do açude/tanque)
+      # opcional (capacidade do Tanque/tanque)
       t.decimal :capacity, precision: 12, scale: 2, null: true
       t.string :capacity_unit, null: true # ex: "m3", "ha", "liters"
       t.timestamps

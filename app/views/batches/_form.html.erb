@@ -2,12 +2,12 @@
   <%= render "shared/form_errors", resource: @batch %>
 
   <div>
-    <%= f.label :pond_id, "Açude", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.label :pond_id, "Tanque", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
     <%= f.collection_select :pond_id,
       Pond.includes(:unit).order("units.name ASC, ponds.name ASC"),
       :id,
       ->(p) { "#{p.unit.name} — #{p.name}" },
-      { prompt: "Selecione um açude" },
+      { prompt: "Selecione um Tanque" },
       class: "w-full rounded-lg border px-3 py-2 text-sm
               bg-white dark:bg-gray-950
               border-gray-300 dark:border-gray-700

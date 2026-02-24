@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_24_092805) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -112,6 +112,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_092805) do
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
+  create_table "orders", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.string "status", default: "draft", null: false
+    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_orders_on_customer_id"
+    t.index ["occurred_on"], name: "index_orders_on_occurred_on"
+    t.index ["status"], name: "index_orders_on_status"
+  end
+
   create_table "payroll_items", force: :cascade do |t|
     t.bigint "employee_id", null: false
     t.integer "year", null: false
@@ -198,6 +211,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_092805) do
   add_foreign_key "financial_entries", "units"
   add_foreign_key "memberships", "companies"
   add_foreign_key "memberships", "users"
+  add_foreign_key "orders", "customers"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
 end

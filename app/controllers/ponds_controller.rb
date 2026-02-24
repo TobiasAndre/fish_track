@@ -16,7 +16,7 @@ class PondsController < ApplicationController
     # O Rails vai aceitar unit_id porque Pond pertence a Unit.
 
     if @pond.save
-      redirect_to ponds_path, notice: "Açude criado!"
+      redirect_to ponds_path, notice: "Tanque criado!"
     else
       render :new, status: :unprocessable_entity
     end
@@ -26,7 +26,7 @@ class PondsController < ApplicationController
 
   def update
     if @pond.update(pond_params)
-      redirect_to ponds_path, notice: "Açude atualizado!"
+      redirect_to ponds_path, notice: "Tanque atualizado!"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -34,7 +34,7 @@ class PondsController < ApplicationController
 
   def destroy
     @pond.destroy!
-    redirect_to ponds_path, notice: "Açude removido!"
+    redirect_to ponds_path, notice: "Tanque removido!"
   end
 
   private

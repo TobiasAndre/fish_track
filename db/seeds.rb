@@ -257,13 +257,13 @@ Apartment::Tenant.switch(TENANT_NAME) do
   unit1.save!
   unit2.save!
 
-  puts "💧 Criando açudes..."
+  puts "💧 Criando Tanques..."
   ponds = []
-  ponds << Pond.create!(unit: unit1, name: "Açude 01", capacity: 15000, capacity_unit: "peixes")
-  ponds << Pond.create!(unit: unit1, name: "Açude 02", capacity: 12000, capacity_unit: "peixes")
-  ponds << Pond.create!(unit: unit1, name: "Açude 03", capacity: 18000, capacity_unit: "peixes")
-  ponds << Pond.create!(unit: unit2, name: "Açude A",  capacity: 8000,  capacity_unit: "peixes")
-  ponds << Pond.create!(unit: unit2, name: "Açude B",  capacity: 10000, capacity_unit: "peixes")
+  ponds << Pond.create!(unit: unit1, name: "Tanque 01", capacity: 15000, capacity_unit: "peixes")
+  ponds << Pond.create!(unit: unit1, name: "Tanque 02", capacity: 12000, capacity_unit: "peixes")
+  ponds << Pond.create!(unit: unit1, name: "Tanque 03", capacity: 18000, capacity_unit: "peixes")
+  ponds << Pond.create!(unit: unit2, name: "Tanque A",  capacity: 8000,  capacity_unit: "peixes")
+  ponds << Pond.create!(unit: unit2, name: "Tanque B",  capacity: 10000, capacity_unit: "peixes")
 
   puts "🐟 Criando lotes..."
   batches = []
