@@ -76,6 +76,14 @@
       <% end %>
 
       <% if system_admin? %>
+        <!-- Divider -->
+        <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
+
+        <!-- Section label -->
+        <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          Administração
+        </p>
+
         <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
           <span>👤</span>
           <span data-sidebar-target="label">Usuários</span>
@@ -161,6 +169,15 @@
     <% end %>
 
     <% if system_admin? %>
+      <!-- Divider -->
+      <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
+
+      <!-- Section label -->
+      <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+        data-sidebar-target="label">
+        Administração
+      </p>
+
       <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
         <span>👤</span>
         <span data-sidebar-target="label">Usuários</span>
