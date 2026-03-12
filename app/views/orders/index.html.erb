@@ -23,6 +23,12 @@
               Data
             </th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Forma
+            </th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Condição
+            </th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Status
             </th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -42,6 +48,12 @@
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                 <%= l(order.occurred_on) %>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                <%= order.payment_method&.name || "-" %>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                <%= order.payment_term&.name || "-" %>
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                 <%= order.status %>

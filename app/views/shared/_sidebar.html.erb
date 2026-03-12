@@ -67,6 +67,14 @@
         <span>📦</span><span class="text-sm font-medium">Lotes</span>
       <% end %>
 
+      <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <span>📄</span><span class="text-sm font-medium">Condições de pagamento</span>
+      <% end %>
+
+      <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <span>💳</span><span class="text-sm font-medium">Formas de pagamento</span>
+      <% end %>
+
       <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
         <span>👥</span><span class="text-sm font-medium">Funcionários</span>
       <% end %>
@@ -166,6 +174,14 @@
 
     <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>🏷️</span><span data-sidebar-target="label">Produtos</span>
+    <% end %>
+
+    <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <span>📄</span><span data-sidebar-target="label">Condições de pagamento</span>
+    <% end %>
+
+    <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <span>💳</span><span data-sidebar-target="label">Formas de pagamento</span>
     <% end %>
 
     <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>

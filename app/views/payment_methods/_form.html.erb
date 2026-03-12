@@ -1,0 +1,43 @@
+<%= form_with model: @payment_method, local: true do |form| %>
+  <div class="space-y-6">
+    <% if @payment_method.errors.any? %>
+      <div class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <p class="font-semibold mb-2">Não foi possível salvar a forma de pagamento:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <% @payment_method.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :name, "Nome", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_field :name,
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :description, "Descrição", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_area :description, rows: 4,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div>
+      <label class="inline-flex items-center gap-3">
+        <%= form.check_box :active, class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" %>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Ativa</span>
+      </label>
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+      <%= link_to "Cancelar", payment_methods_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
+      <%= form.submit @payment_method.persisted? ? "Atualizar forma" : "Criar forma",
+        class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700" %>
+    </div>
+  </div>
+<% end %>

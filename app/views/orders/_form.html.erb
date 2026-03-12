@@ -50,9 +50,10 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
-        <%= form.label :occurred_on, "Data do pedido", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
-          <%= form.date_field :occurred_on,
+          <%= form.collection_select :payment_method_id, @payment_methods, :id, :name,
+            { prompt: "Selecione a forma de pagamento" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -62,14 +63,30 @@
       </div>
 
       <div>
-        <%= form.label :product_id, "Produto", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= form.collection_select :product_id, @products, :id, :name,
-        { prompt: "Selecione um produto" },
-        class: "w-full rounded-lg border px-3 py-2 text-sm
-                bg-white dark:bg-gray-950
-                border-gray-300 dark:border-gray-700
-                text-gray-900 dark:text-gray-100
-                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        <%= form.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.collection_select :payment_term_id, @payment_terms, :id, :name,
+            { prompt: "Selecione a condição de pagamento" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :occurred_on, "Data do pedido", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.date_field :occurred_on,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
       </div>
 
       <div>
@@ -84,9 +101,6 @@
                     text-gray-900 dark:text-gray-100
                     focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Ex.: 150000 para R$ 1.500,00
-        </p>
       </div>
     </div>
 

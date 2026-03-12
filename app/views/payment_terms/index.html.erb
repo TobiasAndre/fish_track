@@ -1,0 +1,59 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Condições de pagamento</h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Gerencie as condições de pagamento cadastradas.
+      </p>
+    </div>
+
+    <%= link_to "Nova condição", new_payment_term_path,
+      class: "inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700" %>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-950">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Nome</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Ações</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          <% @payment_terms.each do |payment_term| %>
+            <tr>
+              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100"><%= payment_term.name %></td>
+              <td class="px-4 py-3 text-sm">
+                <% if payment_term.active? %>
+                  <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">Ativa</span>
+                <% else %>
+                  <span class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">Inativa</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-right text-sm">
+                <div class="flex items-center justify-end gap-3">
+                  <%= link_to "Editar", edit_payment_term_path(payment_term),
+                    class: "text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" %>
+                  <%= link_to "Excluir", payment_term_path(payment_term),
+                    data: { turbo_method: :delete, turbo_confirm: "Tem certeza?" },
+                    class: "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @payment_terms.empty? %>
+            <tr>
+              <td colspan="3" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                Nenhuma condição encontrada.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

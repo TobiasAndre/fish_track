@@ -20,6 +20,8 @@ Rails.application.routes.draw do
     resources :companies, only: [:new, :create, :edit, :update]
     resources :units
     resources :products
+    resources :payment_terms
+    resources :payment_methods
     resources :ponds
     resources :orders
     resources :batches do

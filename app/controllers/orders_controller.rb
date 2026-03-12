@@ -1,9 +1,10 @@
 class OrdersController < ApplicationController
   before_action :set_order, only: %i[show edit update destroy]
-  before_action :load_products, only: %i[new create edit update]
+  before_action :load_form_collections, only: %i[new create edit update]
 
   def index
-    @orders = Order.includes(:customer).order(occurred_on: :desc, created_at: :desc)
+    @orders = Order.includes(:customer, :payment_method, :payment_term)
+                   .order(occurred_on: :desc, created_at: :desc)
   end
 
   def show
@@ -14,7 +15,6 @@ class OrdersController < ApplicationController
       occurred_on: Date.current,
       status: "draft"
     )
-    load_customers
   end
 
   def create
@@ -23,20 +23,17 @@ class OrdersController < ApplicationController
     if @order.save
       redirect_to orders_path, notice: "Pedido criado com sucesso."
     else
-      load_customers
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
-    load_customers
   end
 
   def update
     if @order.update(order_params)
       redirect_to orders_path, notice: "Pedido atualizado com sucesso."
     else
-      load_customers
       render :edit, status: :unprocessable_entity
     end
   end
@@ -48,21 +45,21 @@ class OrdersController < ApplicationController
 
   private
 
-  def load_products
-    @products = Product.order(:name)
-  end
-
   def set_order
     @order = Order.find(params[:id])
   end
 
-  def load_customers
+  def load_form_collections
     @customers = Customer.order(:name)
+    @payment_methods = PaymentMethod.where(active: true).order(:name)
+    @payment_terms = PaymentTerm.where(active: true).order(:name)
   end
 
   def order_params
     params.require(:order).permit(
       :customer_id,
+      :payment_method_id,
+      :payment_term_id,
       :status,
       :occurred_on,
       :total_cents,
