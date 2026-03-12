@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   authenticate :user do
     resources :companies, only: [:new, :create, :edit, :update]
     resources :units
+    resources :products
     resources :ponds
     resources :orders
     resources :batches do

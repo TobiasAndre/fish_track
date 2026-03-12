@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_12_114603) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,8 +42,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
     t.decimal "avg_weight_g", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "product_id"
     t.index ["pond_id", "name"], name: "index_batches_on_pond_id_and_name"
     t.index ["pond_id"], name: "index_batches_on_pond_id"
+    t.index ["product_id"], name: "index_batches_on_product_id"
     t.index ["started_on"], name: "index_batches_on_started_on"
     t.index ["status", "stage"], name: "index_batches_on_status_and_stage"
   end
@@ -112,6 +114,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "product_id", null: false
+    t.decimal "quantity", precision: 12, scale: 3, default: "0.0", null: false
+    t.bigint "unit_price_cents", default: 0, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.string "unit", default: "kg", null: false
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_id"], name: "index_order_items_on_product_id"
+  end
+
   create_table "orders", force: :cascade do |t|
     t.bigint "customer_id", null: false
     t.string "status", default: "draft", null: false
@@ -149,6 +165,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
     t.datetime "updated_at", null: false
     t.index ["unit_id", "name"], name: "index_ponds_on_unit_id_and_name", unique: true
     t.index ["unit_id"], name: "index_ponds_on_unit_id"
+  end
+
+  create_table "products", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "sku"
+    t.string "unit", default: "kg", null: false
+    t.boolean "active", default: true, null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_products_on_active"
+    t.index ["name"], name: "index_products_on_name"
+    t.index ["sku"], name: "index_products_on_sku", unique: true
   end
 
   create_table "profiles", force: :cascade do |t|
@@ -206,11 +235,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_104557) do
 
   add_foreign_key "batch_events", "batches"
   add_foreign_key "batches", "ponds"
+  add_foreign_key "batches", "products"
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "units"
   add_foreign_key "memberships", "companies"
   add_foreign_key "memberships", "users"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_items", "products"
   add_foreign_key "orders", "customers"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"

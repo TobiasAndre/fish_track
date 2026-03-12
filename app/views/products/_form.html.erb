@@ -1,0 +1,91 @@
+<%= form_with model: @product, local: true do |form| %>
+  <div class="space-y-6">
+    <% if @product.errors.any? %>
+      <div class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <p class="font-semibold mb-2">Não foi possível salvar o produto:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <% @product.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :name, "Nome", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :name,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :sku, "SKU", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :sku,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :unit, "Unidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.select :unit,
+            options_for_select(
+              [
+                ["Quilograma (kg)", "kg"],
+                ["Unidade (un)", "un"],
+                ["Caixa", "caixa"],
+                ["Saco", "saco"],
+                ["Litro", "litro"]
+              ],
+              @product.unit
+            ),
+            {},
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div class="flex items-end">
+        <label class="inline-flex items-center gap-3">
+          <%= form.check_box :active,
+            class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" %>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Produto ativo</span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :description, "Descrição", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_area :description, rows: 4,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+      <%= link_to "Cancelar", products_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
+      <%= form.submit @product.persisted? ? "Atualizar produto" : "Criar produto",
+        class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+<% end %>
