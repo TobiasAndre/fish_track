@@ -1,5 +1,6 @@
 class BatchesController < ApplicationController
   before_action :authenticate_user!
+  before_action :load_products, only: %i[new create edit update]
   before_action :set_batch, only: [:edit, :update, :show, :destroy]
 
   def index
@@ -51,6 +52,10 @@ class BatchesController < ApplicationController
   end
 
   private
+
+  def load_products
+    @products = Product.order(:name)
+  end
 
   def set_batch
     @batch = Batch.find(params[:id])

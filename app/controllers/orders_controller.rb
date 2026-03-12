@@ -1,5 +1,6 @@
 class OrdersController < ApplicationController
   before_action :set_order, only: %i[show edit update destroy]
+  before_action :load_products, only: %i[new create edit update]
 
   def index
     @orders = Order.includes(:customer).order(occurred_on: :desc, created_at: :desc)
@@ -46,6 +47,10 @@ class OrdersController < ApplicationController
   end
 
   private
+
+  def load_products
+    @products = Product.order(:name)
+  end
 
   def set_order
     @order = Order.find(params[:id])
