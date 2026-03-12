@@ -10,6 +10,8 @@ class FinancialEntriesController < ApplicationController
 
     @entries = FinancialEntry.includes(:unit, :batch)
                              .order(occurred_on: :desc, created_at: :desc)
+                             .page(params[:page])
+                             .per(10)
 
     @entries = @entries.where(stage: @q_stage) if @q_stage.present?
     @entries = @entries.where(entry_type: @q_type) if @q_type.present?
