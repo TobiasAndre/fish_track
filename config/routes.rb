@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     resources :companies, only: [:new, :create, :edit, :update]
     resources :units
     resources :ponds
+    resources :orders
     resources :batches do
       resources :batch_events, only: [:index, :new, :create, :edit, :update, :destroy]
     end
