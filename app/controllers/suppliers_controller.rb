@@ -3,7 +3,10 @@ class SuppliersController < ApplicationController
   before_action :set_supplier, only: [:show, :edit, :update, :destroy]
 
   def index
-    @suppliers = Supplier.order(:name)
+    @suppliers = Supplier
+      .order(:name)
+      .page(params[:page])
+      .per(10)
   end
 
   def show; end

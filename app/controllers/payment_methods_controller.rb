@@ -2,7 +2,7 @@ class PaymentMethodsController < ApplicationController
   before_action :set_payment_method, only: %i[edit update destroy]
 
   def index
-    @payment_methods = PaymentMethod.order(:name)
+    @payment_methods = PaymentMethod.order(:name).page(params[:page]).per(10)
   end
 
   def new

@@ -4,16 +4,11 @@ class BatchesController < ApplicationController
   before_action :set_batch, only: [:edit, :update, :show, :destroy]
 
   def index
-    @batches = @batches = Batch.joins(pond: :unit)
-                               .includes(pond: :unit)
-                               .order(
-                                 Arel.sql(
-                                   "batches.status ASC,
-                                   units.name ASC,
-                                   ponds.name ASC,
-                                   batches.started_on DESC"
-                                 )
-                               )
+    @batches = Batch
+      .includes(pond: :unit)
+      .order(started_on: :desc, created_at: :desc)
+      .page(params[:page])
+      .per(5)
   end
 
   def show; end

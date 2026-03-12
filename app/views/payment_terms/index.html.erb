@@ -56,4 +56,15 @@
       </table>
     </div>
   </div>
+   <% if @payment_terms.total_count > 0 %>
+    <div class="mt-4 flex flex-col items-center gap-2">
+      <p class="text-sm text-gray-600 dark:text-gray-300">
+        Mostrando <%= @payment_terms.offset_value + 1 %>–
+        <%= [@payment_terms.offset_value + @payment_terms.limit_value, @payment_terms.total_count].min %>
+        de <%= @payment_terms.total_count %> condições de pagamento
+      </p>
+
+      <%= paginate @payment_terms %>
+    </div>
+  <% end %>
 </div>

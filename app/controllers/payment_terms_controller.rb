@@ -2,7 +2,7 @@ class PaymentTermsController < ApplicationController
   before_action :set_payment_term, only: %i[edit update destroy]
 
   def index
-    @payment_terms = PaymentTerm.order(:name)
+    @payment_terms = PaymentTerm.order(:name).page(params[:page]).per(10)
   end
 
   def new

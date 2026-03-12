@@ -56,4 +56,15 @@
       </table>
     </div>
   </div>
+  <% if @payment_methods.total_count > 0 %>
+    <div class="mt-4 flex flex-col items-center gap-2">
+      <p class="text-sm text-gray-600 dark:text-gray-300">
+        Mostrando <%= @payment_methods.offset_value + 1 %>–
+        <%= [@payment_methods.offset_value + @payment_methods.limit_value, @payment_methods.total_count].min %>
+        de <%= @payment_methods.total_count %> formas de pagamento
+      </p>
+
+      <%= paginate @payment_methods %>
+    </div>
+  <% end %>
 </div>

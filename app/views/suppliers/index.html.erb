@@ -12,6 +12,7 @@
               dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white text-sm font-medium transition" %>
   </div>
+
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
     <table class="w-full text-sm">
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
@@ -22,6 +23,7 @@
           <th class="text-right px-4 py-3 font-medium">Ações</th>
         </tr>
       </thead>
+
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <% @suppliers.each do |s| %>
           <tr>
@@ -53,4 +55,10 @@
       </tbody>
     </table>
   </div>
+
+  <% if @suppliers.total_count > 0 %>
+    <div class="mt-4 flex flex-col items-center gap-2">
+      <%= paginate @suppliers %>
+    </div>
+  <% end %>
 </div>

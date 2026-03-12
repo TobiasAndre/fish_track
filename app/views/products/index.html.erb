@@ -81,4 +81,10 @@
       </table>
     </div>
   </div>
+
+  <% if @products.total_count > 0 %>
+    <div class="mt-4 flex flex-col items-center gap-2">
+      <%= paginate @products %>
+    </div>
+  <% end %>
 </div>
