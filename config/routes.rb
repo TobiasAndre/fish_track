@@ -8,6 +8,13 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
+  # 
+  namespace :admin do
+    resources :users, only: %i[index new create edit update]
+    resources :companies, only: %i[index new create edit update]
+    resources :memberships
+    resources :tenants, only: [:new, :create]
+  end
 
   authenticate :user do
     resources :companies, only: [:new, :create, :edit, :update]

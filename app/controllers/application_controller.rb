@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  helper_method :system_admin?
   before_action :configure_permitted_parameters, if: :devise_controller?
   around_action :switch_tenant
   helper_method :current_profile
@@ -17,6 +18,10 @@ class ApplicationController < ActionController::Base
   rescue Apartment::TenantNotFound
     reset_session
     redirect_to new_user_session_path, alert: "Tenant inválido."
+  end
+
+  def system_admin?
+    user_signed_in? && current_user.email == "admin@fishtrack.com"
   end
 
   def current_profile

@@ -74,6 +74,18 @@
       <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
         <span>💳</span><span class="text-sm font-medium">Financeiro</span>
       <% end %>
+
+      <% if system_admin? %>
+        <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+          <span>👤</span>
+          <span data-sidebar-target="label">Usuários</span>
+        <% end %>
+
+        <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+          <span>🏢</span>
+          <span data-sidebar-target="label">Empresas</span>
+        <% end %>
+      <% end %>
     </nav>
 
     <!-- Footer -->
@@ -146,6 +158,18 @@
 
     <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>💳</span><span data-sidebar-target="label">Financeiro</span>
+    <% end %>
+
+    <% if system_admin? %>
+      <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <span>👤</span>
+        <span data-sidebar-target="label">Usuários</span>
+      <% end %>
+
+      <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <span>🏢</span>
+        <span data-sidebar-target="label">Empresas</span>
+      <% end %>
     <% end %>
   </nav>
 
