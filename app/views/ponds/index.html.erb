@@ -30,8 +30,8 @@
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= pond.unit.name %></td>
             <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium"><%= pond.name %></td>
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
-              <% if pond.capacity.present? %>
-                <%= pond.capacity %> <%= pond.capacity_unit.presence || "" %>
+              <% if pond.capacity_unit.present? %>
+                <%= pond.capacity_unit %>
               <% else %>
                 <span class="text-gray-400 dark:text-gray-500">—</span>
               <% end %>
