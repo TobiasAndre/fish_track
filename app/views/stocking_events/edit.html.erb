@@ -1,0 +1,23 @@
+<div class="max-w-2xl mx-auto">
+  <% batch = @batch_stocking.batch %>
+  <% pond = @batch_stocking.pond %>
+  <% unit = pond.unit %>
+
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Editar evento</h1>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+    Lote: <span class="font-medium"><%= batch.name %></span>
+    • <%= unit.name %>
+    • <%= pond.name %>
+  </p>
+
+  <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+    <% details = [] %>
+    <% details << "Qtd. alojada: #{@batch_stocking.quantity}" if @batch_stocking.quantity.present? %>
+    <% details << "Peso inicial: #{@batch_stocking.avg_weight_g}g" if @batch_stocking.avg_weight_g.present? %>
+    <% details << "Fornecedor: #{@batch_stocking.supplier.name}" if @batch_stocking.supplier.present? %>
+    <% details << "Alojamento: #{l(@batch_stocking.stocked_on)}" if @batch_stocking.stocked_on.present? %>
+    <%= details.join(" • ") %>
+  </div>
+
+  <%= render "form" %>
+</div>

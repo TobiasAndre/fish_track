@@ -50,10 +50,10 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
-        <%= form.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
-          <%= form.collection_select :payment_method_id, @payment_methods, :id, :name,
-            { prompt: "Selecione a forma de pagamento" },
+          <%= form.collection_select :payment_term_id, @payment_terms, :id, :name,
+            { prompt: "Selecione a condição de pagamento" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -63,10 +63,10 @@
       </div>
 
       <div>
-        <%= form.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
-          <%= form.collection_select :payment_term_id, @payment_terms, :id, :name,
-            { prompt: "Selecione a condição de pagamento" },
+          <%= form.collection_select :payment_method_id, @payment_methods, :id, :name,
+            { prompt: "Selecione a forma de pagamento" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700

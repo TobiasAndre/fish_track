@@ -25,7 +25,9 @@ Rails.application.routes.draw do
     resources :ponds
     resources :orders
     resources :batches do
-      resources :batch_events, only: [:index, :new, :create, :edit, :update, :destroy]
+      resources :batch_stockings, only: [] do
+        resources :stocking_events
+      end
     end
     resource :dashboard, only: [:show]
     resources :financial_entries

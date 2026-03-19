@@ -1,55 +1,39 @@
 class Batch < ApplicationRecord
-  belongs_to :pond
-  has_one :unit, through: :pond
+  has_many :batch_stockings, dependent: :destroy
+  has_many :ponds, through: :batch_stockings
 
-  has_many :batch_events, dependent: :destroy
-  has_many :financial_entries, dependent: :nullify
+  belongs_to :product, optional: true
 
-  enum stage: { nursery: "nursery", juvenile: "juvenile", growout: "growout" }
-  enum status: { active: "active", closed: "closed" }
+  accepts_nested_attributes_for :batch_stockings, allow_destroy: true, reject_if: :all_blank
 
-  validates :name, :status, :stage, :started_on, presence: true
+  enum status: {
+    active: "active",
+    closed: "closed"
+  }, _suffix: true
 
-  def recalculate_from_events!
-    with_lock do
-      events = batch_events.order(occurred_on: :asc, created_at: :asc)
+  enum stage: {
+    juvenile: "juvenile",
+    growout: "growout"
+  }, _suffix: true
 
-      # ---- QUANTIDADE ----
-      if initial_quantity.present?
-        qty = initial_quantity.to_i
+  validates :name, :started_on, :status, :stage, presence: true
+  validates :batch_stockings, presence: true
 
-        events.each do |e|
-          case e.event_type
-          when "mortality"
-            qty -= e.quantity.to_i
-          when "loading"
-            qty = 0
-          end
-        end
+  validate :stockings_must_belong_to_same_unit
 
-        qty = 0 if qty.negative?
-        self.current_quantity = qty
-      end
+  def unit
+    ponds.first&.unit
+  end
 
-      # ---- PESO MÉDIO (última biometria) ----
-      last_bio = events
-        .select { |e| e.event_type == "biometrics" && e.avg_weight_g.present? }
-        .last
+  private
 
-      self.avg_weight_g = last_bio&.avg_weight_g
+  def stockings_must_belong_to_same_unit
+    valid_stockings = batch_stockings.reject(&:marked_for_destruction?)
+    return if valid_stockings.blank?
 
-      # ---- STATUS DO LOTE ----
-      loading_event = events.reverse.find { |e| e.event_type == "loading" }
+    unit_ids = valid_stockings.map { |s| s.pond&.unit_id }.compact.uniq
+    return if unit_ids.size <= 1
 
-      if loading_event
-        self.status = "closed"
-        self.closed_on = loading_event.occurred_on
-      else
-        self.status = "active"
-        self.closed_on = nil
-      end
-
-      save!(validate: false)
-    end
+    errors.add(:base, "Os tanques selecionados devem pertencer à mesma unidade")
   end
 end

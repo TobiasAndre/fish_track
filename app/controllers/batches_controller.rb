@@ -1,69 +1,66 @@
 class BatchesController < ApplicationController
-  before_action :authenticate_user!
-  before_action :load_products, only: %i[new create edit update]
-  before_action :set_batch, only: [:edit, :update, :show, :destroy]
+  before_action :set_batch, only: %i[show edit update destroy]
+  before_action :set_form_collections, only: %i[new create edit update]
 
   def index
     @batches = Batch
-      .includes(pond: :unit)
+      .includes(:product, batch_stockings: [{ pond: :unit }, :supplier])
       .order(started_on: :desc, created_at: :desc)
       .page(params[:page])
-      .per(5)
+      .per(10)
   end
 
-  def show; end
-
   def new
-    @batch = Batch.new(stage: "juvenile", status: "active", started_on: Date.current)
-    @batch.pond_id = params[:pond_id] if params[:pond_id].present?
+    @batch = Batch.new(
+      status: "active",
+      stage: "juvenile",
+      started_on: Date.current
+    )
+
+    @batch.batch_stockings.build(stocked_on: Date.current)
   end
 
   def create
     @batch = Batch.new(batch_params)
-    ensure_scoped_pond!(@batch.pond_id)
 
     if @batch.save
-      redirect_to batch_path(@batch), notice: "Lote criado!"
+      redirect_to batches_path, notice: "Lote criado com sucesso."
     else
       render :new, status: :unprocessable_entity
     end
   end
 
-  def edit; end
+  def edit
+    @batch.batch_stockings.build(stocked_on: Date.current) if @batch.batch_stockings.empty?
+  end
 
   def update
-    ensure_scoped_pond!(batch_params[:pond_id]) if batch_params[:pond_id].present?
-
     if @batch.update(batch_params)
-      redirect_to batch_path(@batch), notice: "Lote atualizado!"
+      redirect_to batches_path, notice: "Lote atualizado com sucesso."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @batch.destroy!
-    redirect_to batches_path, notice: "Lote removido!"
+    @batch.destroy
+    redirect_to batches_path, notice: "Lote removido com sucesso."
   end
 
   private
-
-  def load_products
-    @products = Product.order(:name)
-  end
 
   def set_batch
     @batch = Batch.find(params[:id])
   end
 
-  def ensure_scoped_pond!(pond_id)
-    return if pond_id.blank?
-    Pond.find(pond_id) # levanta ActiveRecord::RecordNotFound se não for da empresa
+  def set_form_collections
+    @ponds = Pond.includes(:unit).order("units.name ASC, ponds.name ASC")
+    @products = Product.order(:name)
+    @suppliers = Supplier.order(:name)
   end
 
   def batch_params
     params.require(:batch).permit(
-      :pond_id,
       :name,
       :species,
       :status,
@@ -72,7 +69,17 @@ class BatchesController < ApplicationController
       :closed_on,
       :initial_quantity,
       :current_quantity,
-      :avg_weight_g
+      :avg_weight_g,
+      :product_id,
+      batch_stockings_attributes: [
+        :id,
+        :pond_id,
+        :supplier_id,
+        :quantity,
+        :stocked_on,
+        :avg_weight_g,
+        :_destroy
+      ]
     )
   end
 end

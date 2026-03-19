@@ -45,6 +45,9 @@
 
       <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <% @active_batches.each do |b| %>
+          <% unit_names = b.ponds.map { |pond| pond.unit.name }.uniq.join(", ") %>
+          <% pond_names = b.ponds.map(&:name).join(", ") %>
+
           <%= link_to batch_path(b),
             class: "rounded-xl border border-gray-200 dark:border-gray-800
                     hover:bg-gray-50 dark:hover:bg-gray-800/40 transition p-4" do %>
@@ -53,7 +56,7 @@
               <div>
                 <p class="font-medium text-gray-900 dark:text-gray-100"><%= b.name %></p>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <%= b.unit.name %> • <%= b.pond.name %>
+                  <%= unit_names.presence || "—" %> • <%= pond_names.presence || "—" %>
                 </p>
               </div>
 
@@ -99,18 +102,20 @@
 
       <div class="divide-y divide-gray-200 dark:divide-gray-800">
         <% @recent_events.each do |e| %>
+          <% batch_unit_names = e.batch.ponds.map { |pond| pond.unit.name }.uniq.join(", ") %>
+          <% batch_pond_names = e.batch.ponds.map(&:name).join(", ") %>
+
           <div class="px-4 py-3">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                   <%= enum_t(e, :event_type) %>
-                  
                   <span class="text-gray-500 dark:text-gray-400 font-normal">• <%= e.occurred_on %></span>
                 </p>
 
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
-                  <%= e.batch.unit.name %> • <%= e.batch.pond.name %> •
-                  <%= link_to e.batch.name, batch_batch_events_path(e.batch), class: "hover:underline" %>
+                  <%= batch_unit_names.presence || "—" %> • <%= batch_pond_names.presence || "—" %> •
+                  <%= link_to e.batch.name, batch_batch_stocking_stocking_events_path(e.batch, e.batch_stocking), class: "hover:underline" %>
                 </p>
 
                 <% parts = [] %>
@@ -123,7 +128,7 @@
                 <% end %>
               </div>
 
-              <%= link_to "Abrir", batch_batch_events_path(e.batch),
+              <%= link_to "Abrir", batch_batch_stocking_stocking_events_path(e.batch, e.batch_stocking),
                 class: "shrink-0 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                         hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
             </div>

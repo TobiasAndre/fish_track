@@ -1,4 +1,9 @@
 pt-BR:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d/%m"
+      long: "%d de %B de %Y"
   number:
     currency:
       format:
@@ -68,7 +73,7 @@ pt-BR:
       status:
         active: Ativo
         closed: Encerrado
-    batch_event:
+    stocking_event:
       event_type:
         loading: Carregamento
         biometrics: Biometria

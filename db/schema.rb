@@ -10,27 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_12_135919) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_19_110156) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "batch_events", force: :cascade do |t|
+  create_table "batch_ponds", force: :cascade do |t|
     t.bigint "batch_id", null: false
-    t.string "event_type", null: false
-    t.date "occurred_on", null: false
-    t.integer "quantity"
-    t.decimal "avg_weight_g", precision: 10, scale: 2
-    t.decimal "feed_kg", precision: 10, scale: 3
-    t.text "notes"
+    t.bigint "pond_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["batch_id", "occurred_on"], name: "index_batch_events_on_batch_id_and_occurred_on"
-    t.index ["batch_id"], name: "index_batch_events_on_batch_id"
-    t.index ["event_type"], name: "index_batch_events_on_event_type"
+    t.index ["batch_id", "pond_id"], name: "index_batch_ponds_on_batch_id_and_pond_id", unique: true
+    t.index ["batch_id"], name: "index_batch_ponds_on_batch_id"
+    t.index ["pond_id"], name: "index_batch_ponds_on_pond_id"
+  end
+
+  create_table "batch_stockings", force: :cascade do |t|
+    t.bigint "batch_id", null: false
+    t.bigint "pond_id", null: false
+    t.bigint "supplier_id"
+    t.integer "quantity", null: false
+    t.date "stocked_on", null: false
+    t.decimal "avg_weight_g", precision: 10, scale: 2
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["batch_id", "pond_id", "stocked_on"], name: "idx_batch_stockings_batch_pond_date"
+    t.index ["batch_id"], name: "index_batch_stockings_on_batch_id"
+    t.index ["pond_id"], name: "index_batch_stockings_on_pond_id"
+    t.index ["supplier_id"], name: "index_batch_stockings_on_supplier_id"
   end
 
   create_table "batches", force: :cascade do |t|
-    t.bigint "pond_id", null: false
     t.string "name", null: false
     t.string "species"
     t.string "status", default: "active", null: false
@@ -43,8 +52,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_12_135919) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "product_id"
-    t.index ["pond_id", "name"], name: "index_batches_on_pond_id_and_name"
-    t.index ["pond_id"], name: "index_batches_on_pond_id"
+    t.index ["name"], name: "index_batches_on_name"
     t.index ["product_id"], name: "index_batches_on_product_id"
     t.index ["started_on"], name: "index_batches_on_started_on"
     t.index ["status", "stage"], name: "index_batches_on_status_and_stage"
@@ -212,6 +220,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_12_135919) do
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
   end
 
+  create_table "stocking_events", force: :cascade do |t|
+    t.bigint "batch_stocking_id", null: false
+    t.string "event_type", null: false
+    t.date "occurred_on", null: false
+    t.integer "quantity"
+    t.decimal "avg_weight_g", precision: 10, scale: 2
+    t.decimal "feed_kg", precision: 10, scale: 3
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
+    t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
+    t.index ["event_type"], name: "index_stocking_events_on_event_type"
+    t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
+  end
+
   create_table "suppliers", force: :cascade do |t|
     t.string "name"
     t.string "tax_id"
@@ -257,8 +281,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_12_135919) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
-  add_foreign_key "batch_events", "batches"
-  add_foreign_key "batches", "ponds"
+  add_foreign_key "batch_ponds", "batches"
+  add_foreign_key "batch_ponds", "ponds"
+  add_foreign_key "batch_stockings", "batches"
+  add_foreign_key "batch_stockings", "ponds"
+  add_foreign_key "batch_stockings", "suppliers"
   add_foreign_key "batches", "products"
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
@@ -272,4 +299,5 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_12_135919) do
   add_foreign_key "orders", "payment_terms"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
+  add_foreign_key "stocking_events", "batch_stockings"
 end
