@@ -91,6 +91,10 @@
         <span>📋</span><span class="text-sm font-medium">Pedidos</span>
       <% end %>
 
+      <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <span>🧮</span><span class="text-sm font-medium">Orçamentos</span>
+      <% end %>
+
       <% if system_admin? %>
         <!-- Divider -->
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
@@ -198,6 +202,10 @@
 
     <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>📋</span><span data-sidebar-target="label">Pedidos</span>
+    <% end %>
+
+    <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <span>🧮</span><span data-sidebar-target="label">Orçamentos</span>
     <% end %>
 
     <% if system_admin? %>
