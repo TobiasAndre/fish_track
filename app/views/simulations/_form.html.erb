@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
       <div>
         <%= form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
@@ -68,9 +68,7 @@
                     text-gray-900 dark:text-gray-100" %>
         </div>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço por kg</label>
         <div class="mt-1">
@@ -85,7 +83,9 @@
           >
         </div>
       </div>
+    </div>
 
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do carregamento</label>
         <div class="mt-1">
@@ -113,6 +113,17 @@
             class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             placeholder="R$ 0,00"
           >
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :loading_count, "Quantidade de carregamentos", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.number_field :loading_count,
+            min: 1,
+            step: 1,
+            data: { action: "input->simulation-form#recalculate", simulation_form_target: "loadingCount" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
     </div>

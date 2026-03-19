@@ -10,12 +10,16 @@ class Simulation < ApplicationRecord
   validates :price_per_kg_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :loading_cost_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :freight_cost_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :loading_count, numericality: { greater_than: 0, only_integer: true }
 
   private
 
   def normalize_numeric_fields
     raw_quantity = read_attribute_before_type_cast("quantity")
     self.quantity = raw_quantity.to_s.gsub(/\D/, "").to_i if raw_quantity.present?
+
+    raw_loading_count = read_attribute_before_type_cast("loading_count")
+    self.loading_count = raw_loading_count.to_s.gsub(/\D/, "").to_i if raw_loading_count.present?
 
     raw_avg_weight = read_attribute_before_type_cast("avg_weight_kg")
     self.avg_weight_kg = normalize_decimal(raw_avg_weight) if raw_avg_weight.present?
@@ -36,7 +40,10 @@ class Simulation < ApplicationRecord
 
   def calculate_totals
     self.total_weight_kg = quantity.to_i * avg_weight_kg.to_d
+
     fish_total_cents = (total_weight_kg.to_d * price_per_kg_cents.to_i).to_i
-    self.total_cents = fish_total_cents + loading_cost_cents.to_i + freight_cost_cents.to_i
+    logistics_total_cents = (loading_cost_cents.to_i + freight_cost_cents.to_i) * loading_count.to_i
+
+    self.total_cents = fish_total_cents + logistics_total_cents
   end
 end

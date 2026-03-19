@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_19_121428) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_19_131719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -233,6 +233,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_19_121428) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "loading_count", default: 1, null: false
     t.index ["customer_id"], name: "index_simulations_on_customer_id"
     t.index ["simulated_on"], name: "index_simulations_on_simulated_on"
   end

@@ -63,6 +63,7 @@ class SimulationsController < ApplicationController
       :price_per_kg_cents,
       :loading_cost_cents,
       :freight_cost_cents,
+      :loading_count,
       :total_cents,
       :notes
     )

@@ -8,6 +8,7 @@ export default class extends Controller {
     "pricePerKg",
     "loadingCost",
     "freightCost",
+    "loadingCount",
     "grandTotal",
     "pricePerKgCents",
     "loadingCostCents",
@@ -26,6 +27,11 @@ export default class extends Controller {
       this.quantityTarget.value = this.formatIntegerValue(quantity)
     }
 
+    if (this.hasLoadingCountTarget) {
+      const loadingCount = this.parseInteger(this.loadingCountTarget.value)
+      this.loadingCountTarget.value = loadingCount || 1
+    }
+
     if (this.hasTotalWeightTarget) {
       const totalWeight = this.parseDecimal(this.totalWeightTarget.value)
       this.totalWeightTarget.value = this.formatDecimal(totalWeight, 3)
@@ -40,9 +46,11 @@ export default class extends Controller {
     const pricePerKgCents = this.parseCurrencyToCents(this.pricePerKgTarget.value)
     const loadingCostCents = this.parseCurrencyToCents(this.loadingCostTarget.value)
     const freightCostCents = this.parseCurrencyToCents(this.freightCostTarget.value)
+    const loadingCount = this.parseInteger(this.loadingCountTarget.value) || 1
 
     const fishTotalCents = Math.round(totalWeight * pricePerKgCents)
-    const grandTotalCents = fishTotalCents + loadingCostCents + freightCostCents
+    const logisticsTotalCents = (loadingCostCents + freightCostCents) * loadingCount
+    const grandTotalCents = fishTotalCents + logisticsTotalCents
 
     this.totalWeightTarget.value = this.formatDecimal(totalWeight, 3)
     this.grandTotalTarget.textContent = this.formatCurrency(grandTotalCents)
@@ -77,16 +85,12 @@ export default class extends Controller {
 
     const stringValue = String(value).trim()
 
-    // se tiver vírgula, assume formato BR:
-    // 1.234,56 -> 1234.56
     if (stringValue.includes(",")) {
       const normalized = stringValue.replace(/\./g, "").replace(",", ".")
       const parsed = parseFloat(normalized)
       return Number.isNaN(parsed) ? 0 : parsed
     }
 
-    // se não tiver vírgula, assume decimal com ponto normal:
-    // 0.08 -> 0.08
     const parsed = parseFloat(stringValue)
     return Number.isNaN(parsed) ? 0 : parsed
   }
