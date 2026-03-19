@@ -1,5 +1,5 @@
 <%= form_with model: @order, local: true do |form| %>
-  <div class="space-y-6">
+  <div class="space-y-6" data-controller="nested-form order-items">
     <% if @order.errors.any? %>
       <div class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
         <p class="font-semibold mb-2">Não foi possível salvar o pedido:</p>
@@ -17,11 +17,7 @@
         <div class="mt-1">
           <%= form.collection_select :customer_id, @customers, :id, :name,
             { prompt: "Selecione um cliente" },
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
 
@@ -29,77 +25,209 @@
         <%= form.label :status, "Status", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.select :status,
-            options_for_select(
-              [
-                ["Rascunho", "draft"],
-                ["Confirmado", "confirmed"],
-                ["Entregue", "delivered"],
-                ["Cancelado", "canceled"]
-              ],
-              @order.status
-            ),
+            [["Rascunho", "draft"], ["Confirmado", "confirmed"], ["Entregue", "delivered"], ["Cancelado", "canceled"]],
             {},
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <div>
-        <%= form.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
-        <div class="mt-1">
-          <%= form.collection_select :payment_term_id, @payment_terms, :id, :name,
-            { prompt: "Selecione a condição de pagamento" },
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
-        </div>
-      </div>
-
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
         <%= form.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.collection_select :payment_method_id, @payment_methods, :id, :name,
-            { prompt: "Selecione a forma de pagamento" },
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            { prompt: "Selecione" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.collection_select :payment_term_id, @payment_terms, :id, :name,
+            { prompt: "Selecione" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
       <div>
         <%= form.label :occurred_on, "Data do pedido", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.date_field :occurred_on,
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
+    </div>
 
-      <div>
-        <%= form.label :total_cents, "Valor total (centavos)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
-        <div class="mt-1">
-          <%= form.number_field :total_cents,
-            min: 0,
-            step: 1,
-            class: "w-full rounded-lg border px-3 py-2 text-sm
-                    bg-white dark:bg-gray-950
-                    border-gray-300 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Itens do pedido</h3>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Adicione os produtos vendidos neste pedido.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          data-action="nested-form#add"
+          class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition"
+        >
+          Adicionar item
+        </button>
+      </div>
+
+      <template data-nested-form-target="template">
+        <%= form.fields_for :order_items, OrderItem.new, child_index: "NEW_RECORD" do |item_form| %>
+          <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-800 p-4"
+              data-nested-form-wrapper
+              data-order-items-target="row">
+                <%= item_form.hidden_field :_destroy, value: "0" %>
+                <%= item_form.hidden_field :unit_price_cents %>
+                <%= item_form.hidden_field :total_cents %>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
+                  <div class="xl:col-span-5">
+                    <%= item_form.label :product_id, "Produto", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+                    <div class="mt-1">
+                  <%= item_form.collection_select :product_id, @products, :id, :name,
+                    { prompt: "Selecione um produto" },
+                    class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                </div>
+              </div>
+
+              <div class="xl:col-span-2">
+                <%= item_form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+                <div class="mt-1">
+                  <%= item_form.number_field :quantity,
+                    step: 0.001,
+                    min: 0,
+                    data: { action: "input->order-items#recalculate", order_items_target: "quantity" },
+                    class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                </div>
+              </div>
+
+              <div class="xl:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitário</label>
+                <div class="mt-1">
+                  <input
+                    type="text"
+                    value=""
+                    data-action="input->order-items#formatCurrency"
+                    data-order-items-target="unitPrice"
+                    class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="R$ 0,00"
+                    inputmode="numeric"
+                  >
+                </div>
+              </div>
+
+              <div class="xl:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total do item</label>
+                <div class="mt-1">
+                  <input
+                    type="text"
+                    value="R$ 0,00"
+                    readonly
+                    data-order-items-target="total"
+                    class="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button
+                type="button"
+                data-action="nested-form#remove"
+                class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm transition"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </template>
+
+      <div class="mt-4 space-y-4" data-nested-form-target="container">
+        <%= form.fields_for :order_items do |item_form| %>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4"
+              data-nested-form-wrapper
+              data-order-items-target="row">
+            <%= item_form.hidden_field :_destroy, value: "0" %>
+            <%= item_form.hidden_field :unit_price_cents %>
+            <%= item_form.hidden_field :total_cents %>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
+              <div class="xl:col-span-5">
+                <%= item_form.label :product_id, "Produto", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+                <div class="mt-1">
+                  <%= item_form.collection_select :product_id, @products, :id, :name,
+                    { prompt: "Selecione um produto" },
+                    class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                </div>
+              </div>
+
+              <div class="xl:col-span-2">
+                <%= item_form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+                <div class="mt-1">
+                  <%= item_form.number_field :quantity,
+                    step: 0.001,
+                    min: 0,
+                    data: { action: "input->order-items#recalculate", order_items_target: "quantity" },
+                    class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                </div>
+              </div>
+
+              <div class="xl:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor unitário</label>
+                <div class="mt-1">
+                  <input
+                    type="text"
+                    value="<%= number_to_currency(item_form.object.unit_price_cents.to_i / 100.0) if item_form.object.unit_price_cents.to_i > 0 %>"
+                    data-action="input->order-items#formatCurrency"
+                    data-order-items-target="unitPrice"
+                    class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="R$ 0,00"
+                    inputmode="numeric"
+                  >
+                </div>
+              </div>
+
+              <div class="xl:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total do item</label>
+                <div class="mt-1">
+                  <input
+                    type="text"
+                    readonly
+                    value="<%= number_to_currency(item_form.object.total_cents.to_i / 100.0) %>"
+                    data-order-items-target="total"
+                    class="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button
+                type="button"
+                data-action="nested-form#remove"
+                class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm transition"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="mt-4 flex justify-end border-t border-gray-200 pt-4 dark:border-gray-800">
+        <div class="text-right">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Total do pedido</p>
+          <p class="text-xl font-semibold text-gray-900 dark:text-gray-100" data-order-items-target="orderTotal">
+            <%= number_to_currency(@order.total_cents.to_i / 100.0) %>
+          </p>
         </div>
       </div>
     </div>
@@ -108,11 +236,7 @@
       <%= form.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
       <div class="mt-1">
         <%= form.text_area :notes, rows: 4,
-          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none
-                  bg-white dark:bg-gray-950
-                  border-gray-300 dark:border-gray-700
-                  text-gray-900 dark:text-gray-100
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
       </div>
     </div>
 

@@ -23,7 +23,11 @@ Rails.application.routes.draw do
     resources :payment_terms
     resources :payment_methods
     resources :ponds
-    resources :orders
+    resources :orders do
+      member do
+        patch :cancel
+      end
+    end
     resources :batches do
       resources :batch_stockings, only: [] do
         resources :stocking_events

@@ -56,13 +56,21 @@
                 <%= order.payment_term&.name || "-" %>
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                <%= order.status %>
+                <%= t("activerecord.attributes.order.statuses.#{order.status}") %>
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                 <%= number_to_currency(order.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
               </td>
               <td class="px-4 py-3 text-right text-sm">
                 <div class="flex items-center justify-end gap-3">
+                  <% if order.cancelable? %>
+                    <%= button_to "Cancelar",
+                      cancel_order_path(order),
+                      method: :patch,
+                      data: { turbo_confirm: "Tem certeza que deseja cancelar este pedido?" },
+                      class: "px-3 py-1.5 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white transition" %>
+                  <% end %>
+
                   <%= link_to "Editar", edit_order_path(order),
                     class: "text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" %>
 

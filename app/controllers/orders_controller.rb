@@ -1,10 +1,12 @@
 class OrdersController < ApplicationController
-  before_action :set_order, only: %i[show edit update destroy]
-  before_action :load_form_collections, only: %i[new create edit update]
+  before_action :set_order, only: %i[show edit update destroy cancel]
+  before_action :load_form_collections, only: %i[new create edit update cancel]
 
   def index
     @orders = Order.includes(:customer, :payment_method, :payment_term)
                    .order(occurred_on: :desc, created_at: :desc)
+                   .page(params[:page])
+                   .per(10)
   end
 
   def show
@@ -15,6 +17,7 @@ class OrdersController < ApplicationController
       occurred_on: Date.current,
       status: "draft"
     )
+    @order.order_items.build
   end
 
   def create
@@ -28,6 +31,7 @@ class OrdersController < ApplicationController
   end
 
   def edit
+    @order.order_items.build if @order.order_items.empty?
   end
 
   def update
@@ -43,6 +47,24 @@ class OrdersController < ApplicationController
     redirect_to orders_path, notice: "Pedido removido com sucesso."
   end
 
+  def cancel
+    if @order.delivered?
+      redirect_to orders_path, alert: "Pedido já entregue não pode ser cancelado."
+      return
+    end
+
+    if @order.canceled?
+      redirect_to orders_path, notice: "Pedido já está cancelado."
+      return
+    end
+
+    if @order.update(status: "canceled")
+      redirect_to orders_path, notice: "Pedido cancelado com sucesso."
+    else
+      redirect_to orders_path, alert: "Não foi possível cancelar o pedido."
+    end
+  end
+
   private
 
   def set_order
@@ -53,6 +75,7 @@ class OrdersController < ApplicationController
     @customers = Customer.order(:name)
     @payment_methods = PaymentMethod.where(active: true).order(:name)
     @payment_terms = PaymentTerm.where(active: true).order(:name)
+    @products = Product.where(active: true).order(:name)
   end
 
   def order_params
@@ -62,8 +85,15 @@ class OrdersController < ApplicationController
       :payment_term_id,
       :status,
       :occurred_on,
-      :total_cents,
-      :notes
+      :notes,
+      order_items_attributes: [
+        :id,
+        :product_id,
+        :quantity,
+        :unit_price_cents,
+        :total_cents,
+        :_destroy
+      ]
     )
   end
 end

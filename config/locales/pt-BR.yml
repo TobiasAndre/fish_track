@@ -58,6 +58,12 @@ pt-BR:
         capacity_unit: Unid.
       units:
         name: Nome
+      order:
+        statuses:
+          draft: Rascunho
+          confirmed: Confirmado
+          delivered: Entregue
+          canceled: Cancelado
       users:
         name: Nome
         email: E-mail
