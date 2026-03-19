@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_19_110156) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_19_121428) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -220,6 +220,23 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_19_110156) do
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
   end
 
+  create_table "simulations", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.date "simulated_on", null: false
+    t.integer "quantity", default: 0, null: false
+    t.decimal "avg_weight_kg", precision: 10, scale: 3, default: "0.0", null: false
+    t.decimal "total_weight_kg", precision: 12, scale: 3, default: "0.0", null: false
+    t.bigint "price_per_kg_cents", default: 0, null: false
+    t.bigint "loading_cost_cents", default: 0, null: false
+    t.bigint "freight_cost_cents", default: 0, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_simulations_on_customer_id"
+    t.index ["simulated_on"], name: "index_simulations_on_simulated_on"
+  end
+
   create_table "stocking_events", force: :cascade do |t|
     t.bigint "batch_stocking_id", null: false
     t.string "event_type", null: false
@@ -299,5 +316,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_19_110156) do
   add_foreign_key "orders", "payment_terms"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
+  add_foreign_key "simulations", "customers"
   add_foreign_key "stocking_events", "batch_stockings"
 end

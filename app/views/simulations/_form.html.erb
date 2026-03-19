@@ -1,0 +1,141 @@
+<%= form_with model: @simulation, local: true, data: { controller: "simulation-form" } do |form| %>
+  <div class="space-y-6">
+    <%= render "shared/form_errors", resource: @simulation %>
+
+    <%= form.hidden_field :price_per_kg_cents, data: { simulation_form_target: "pricePerKgCents" } %>
+    <%= form.hidden_field :loading_cost_cents, data: { simulation_form_target: "loadingCostCents" } %>
+    <%= form.hidden_field :freight_cost_cents, data: { simulation_form_target: "freightCostCents" } %>
+    <%= form.hidden_field :total_cents, data: { simulation_form_target: "totalCents" } %>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :customer_id, "Cliente", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.collection_select :customer_id, @customers, :id, :name,
+            { prompt: "Selecione um cliente" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :simulated_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.date_field :simulated_on,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div>
+        <%= form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :quantity,
+            inputmode: "numeric",
+            data: {
+              action: "input->simulation-form#formatInteger",
+              simulation_form_target: "quantity"
+            },
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500",
+            placeholder: "0" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :avg_weight_kg, "Peso médio (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.number_field :avg_weight_kg,
+            min: 0,
+            step: 0.001,
+            data: { action: "input->simulation-form#recalculate", simulation_form_target: "avgWeight" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :total_weight_kg, "Peso total (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :total_weight_kg,
+            readonly: true,
+            data: { simulation_form_target: "totalWeight" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-gray-50 dark:bg-gray-900
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço por kg</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            value="<%= @simulation.price_per_kg_cents.to_i > 0 ? number_to_currency(@simulation.price_per_kg_cents.to_i / 100.0) : '' %>"
+            inputmode="numeric"
+            data-action="input->simulation-form#maskCurrency"
+            data-simulation-form-target="pricePerKg"
+            class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="R$ 0,00"
+          >
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do carregamento</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            value="<%= @simulation.loading_cost_cents.to_i > 0 ? number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) : '' %>"
+            inputmode="numeric"
+            data-action="input->simulation-form#maskCurrency"
+            data-simulation-form-target="loadingCost"
+            class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="R$ 0,00"
+          >
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do frete</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            value="<%= @simulation.freight_cost_cents.to_i > 0 ? number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) : '' %>"
+            inputmode="numeric"
+            data-action="input->simulation-form#maskCurrency"
+            data-simulation-form-target="freightCost"
+            class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="R$ 0,00"
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <p class="text-sm text-gray-500 dark:text-gray-400">Valor total</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100" data-simulation-form-target="grandTotal">
+        <%= number_to_currency(@simulation.total_cents.to_i / 100.0) %>
+      </p>
+    </div>
+
+    <div>
+      <%= form.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_area :notes, rows: 4,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+      <%= link_to "Cancelar", simulations_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
+      <%= form.submit @simulation.persisted? ? "Atualizar" : "Salvar",
+        class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700" %>
+    </div>
+  </div>
+<% end %>
