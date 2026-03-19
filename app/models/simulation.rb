@@ -8,6 +8,7 @@ class Simulation < ApplicationRecord
   validates :quantity, numericality: { greater_than: 0 }
   validates :avg_weight_kg, numericality: { greater_than: 0 }
   validates :price_per_kg_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :thousand_value_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :loading_cost_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :freight_cost_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :loading_count, numericality: { greater_than: 0, only_integer: true }
@@ -41,9 +42,15 @@ class Simulation < ApplicationRecord
   def calculate_totals
     self.total_weight_kg = quantity.to_i * avg_weight_kg.to_d
 
-    fish_total_cents = (total_weight_kg.to_d * price_per_kg_cents.to_i).to_i
-    logistics_total_cents = (loading_cost_cents.to_i + freight_cost_cents.to_i) * loading_count.to_i
+    fish_total_cents =
+      (
+        (avg_weight_kg.to_d * price_per_kg_cents.to_i * 1000) +
+        thousand_value_cents.to_i
+      ) * (quantity.to_d / 1000)
 
-    self.total_cents = fish_total_cents + logistics_total_cents
+    self.total_cents =
+      fish_total_cents.to_i +
+      loading_cost_cents.to_i +
+      freight_cost_cents.to_i
   end
 end

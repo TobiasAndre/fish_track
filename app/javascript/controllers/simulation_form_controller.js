@@ -6,11 +6,13 @@ export default class extends Controller {
     "avgWeight",
     "totalWeight",
     "pricePerKg",
+    "thousandValue",
     "loadingCost",
     "freightCost",
     "loadingCount",
     "grandTotal",
     "pricePerKgCents",
+    "thousandValueCents",
     "loadingCostCents",
     "freightCostCents",
     "totalCents"
@@ -44,18 +46,27 @@ export default class extends Controller {
     const totalWeight = quantity * avgWeight
 
     const pricePerKgCents = this.parseCurrencyToCents(this.pricePerKgTarget.value)
+    const thousandValueCents = this.parseCurrencyToCents(this.thousandValueTarget.value)
     const loadingCostCents = this.parseCurrencyToCents(this.loadingCostTarget.value)
     const freightCostCents = this.parseCurrencyToCents(this.freightCostTarget.value)
     const loadingCount = this.parseInteger(this.loadingCountTarget.value) || 1
 
-    const fishTotalCents = Math.round(totalWeight * pricePerKgCents)
-    const logisticsTotalCents = (loadingCostCents + freightCostCents) * loadingCount
-    const grandTotalCents = fishTotalCents + logisticsTotalCents
+    const fishTotalCents =
+      ((avgWeight * pricePerKgCents * 1000) + thousandValueCents) *
+      (quantity / 1000)
+
+    const logisticsTotalCents =
+      (loadingCostCents + freightCostCents) * loadingCount
+
+    const grandTotalCents = Math.round(
+      fishTotalCents + loadingCostCents + freightCostCents
+    )
 
     this.totalWeightTarget.value = this.formatDecimal(totalWeight, 3)
     this.grandTotalTarget.textContent = this.formatCurrency(grandTotalCents)
 
     this.pricePerKgCentsTarget.value = pricePerKgCents
+    this.thousandValueCentsTarget.value = thousandValueCents
     this.loadingCostCentsTarget.value = loadingCostCents
     this.freightCostCentsTarget.value = freightCostCents
     this.totalCentsTarget.value = grandTotalCents

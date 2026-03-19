@@ -3,6 +3,7 @@
     <%= render "shared/form_errors", resource: @simulation %>
 
     <%= form.hidden_field :price_per_kg_cents, data: { simulation_form_target: "pricePerKgCents" } %>
+    <%= form.hidden_field :thousand_value_cents, data: { simulation_form_target: "thousandValueCents" } %>
     <%= form.hidden_field :loading_cost_cents, data: { simulation_form_target: "loadingCostCents" } %>
     <%= form.hidden_field :freight_cost_cents, data: { simulation_form_target: "freightCostCents" } %>
     <%= form.hidden_field :total_cents, data: { simulation_form_target: "totalCents" } %>
@@ -26,7 +27,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
         <%= form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
@@ -68,7 +69,9 @@
                     text-gray-900 dark:text-gray-100" %>
         </div>
       </div>
+    </div>
 
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço por kg</label>
         <div class="mt-1">
@@ -78,6 +81,21 @@
             inputmode="numeric"
             data-action="input->simulation-form#maskCurrency"
             data-simulation-form-target="pricePerKg"
+            class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="R$ 0,00"
+          >
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor por milheiro</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            value="<%= @simulation.thousand_value_cents.to_i > 0 ? number_to_currency(@simulation.thousand_value_cents.to_i / 100.0) : '' %>"
+            inputmode="numeric"
+            data-action="input->simulation-form#maskCurrency"
+            data-simulation-form-target="thousandValue"
             class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             placeholder="R$ 0,00"
           >
@@ -122,7 +140,7 @@
           <%= form.number_field :loading_count,
             min: 1,
             step: 1,
-            data: { action: "input->simulation-form#recalculate", simulation_form_target: "loadingCount" },
+            data: { simulation_form_target: "loadingCount" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>

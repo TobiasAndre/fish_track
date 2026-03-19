@@ -61,6 +61,7 @@ class SimulationsController < ApplicationController
       :avg_weight_kg,
       :total_weight_kg,
       :price_per_kg_cents,
+      :thousand_value_cents,
       :loading_cost_cents,
       :freight_cost_cents,
       :loading_count,
