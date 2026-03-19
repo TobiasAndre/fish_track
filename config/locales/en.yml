@@ -3,13 +3,6 @@ en:
     attributes:
       companies:
         name: Name
-      batch_events:
-        event_type: Event Type
-        occurred_on: Occurred On
-        quantity: Quantity
-        avg_weight_g: Average Weight (g)
-        feed_kg: Feed (kg)
-        notes: Notes
       batches:
         name: Name
         species: Species

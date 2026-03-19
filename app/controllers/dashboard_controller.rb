@@ -9,17 +9,16 @@ class DashboardController < ApplicationController
 
     @active_batches_count = Batch.where(status: "active").count
     @active_ponds_count   = Pond.count
-
     @total_current_quantity = Batch.where(status: "active").sum("COALESCE(current_quantity, 0)")
 
-    @recent_events = BatchEvent
-      .includes(batch: { ponds: :unit })
+    @recent_events = StockingEvent
+      .includes(batch_stocking: [:batch, { pond: :unit }])
       .order(occurred_on: :desc, created_at: :desc)
       .limit(5)
 
     @active_batches = Batch
       .where(status: "active")
-      .includes(ponds: :unit)
+      .includes(batch_stockings: [{ pond: :unit }])
       .order(started_on: :desc)
       .limit(5)
   end

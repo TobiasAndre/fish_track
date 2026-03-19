@@ -1,23 +1,30 @@
-<div class="max-w-4xl mx-auto">
+<div class="max-w-5xl mx-auto">
   <div class="flex items-start justify-between gap-4">
     <div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @batch.name %></h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
         <%= @batch.ponds.map(&:name).join(", ") %>
+        •
         <%= @batch.ponds.map { |pond| pond.unit.name }.uniq.join(", ") %>
       </p>
+
+      <% if @batch.product.present? %>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Produto: <%= @batch.product.name %>
+        </p>
+      <% end %>
     </div>
 
-    <% if @batch.closed_status? %>
-      <span class="inline-flex items-center px-2 py-1 rounded-lg
-                  bg-gray-200 text-gray-800
-                  dark:bg-gray-800 dark:text-gray-200
-                  text-xs font-medium">
-        Lote fechado em <%= @batch.closed_on %>
-      </span>
-    <% end %>
+    <div class="flex items-center gap-3">
+      <% if @batch.closed_status? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg
+                    bg-gray-200 text-gray-800
+                    dark:bg-gray-800 dark:text-gray-200
+                    text-xs font-medium">
+          Lote fechado em <%= l(@batch.closed_on) if @batch.closed_on.present? %>
+        </span>
+      <% end %>
 
-    <div class="flex gap-2">
       <%= link_to "Editar", edit_batch_path(@batch),
         class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                 hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
@@ -31,69 +38,140 @@
   <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400">Quantidade inicial</p>
-      <p class="mt-1 text-lg font-semibold"><%= @batch.initial_quantity || "—" %></p>
+      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= @batch.initial_quantity || "—" %></p>
     </div>
 
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400">Quantidade atual</p>
-      <p class="mt-1 text-lg font-semibold"><%= @batch.current_quantity || "—" %></p>
+      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= @batch.current_quantity || "—" %></p>
     </div>
 
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400">Peso médio (g)</p>
-      <p class="mt-1 text-lg font-semibold"><%= @batch.avg_weight_g || "—" %></p>
+      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= @batch.avg_weight_g || "—" %></p>
     </div>
   </div>
 
-  <div class="mt-8 flex items-center justify-between">
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Eventos</h2>
+  <div class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Alojamentos e eventos</h2>
+    </div>
 
-    <% if @batch.active_status? %>
-      <%= link_to "Adicionar evento", new_batch_batch_event_path(@batch),
-        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
-                dark:bg-indigo-500 dark:hover:bg-indigo-400
-                text-white text-sm font-medium transition" %>
-    <% end %>
-  </div>
+    <div class="mt-4 space-y-6">
+      <% @batch.batch_stockings.includes(:supplier, pond: :unit, :stocking_events).each do |stocking| %>
+        <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div class="px-4 py-4 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between gap-4">
+            <div>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                <%= stocking.pond.name %>
+              </h3>
 
-  <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
-        <tr>
-          <th class="text-left px-4 py-3 font-medium">Data</th>
-          <th class="text-left px-4 py-3 font-medium">Tipo</th>
-          <th class="text-left px-4 py-3 font-medium">Detalhes</th>
-          <th class="text-right px-4 py-3 font-medium">Ações</th>
-        </tr>
-      </thead>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                <%= stocking.pond.unit.name %>
+              </p>
 
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <% @batch.batch_events.order(occurred_on: :desc, created_at: :desc).each do |e| %>
-          <tr>
-            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
-            <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium"><%= e.event_type.humanize %></td>
-            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
-              <% parts = [] %>
-              <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
-              <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
-              <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
-              <%= parts.any? ? parts.join(" • ") : "—" %>
-            </td>
-            <td class="px-4 py-3">
-              <div class="flex justify-end gap-2">
-                <%= link_to "Editar", edit_batch_batch_event_path(@batch, e),
-                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
-                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+              <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <span class="inline-flex items-center px-2 py-1 rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Qtd. alojada: <%= stocking.quantity || "—" %>
+                </span>
 
-                <%= button_to "Excluir", batch_batch_event_path(@batch, e),
-                  method: :delete,
-                  data: { turbo_confirm: "Excluir este evento?" },
-                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                <span class="inline-flex items-center px-2 py-1 rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Alojamento: <%= l(stocking.stocked_on) if stocking.stocked_on.present? %>
+                </span>
+
+                <span class="inline-flex items-center px-2 py-1 rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Peso inicial: <%= stocking.avg_weight_g.present? ? "#{stocking.avg_weight_g}g" : "—" %>
+                </span>
+
+                <span class="inline-flex items-center px-2 py-1 rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Fornecedor: <%= stocking.supplier&.name || "—" %>
+                </span>
               </div>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+            </div>
+
+            <div class="flex gap-2">
+              <% if @batch.active_status? %>
+                <%= link_to "Adicionar evento", new_batch_batch_stocking_stocking_event_path(@batch, stocking),
+                  class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                          dark:bg-indigo-500 dark:hover:bg-indigo-400
+                          text-white text-sm font-medium transition" %>
+              <% end %>
+
+              <%= link_to "Ver todos", batch_batch_stocking_stocking_events_path(@batch, stocking),
+                class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                        hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+            </div>
+          </div>
+
+          <div class="overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+                <tr>
+                  <th class="text-left px-4 py-3 font-medium">Data</th>
+                  <th class="text-left px-4 py-3 font-medium">Tipo</th>
+                  <th class="text-left px-4 py-3 font-medium">Detalhes</th>
+                  <th class="text-right px-4 py-3 font-medium">Ações</th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                <% events = stocking.stocking_events.sort_by { |e| [e.occurred_on || Date.new(1900,1,1), e.created_at] }.reverse %>
+
+                <% events.each do |e| %>
+                  <tr>
+                    <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+                      <%= l(e.occurred_on) %>
+                    </td>
+
+                    <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">
+                      <%= enum_t(e, :event_type) %>
+                    </td>
+
+                    <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+                      <% parts = [] %>
+                      <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
+                      <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
+                      <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
+                      <%= parts.any? ? parts.join(" • ") : "—" %>
+
+                      <% if e.notes.present? %>
+                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= e.notes %></div>
+                      <% end %>
+                    </td>
+
+                    <td class="px-4 py-3">
+                      <div class="flex justify-end gap-2">
+                        <%= link_to "Editar", edit_batch_batch_stocking_stocking_event_path(@batch, stocking, e),
+                          class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                                  hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                        <%= button_to "Excluir", batch_batch_stocking_stocking_event_path(@batch, stocking, e),
+                          method: :delete,
+                          data: { turbo_confirm: "Excluir este evento?" },
+                          class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+
+                <% if events.empty? %>
+                  <tr>
+                    <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Nenhum evento registrado para este tanque.
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @batch.batch_stockings.empty? %>
+        <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          Nenhum alojamento cadastrado para este lote.
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
