@@ -84,7 +84,7 @@
 
     <div class="flex items-center justify-end gap-4">
       <%= link_to "Cancelar", products_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
-      <%= form.submit @product.persisted? ? "Atualizar produto" : "Criar produto",
+      <%= form.submit @product.persisted? ? "Atualizar" : "Salvar",
         class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
     </div>
   </div>
