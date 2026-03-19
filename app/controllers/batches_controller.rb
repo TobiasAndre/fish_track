@@ -1,6 +1,7 @@
 class BatchesController < ApplicationController
   before_action :set_batch, only: %i[show edit update destroy]
   before_action :set_form_collections, only: %i[new create edit update]
+  before_action :normalize_batch_stockings_quantities, only: %i[create update]
 
   def index
     @batches = Batch
@@ -57,6 +58,17 @@ class BatchesController < ApplicationController
     @ponds = Pond.includes(:unit).order("units.name ASC, ponds.name ASC")
     @products = Product.order(:name)
     @suppliers = Supplier.order(:name)
+  end
+
+  def normalize_batch_stockings_quantities
+    stockings = params.dig(:batch, :batch_stockings_attributes)
+    return if stockings.blank?
+
+    stockings.each_value do |attrs|
+      next if attrs[:quantity].blank?
+
+      attrs[:quantity] = attrs[:quantity].to_s.gsub(".", "")
+    end
   end
 
   def batch_params
