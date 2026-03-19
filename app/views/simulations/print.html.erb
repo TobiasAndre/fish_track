@@ -1,0 +1,99 @@
+<div class="actions">
+  <button onclick="window.print()">Imprimir</button>
+</div>
+
+<div class="header">
+  <div>
+    <h1 class="title">Orçamento</h1>
+    <div class="subtitle">
+      Cliente: <strong><%= @simulation.customer.name %></strong><br>
+      Data: <strong><%= l(@simulation.simulated_on) %></strong>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="label">Quantidade</div>
+    <div class="value"><%= number_with_delimiter(@simulation.quantity, delimiter: ".") %></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Peso médio (kg)</div>
+    <div class="value"><%= number_with_precision(@simulation.avg_weight_kg, precision: 3, separator: ",", delimiter: ".") %></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Peso total (kg)</div>
+    <div class="value"><%= number_with_precision(@simulation.total_weight_kg, precision: 3, separator: ",", delimiter: ".") %></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Quantidade de viagens</div>
+    <div class="value"><%= @simulation.loading_count %></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Composição dos valores</div>
+
+  <table>
+    <tbody>
+      <tr>
+        <th>Preço por kg</th>
+        <td><%= number_to_currency(@simulation.price_per_kg_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
+        <th>Valor por milheiro</th>
+        <td><%= number_to_currency(@simulation.thousand_value_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
+        <th>Valor do carregamento</th>
+        <td><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
+        <th>Valor do frete</th>
+        <td><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<% fish_total_cents =
+     (
+       (@simulation.avg_weight_kg.to_d * @simulation.price_per_kg_cents.to_i * 1000) +
+       @simulation.thousand_value_cents.to_i
+     ) * (@simulation.quantity.to_d / 1000) %>
+
+<div class="section">
+  <div class="section-title">Resumo</div>
+
+  <table>
+    <tbody>
+      <tr>
+        <th>Valor do peixe</th>
+        <td><%= number_to_currency(fish_total_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
+        <th>Carregamento</th>
+        <td><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
+        <th>Frete</th>
+        <td><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="total-box">
+  <div class="label">Valor total</div>
+  <div class="total-value"><%= number_to_currency(@simulation.total_cents.to_i / 100.0) %></div>
+</div>
+
+<% if @simulation.notes.present? %>
+  <div class="section">
+    <div class="section-title">Observações</div>
+    <div><%= simple_format(@simulation.notes) %></div>
+  </div>
+<% end %>

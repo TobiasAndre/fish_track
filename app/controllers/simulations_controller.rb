@@ -1,5 +1,5 @@
 class SimulationsController < ApplicationController
-  before_action :set_simulation, only: %i[show edit update destroy]
+  before_action :set_simulation, only: %i[show edit update destroy print]
   before_action :load_customers, only: %i[new create edit update]
 
   def index
@@ -41,6 +41,10 @@ class SimulationsController < ApplicationController
   def destroy
     @simulation.destroy
     redirect_to simulations_path, notice: "Simulação removida com sucesso."
+  end
+
+  def print
+    render layout: "print"
   end
 
   private

@@ -28,7 +28,11 @@ Rails.application.routes.draw do
         patch :cancel
       end
     end
-    resources :simulations
+    resources :simulations do
+      member do
+        get :print
+      end
+    end
     resources :batches do
       resources :batch_stockings, only: [] do
         resources :stocking_events
