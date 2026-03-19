@@ -1,13 +1,13 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Simulações</h1>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Orçamentos</h1>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Gerencie as simulações cadastradas.
+        Gerencie os orçamentos cadastrados.
       </p>
     </div>
 
-    <%= link_to "Nova simulação", new_simulation_path,
+    <%= link_to "Novo orçamento", new_simulation_path,
       class: "inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700" %>
   </div>
 
@@ -71,7 +71,7 @@
           <% if @simulations.empty? %>
             <tr>
               <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                Nenhuma simulação encontrada.
+                Nenhum orçamento encontrado.
               </td>
             </tr>
           <% end %>
@@ -85,7 +85,7 @@
       <p class="text-sm text-gray-600 dark:text-gray-300">
         Mostrando <%= @simulations.offset_value + 1 %>–
         <%= [@simulations.offset_value + @simulations.limit_value, @simulations.total_count].min %>
-        de <%= @simulations.total_count %> simulações
+        de <%= @simulations.total_count %> orçamentos
       </p>
 
       <%= paginate @simulations %>
