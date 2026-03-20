@@ -25,6 +25,7 @@
     <% if current_user %>
       <%= render "shared/app_shell" %>
     <% else %>
+      <%= render "shared/flash" %>
       <main class="min-h-screen">
         <%= yield %>
       </main>

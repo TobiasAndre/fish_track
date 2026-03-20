@@ -1,0 +1,31 @@
+<% if notice.present? %>
+  <script>
+    document.addEventListener("turbo:load", function () {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "<%= j notice %>",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      })
+    })
+  </script>
+<% end %>
+
+<% if alert.present? %>
+  <script>
+    document.addEventListener("turbo:load", function () {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "<%= j alert %>",
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      })
+    })
+  </script>
+<% end %>

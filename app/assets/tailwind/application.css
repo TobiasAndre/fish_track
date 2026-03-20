@@ -1,1 +1,72 @@
 @import "tailwindcss";
+.swal2-popup-custom {
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.swal2-title-custom {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.swal2-text-custom {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.swal2-confirm-primary,
+.swal2-confirm-danger,
+.swal2-cancel-custom {
+  border: 0;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.swal2-confirm-primary {
+  background: #4f46e5;
+  color: white;
+}
+
+.swal2-confirm-primary:hover {
+  background: #4338ca;
+}
+
+.swal2-confirm-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.swal2-confirm-danger:hover {
+  background: #b91c1c;
+}
+
+.swal2-cancel-custom {
+  background: #e5e7eb;
+  color: #111827;
+  margin-right: 0.5rem;
+}
+
+.swal2-cancel-custom:hover {
+  background: #d1d5db;
+}
+
+.dark .swal2-popup-custom {
+  background: #111827;
+  color: #f9fafb;
+}
+
+.dark .swal2-text-custom {
+  color: #d1d5db;
+}
+
+.dark .swal2-cancel-custom {
+  background: #374151;
+  color: #f9fafb;
+}
+
+.dark .swal2-cancel-custom:hover {
+  background: #4b5563;
+}
