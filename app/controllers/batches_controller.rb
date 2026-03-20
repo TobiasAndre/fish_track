@@ -55,7 +55,7 @@ class BatchesController < ApplicationController
   end
 
   def set_form_collections
-    @ponds = Pond.includes(:unit).order("units.name ASC, ponds.name ASC")
+    @ponds = Pond.includes(:unit).order(:id)
     @products = Product.order(:name)
     @suppliers = Supplier.order(:name)
   end
