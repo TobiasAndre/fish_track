@@ -1,6 +1,7 @@
 class PondsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_pond, only: [:edit, :update, :destroy]
+  before_action :normalize_quantities, only: %i[create update]
 
   def index
     @ponds = Pond.includes(:unit).order("units.name ASC, ponds.name ASC")
@@ -42,6 +43,13 @@ class PondsController < ApplicationController
   def set_pond
     # garante escopo por company
     @pond = Pond.find(params[:id])
+  end
+
+  def normalize_quantities
+    return if params[:pond].blank?
+    return if params[:pond][:capacity].blank?
+
+    params[:pond][:capacity] = params[:pond][:capacity].to_s.gsub(".", "")
   end
 
   def pond_params

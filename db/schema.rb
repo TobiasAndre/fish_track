@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_19_142053) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_20_015210) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -191,7 +191,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_19_142053) do
   create_table "ponds", force: :cascade do |t|
     t.bigint "unit_id", null: false
     t.string "name", null: false
-    t.decimal "capacity", precision: 12, scale: 2
+    t.integer "capacity"
     t.string "capacity_unit"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
