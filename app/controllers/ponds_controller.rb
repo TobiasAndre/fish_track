@@ -4,7 +4,7 @@ class PondsController < ApplicationController
   before_action :normalize_quantities, only: %i[create update]
 
   def index
-    @ponds = Pond.includes(:unit).order("units.name ASC, ponds.name ASC")
+    @ponds = Pond.includes(:unit).order(:id)
   end
 
   def new
