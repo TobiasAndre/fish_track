@@ -6,19 +6,11 @@ module Admin
     def edit; end
 
     def update
-      if params[:company][:logo_file].present?
-        @company.logo_url = SquareBlobUploader.call(file: params[:company][:logo_file])
-      end
-
       if @company.update(company_params)
-        redirect_to edit_company_settings_path, notice: "Configurações atualizadas com sucesso."
+        redirect_to edit_admin_company_setting_path(@company), notice: "Configurações atualizadas com sucesso."
       else
         render :edit, status: :unprocessable_entity
       end
-    rescue SquareBlobUploader::UploadError => e
-      @company.assign_attributes(company_params)
-      flash.now[:alert] = e.message
-      render :edit, status: :unprocessable_entity
     end
 
     private
@@ -29,6 +21,7 @@ module Admin
 
     def company_params
       params.require(:company).permit(
+        :logo_url,
         :print_message_line_1,
         :print_message_line_2
       )
