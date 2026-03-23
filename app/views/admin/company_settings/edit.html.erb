@@ -1,0 +1,31 @@
+<div class="max-w-xl mx-auto">
+  <%= form_with model: @company, url: admin_company_setting_path(@company), method: :patch, local: true, multipart: true do |f| %>
+    <div class="space-y-6">
+      <div>
+        <%= f.label :logo_file, "Logomarca", class: "block text-sm font-medium" %>
+        <%= f.file_field :logo_file, accept: "image/*", class: "mt-1 block w-full" %>
+
+        <% if @company.logo_url.present? %>
+          <div class="mt-3">
+            <img src="<%= @company.logo_url %>" alt="Logomarca" class="max-h-24">
+          </div>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :print_message_line_1, "Mensagem fixa 1", class: "block text-sm font-medium" %>
+        <%= f.text_area :print_message_line_1, rows: 1,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+
+      </div>
+
+      <div>
+        <%= f.label :print_message_line_2, "Mensagem fixa 2", class: "block text-sm font-medium" %>
+        <%= f.text_area :print_message_line_2, rows: 1,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <%= f.submit "Salvar", class: "px-4 py-2 rounded-lg bg-indigo-600 text-white" %>
+    </div>
+  <% end %>
+</div>

@@ -39,6 +39,9 @@ gem "chartkick"
 
 gem "groupdate"
 
+gem "faraday"
+gem "faraday-multipart"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

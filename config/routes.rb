@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :users, only: %i[index new create edit update]
     resources :companies, only: %i[index new create edit update]
+    resources :company_settings, only: %i[show edit update]
     resources :memberships
     resources :tenants, only: [:new, :create]
   end
