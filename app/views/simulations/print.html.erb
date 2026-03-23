@@ -1,8 +1,10 @@
+<% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+
 <div class="actions">
   <button onclick="window.print()">Imprimir</button>
 </div>
 
-<div class="header">
+<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
   <div>
     <h1 class="title">Orçamento</h1>
     <div class="subtitle">
@@ -10,6 +12,16 @@
       Data: <strong><%= l(@simulation.simulated_on) %></strong>
     </div>
   </div>
+
+  <% if company.logo_url.present? %>
+    <div style="text-align: right;">
+      <img
+        src="<%= company.logo_url %>"
+        alt="Logomarca"
+        style="max-height: 80px; max-width: 200px;"
+      >
+    </div>
+  <% end %>
 </div>
 
 <div class="grid">
@@ -91,11 +103,22 @@
   <div class="total-value"><%= number_to_currency(@simulation.total_cents.to_i / 100.0) %></div>
 </div>
 
-<% if @simulation.notes.present? %>
-  <div class="section">
-    <div class="section-title">Observações</div>
-    <div>•⁠ OS VALORES PODEM VARIAR DE ACORDO COM O PESO MÉDIO DO PEIXE NO MOMENTO DA ENTREGA.</div>
-    <div>•⁠ ORÇAMENTO VALIDO POR 7 DIAS.</div>
-    <div><%= simple_format(@simulation.notes) %></div>
+<div class="section">
+  <div class="section-title">Observações</div>
+  <div style="margin-top: 24px; page-break-inside: avoid;">
+    <% if company.print_message_line_1.present? || company.print_message_line_2.present? %>
+      <div style="margin-top: 24px; font-size: 14px;">
+        <% if company.print_message_line_1.present? %>
+          <p style="margin-bottom: 4px;"><%= company.print_message_line_1 %></p>
+        <% end %>
+
+        <% if company.print_message_line_2.present? %>
+          <p style="margin-bottom: 4px;"><%= company.print_message_line_2 %></p>
+        <% end %>
+      </div>
+    <% end %>
   </div>
-<% end %>
+  <% if @simulation.notes.present? %>
+    <div><%= simple_format(@simulation.notes) %></div>
+  <% end %>
+</div>
