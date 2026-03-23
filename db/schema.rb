@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_23_220326) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_23_231016) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -223,6 +223,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_23_220326) do
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
   end
 
+  create_table "simulation_products", force: :cascade do |t|
+    t.bigint "simulation_id", null: false
+    t.bigint "product_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_simulation_products_on_product_id"
+    t.index ["simulation_id", "product_id"], name: "index_simulation_products_on_simulation_id_and_product_id", unique: true
+    t.index ["simulation_id"], name: "index_simulation_products_on_simulation_id"
+  end
+
   create_table "simulations", force: :cascade do |t|
     t.bigint "customer_id", null: false
     t.date "simulated_on", null: false
@@ -321,6 +331,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_23_220326) do
   add_foreign_key "orders", "payment_terms"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
+  add_foreign_key "simulation_products", "products"
+  add_foreign_key "simulation_products", "simulations"
   add_foreign_key "simulations", "customers"
   add_foreign_key "stocking_events", "batch_stockings"
 end

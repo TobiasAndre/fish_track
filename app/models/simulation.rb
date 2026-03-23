@@ -1,6 +1,11 @@
 class Simulation < ApplicationRecord
   belongs_to :customer
 
+  has_many :simulation_products, dependent: :destroy
+  has_many :products, through: :simulation_products
+
+  accepts_nested_attributes_for :simulation_products, allow_destroy: true, reject_if: :all_blank
+
   before_validation :normalize_numeric_fields
   before_validation :calculate_totals
 

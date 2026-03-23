@@ -24,6 +24,22 @@
   <% end %>
 </div>
 
+<% if @simulation.products.any? %>
+  <div class="section" style="margin-bottom: 24px;">
+    <div class="section-title">Produtos do orçamento</div>
+
+    <table>
+      <tbody>
+        <% @simulation.products.each do |product| %>
+          <tr>
+            <th style="width: 70%"><%= product.name %></th>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
 <div class="grid">
   <div class="card">
     <div class="label">Quantidade</div>

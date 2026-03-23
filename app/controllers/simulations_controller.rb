@@ -1,6 +1,6 @@
 class SimulationsController < ApplicationController
   before_action :set_simulation, only: %i[show edit update destroy print]
-  before_action :load_customers, only: %i[new create edit update]
+  before_action :load_form_data, only: %i[new create edit update]
 
   def index
     @simulations = Simulation
@@ -50,11 +50,12 @@ class SimulationsController < ApplicationController
   private
 
   def set_simulation
-    @simulation = Simulation.find(params[:id])
+    @simulation = Simulation.includes(:customer, :products).find(params[:id])
   end
 
-  def load_customers
+  def load_form_data
     @customers = Customer.order(:name)
+    @products = Product.where(active: true).order(:name)
   end
 
   def simulation_params
@@ -70,7 +71,8 @@ class SimulationsController < ApplicationController
       :freight_cost_cents,
       :loading_count,
       :total_cents,
-      :notes
+      :notes,
+      product_ids: []
     )
   end
 end
