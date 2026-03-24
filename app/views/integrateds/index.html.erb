@@ -1,0 +1,73 @@
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Integrados</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Cliente: <span class="font-medium"><%= @customer.name %></span>
+      </p>
+    </div>
+
+    <div class="flex gap-2">
+      <%= link_to "Voltar para clientes", customers_path,
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+      <%= link_to "Novo integrado", new_customer_integrated_path(@customer),
+        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                dark:bg-indigo-500 dark:hover:bg-indigo-400
+                text-white text-sm font-medium transition" %>
+    </div>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Nome</th>
+          <th class="text-left px-4 py-3 font-medium">Telefone</th>
+          <th class="text-left px-4 py-3 font-medium">Cidade/UF</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @integrateds.each do |integrated| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">
+              <%= integrated.name %>
+            </td>
+
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <%= integrated.phone.presence || "—" %>
+            </td>
+
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <%= [integrated.city.presence, integrated.state.presence].compact.join("/") .presence || "—" %>
+            </td>
+
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_customer_integrated_path(@customer, integrated),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", customer_integrated_path(@customer, integrated),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir integrado #{integrated.name}?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @integrateds.empty? %>
+          <tr>
+            <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              Nenhum integrado cadastrado para este cliente.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

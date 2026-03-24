@@ -1,0 +1,173 @@
+<%= form_with model: [@customer, @integrated], local: true do |form| %>
+  <div class="space-y-6">
+    <%= render "shared/form_errors", resource: @integrated %>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <%= form.label :name, "Nome", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :name,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :tax_id, "CPF/CNPJ", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :tax_id,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :phone, "Telefone", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.telephone_field :phone,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :email, "E-mail", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.email_field :email,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :state_registration, "Inscrição estadual", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :state_registration,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div>
+        <%= form.label :postal_code, "CEP", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :postal_code,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div class="sm:col-span-2">
+        <%= form.label :address, "Endereço", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :address,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :address_number, "Número", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :address_number,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :address_complement, "Complemento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :address_complement,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :neighborhood, "Bairro", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :neighborhood,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :city, "Cidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :city,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :state, "Estado", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :state,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <div class="mt-1">
+        <%= form.text_area :notes, rows: 4,
+          class: "w-full rounded-lg border px-3 py-2 text-sm resize-none
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+      <%= link_to "Cancelar", customer_integrateds_path(@customer),
+        class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
+
+      <%= form.submit @integrated.persisted? ? "Atualizar integrado" : "Salvar integrado",
+        class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700" %>
+    </div>
+  </div>
+<% end %>

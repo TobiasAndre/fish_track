@@ -43,7 +43,9 @@ Rails.application.routes.draw do
     resources :financial_entries
     resources :employees
     resources :suppliers
-    resources :customers
+    resources :customers do
+      resources :integrateds, except: :show
+    end
     resource :payroll, only: [:show, :update], controller: "payroll"
 
     resources :payroll_items, only: [:create, :destroy]

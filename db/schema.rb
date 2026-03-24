@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_23_231016) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_24_010607) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -112,6 +112,29 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_23_231016) do
     t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
+  end
+
+  create_table "integrateds", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.string "name", null: false
+    t.string "tax_id"
+    t.string "state_registration"
+    t.string "email"
+    t.string "phone"
+    t.string "postal_code"
+    t.string "address"
+    t.string "address_number"
+    t.string "address_complement"
+    t.string "neighborhood"
+    t.string "city"
+    t.string "state"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id", "name"], name: "index_integrateds_on_customer_id_and_name"
+    t.index ["customer_id"], name: "index_integrateds_on_customer_id"
+    t.index ["name"], name: "index_integrateds_on_name"
+    t.index ["tax_id"], name: "index_integrateds_on_tax_id"
   end
 
   create_table "memberships", force: :cascade do |t|
@@ -322,6 +345,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_23_231016) do
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "units"
+  add_foreign_key "integrateds", "customers"
   add_foreign_key "memberships", "companies"
   add_foreign_key "memberships", "users"
   add_foreign_key "order_items", "orders"
