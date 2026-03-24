@@ -85,6 +85,10 @@
         <th>Valor do carregamento</th>
         <td><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
       </tr>
+      <tr>
+        <th>Valor do frete</th>
+        <td><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
+      </tr>
     </tbody>
   </table>
 </div>
