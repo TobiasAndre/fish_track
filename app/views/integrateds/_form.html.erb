@@ -1,4 +1,4 @@
-<%= form_with model: [@customer, @integrated], local: true do |form| %>
+<%= form_with model: [@customer, @integrated], local: true, data: { controller: "cep" } do |form| %>
   <div class="space-y-6">
     <%= render "shared/form_errors", resource: @integrated %>
 
@@ -69,6 +69,7 @@
         <%= form.label :postal_code, "CEP", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.text_field :postal_code,
+            data: { action: "input->cep#onCepInput blur->cep#lookup", cep_target: "cep" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -81,6 +82,7 @@
         <%= form.label :address, "Endereço", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.text_field :address,
+            data: { cep_target: "street" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -117,6 +119,7 @@
         <%= form.label :neighborhood, "Bairro", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.text_field :neighborhood,
+            data: { cep_target: "neighborhood" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -129,6 +132,7 @@
         <%= form.label :city, "Cidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.text_field :city,
+            data: { cep_target: "city" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
@@ -141,6 +145,7 @@
         <%= form.label :state, "Estado", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.text_field :state,
+            data: { cep_target: "state" },
             class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
