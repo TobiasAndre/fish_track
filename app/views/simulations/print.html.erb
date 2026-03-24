@@ -83,33 +83,6 @@
   </table>
 </div>
 
-<% fish_total_cents =
-     (
-       (@simulation.avg_weight_kg.to_d * @simulation.price_per_kg_cents.to_i * 1000) +
-       @simulation.thousand_value_cents.to_i
-     ) * (@simulation.quantity.to_d / 1000) %>
-
-<div class="section">
-  <div class="section-title">Resumo</div>
-
-  <table>
-    <tbody>
-      <tr>
-        <th>Valor do peixe</th>
-        <td><%= number_to_currency(fish_total_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Carregamento</th>
-        <td><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Frete</th>
-        <td><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
 <div class="total-box">
   <div class="label">Valor total</div>
   <div class="total-value"><%= number_to_currency(@simulation.total_cents.to_i / 100.0) %></div>
