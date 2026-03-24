@@ -9,6 +9,10 @@
     <h1 class="title">Orçamento</h1>
     <div class="subtitle">
       Cliente: <strong><%= @simulation.customer.name %></strong><br>
+      <% if @simulation.integrated.present? %>
+        Integrado: <strong><%= @simulation.integrated.name %></strong><br>
+      <% end %>
+
       Data: <strong><%= l(@simulation.simulated_on) %></strong>
     </div>
   </div>

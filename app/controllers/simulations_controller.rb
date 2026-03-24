@@ -56,12 +56,14 @@ class SimulationsController < ApplicationController
   def load_form_data
     @customers = Customer.order(:name)
     @products = Product.where(active: true).order(:name)
+    @integrateds = Integrated.order(:name)
   end
 
   def simulation_params
     params.require(:simulation).permit(
       :customer_id,
       :simulated_on,
+      :integrated_id,
       :quantity,
       :avg_weight_kg,
       :total_weight_kg,

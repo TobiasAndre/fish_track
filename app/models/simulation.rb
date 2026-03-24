@@ -1,5 +1,6 @@
 class Simulation < ApplicationRecord
   belongs_to :customer
+  belongs_to :integrated, optional: true
 
   has_many :simulation_products, dependent: :destroy
   has_many :products, through: :simulation_products

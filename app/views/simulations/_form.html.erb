@@ -8,13 +8,31 @@
     <%= form.hidden_field :freight_cost_cents, data: { simulation_form_target: "freightCostCents" } %>
     <%= form.hidden_field :total_cents, data: { simulation_form_target: "totalCents" } %>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
         <%= form.label :customer_id, "Cliente", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
           <%= form.collection_select :customer_id, @customers, :id, :name,
             { prompt: "Selecione um cliente" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :integrated_id, "Integrado (opcional)",
+          class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+
+        <div class="mt-1">
+          <%= form.collection_select :integrated_id,
+            @integrateds,
+            :id,
+            :name,
+            { prompt: "Selecione um integrado" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
       </div>
 

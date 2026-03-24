@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_24_010607) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_24_112701) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -271,7 +271,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_24_010607) do
     t.datetime "updated_at", null: false
     t.integer "loading_count", default: 1, null: false
     t.bigint "thousand_value_cents", default: 0, null: false
+    t.bigint "integrated_id"
     t.index ["customer_id"], name: "index_simulations_on_customer_id"
+    t.index ["integrated_id"], name: "index_simulations_on_integrated_id"
     t.index ["simulated_on"], name: "index_simulations_on_simulated_on"
   end
 
@@ -358,5 +360,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_24_010607) do
   add_foreign_key "simulation_products", "products"
   add_foreign_key "simulation_products", "simulations"
   add_foreign_key "simulations", "customers"
+  add_foreign_key "simulations", "integrateds"
   add_foreign_key "stocking_events", "batch_stockings"
 end
