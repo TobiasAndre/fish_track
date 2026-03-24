@@ -89,16 +89,16 @@
               </div>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex items-start gap-2 self-start">
               <% if @batch.active_status? %>
                 <%= link_to "Adicionar evento", new_batch_batch_stocking_stocking_event_path(@batch, stocking),
-                  class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                  class: "shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700
                           dark:bg-indigo-500 dark:hover:bg-indigo-400
                           text-white text-sm font-medium transition" %>
               <% end %>
 
               <%= link_to "Ver todos", batch_batch_stocking_stocking_events_path(@batch, stocking),
-                class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                class: "shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                         hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
             </div>
           </div>
