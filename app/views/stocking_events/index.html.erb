@@ -20,15 +20,18 @@
       </div>
     </div>
 
-    <div class="flex gap-2">
+    <div class="flex items-start gap-2 self-start">
       <%= link_to "Novo evento", new_batch_batch_stocking_stocking_event_path(batch, @batch_stocking),
-        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+        class: "inline-flex items-center shrink-0 whitespace-nowrap px-4 py-2 rounded-lg
+                bg-indigo-600 hover:bg-indigo-700
                 dark:bg-indigo-500 dark:hover:bg-indigo-400
                 text-white text-sm font-medium transition" %>
 
       <%= link_to "Voltar", batches_path,
-        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+        class: "inline-flex items-center shrink-0 whitespace-nowrap px-4 py-2 rounded-lg
+                border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800
+                text-sm font-medium transition" %>
     </div>
   </div>
 
