@@ -47,7 +47,7 @@
           <% pond_names = b.batch_stockings.map { |s| s.pond.name }.uniq.join(", ") %>
           <% stocked_quantity = b.batch_stockings.sum { |s| s.quantity.to_i } %>
 
-          <%= link_to batch_path(b),
+          <%= link_to edit_batch_path(b),
             class: "rounded-xl border border-gray-200 dark:border-gray-800
                     hover:bg-gray-50 dark:hover:bg-gray-800/40 transition p-4" do %>
 
