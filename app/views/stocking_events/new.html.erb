@@ -8,16 +8,14 @@
   <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
     Lote: <span class="font-medium"><%= batch.name %></span>
     • <%= unit.name %>
-    • <%= pond.name %>
+    • Tanque <%= pond.name %>
   </p>
 
   <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-    <% details = [] %>
-    <% details << "Qtd. alojada: #{@batch_stocking.quantity}" if @batch_stocking.quantity.present? %>
-    <% details << "Peso inicial: #{@batch_stocking.avg_weight_g}g" if @batch_stocking.avg_weight_g.present? %>
-    <% details << "Fornecedor: #{@batch_stocking.supplier.name}" if @batch_stocking.supplier.present? %>
-    <% details << "Alojamento: #{l(@batch_stocking.stocked_on)}" if @batch_stocking.stocked_on.present? %>
-    <%= details.join(" • ") %>
+    <div><%= "Fornecedor: #{@batch_stocking.supplier.name}" if @batch_stocking.supplier.present? %></div>
+    <div><%= "Qtd. alojada: #{number_with_delimiter(@batch_stocking.quantity, delimiter: ".")}" if @batch_stocking.quantity.present? %></div>
+    <div><%= "Peso inicial: #{@batch_stocking.avg_weight_g}g" if @batch_stocking.avg_weight_g.present? %></div>
+    <div><%= "Alojamento: #{l(@batch_stocking.stocked_on)}" if @batch_stocking.stocked_on.present? %></div>
   </div>
 
   <%= render "form" %>
