@@ -78,6 +78,10 @@
         <td><%= number_to_currency(@simulation.price_per_kg_cents.to_i / 100.0) %></td>
       </tr>
       <tr>
+        <th>Valor por milheiro do Alevino</th>
+        <td><%= number_to_currency(@simulation.thousand_value_cents.to_i / 100.0) %></td>
+      </tr>
+      <tr>
         <th>Valor do peixe</th>
         <td><%= number_to_currency(fish_total_cents.to_i / 100.0) %></td>
       </tr>
