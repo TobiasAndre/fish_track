@@ -67,7 +67,10 @@ class StockingEventsController < ApplicationController
       :quantity,
       :avg_weight_g,
       :feed_kg,
-      :notes
+      :notes,
+      :volume,
+      :biomass,
+      :total_weight_kg
     )
   end
 end

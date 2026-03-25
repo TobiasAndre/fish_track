@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_24_112701) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_25_140041) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -287,6 +287,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_24_112701) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "total_weight_kg", precision: 10, scale: 3
+    t.decimal "volume", precision: 10, scale: 2
+    t.decimal "biomass", precision: 12, scale: 3
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["event_type"], name: "index_stocking_events_on_event_type"

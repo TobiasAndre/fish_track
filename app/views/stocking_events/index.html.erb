@@ -95,9 +95,9 @@
 
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
               <% parts = [] %>
-              <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
-              <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
-              <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
+              <% parts << "Qtde: #{number_with_delimiter(e.quantity, delimiter: ".")}" if e.quantity.present? %>
+              <% parts << "Peso: #{number_with_delimiter(e.avg_weight_g, delimiter: ".")}g" if e.avg_weight_g.present? %>
+              <% parts << "Ração: #{number_with_delimiter(e.feed_kg, delimiter: ".")}kg" if e.feed_kg.present? %>
 
               <%= parts.any? ? parts.join(" • ") : "—" %>
 
