@@ -3,6 +3,7 @@ class StockingEventsController < ApplicationController
   before_action :set_stocking_event, only: %i[edit update destroy]
   before_action :set_previous_biometry_data, only: %i[new edit]
   before_action :set_current_avg_weight, only: %i[new edit]
+  before_action :load_loading_form_data, only: %i[new edit create update]
 
   def index
     @events = @batch_stocking.stocking_events
@@ -52,6 +53,12 @@ class StockingEventsController < ApplicationController
   def set_batch_stocking
     @batch_stocking = BatchStocking.includes(:batch, pond: :unit).find(params[:batch_stocking_id])
     @batch = @batch_stocking.batch
+  end
+
+  def load_loading_form_data
+    @customers = Customer.order(:name)
+    @integrateds = Integrated.order(:name)
+    @payment_methods = PaymentMethod.order(:name)
   end
 
   def set_stocking_event
@@ -123,7 +130,15 @@ class StockingEventsController < ApplicationController
       :volume,
       :biomass,
       :weight_gain_kg,
-      :gpd
+      :gpd,
+      :price_per_kg_cents,
+      :thousand_value_cents,
+      :freight_cost_cents,
+      :loading_cost_cents,
+      :payment_date,
+      :payment_method,
+      :customer_id,
+      :integrated_id
     )
   end
 end

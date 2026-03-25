@@ -185,6 +185,162 @@
     </div>
   </div>
 
+  <div data-batch-event-form-target="loadingRow" class="hidden space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <%= f.label :customer_id, "Cliente", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.collection_select :customer_id, @customers, :id, :name,
+          { prompt: "Selecione um cliente" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div>
+        <%= f.label :integrated_id, "Integrado", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.collection_select :integrated_id, @integrateds, :id, :name,
+          { prompt: "Selecione um integrado" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div>
+        <%= f.label :payment_date, "Data de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.date_field :payment_date,
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <%= f.label :total_weight_kg, "Peso total carregado (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.text_field :total_weight_kg,
+          inputmode: "decimal",
+          data: { "batch-event-form-target": "loadingTotalWeight", action: "input->batch-event-form#formatLoadingDecimalInput" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div>
+        <%= f.label :avg_weight_g, "Peso médio (g)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.text_field :avg_weight_g,
+          inputmode: "decimal",
+          data: { "batch-event-form-target": "loadingAvgWeight", action: "input->batch-event-form#formatLoadingDecimalInput" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Preço por kg</label>
+        <input
+          type="text"
+          value="<%= @stocking_event.price_per_kg_cents.to_i > 0 ? number_to_currency(@stocking_event.price_per_kg_cents.to_i / 100.0) : '' %>"
+          inputmode="numeric"
+          data-action="input->batch-event-form#maskCurrency"
+          data-batch-event-form-target="pricePerKg"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="R$ 0,00"
+        >
+        <%= f.hidden_field :price_per_kg_cents, data: { "batch-event-form-target": "pricePerKgCents" } %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Milheiro</label>
+        <input
+          type="text"
+          value="<%= @stocking_event.thousand_value_cents.to_i > 0 ? number_to_currency(@stocking_event.thousand_value_cents.to_i / 100.0) : '' %>"
+          inputmode="numeric"
+          data-action="input->batch-event-form#maskCurrency"
+          data-batch-event-form-target="thousandValue"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="R$ 0,00"
+        >
+        <%= f.hidden_field :thousand_value_cents, data: { "batch-event-form-target": "thousandValueCents" } %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Valor do frete</label>
+        <input
+          type="text"
+          value="<%= @stocking_event.freight_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.freight_cost_cents.to_i / 100.0) : '' %>"
+          inputmode="numeric"
+          data-action="input->batch-event-form#maskCurrency"
+          data-batch-event-form-target="freightCost"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="R$ 0,00"
+        >
+        <%= f.hidden_field :freight_cost_cents, data: { "batch-event-form-target": "freightCostCents" } %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Valor do carregamento</label>
+        <input
+          type="text"
+          value="<%= @stocking_event.loading_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.loading_cost_cents.to_i / 100.0) : '' %>"
+          inputmode="numeric"
+          data-action="input->batch-event-form#maskCurrency"
+          data-batch-event-form-target="loadingCost"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="R$ 0,00"
+        >
+        <%= f.hidden_field :loading_cost_cents, data: { "batch-event-form-target": "loadingCostCents" } %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :payment_method, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.select :payment_method,
+          [
+            ["Dinheiro", "cash"],
+            ["PIX", "pix"],
+            ["Boleto", "bank_slip"],
+            ["Transferência", "bank_transfer"],
+            ["Cartão", "card"]
+          ],
+          { prompt: "Selecione a forma de pagamento" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+  </div>
+
   <div data-batch-event-form-target="feedKgRow" class="hidden">
     <%= f.label :feed_kg, "Ração (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
     <%= f.number_field :feed_kg, step: 0.001,

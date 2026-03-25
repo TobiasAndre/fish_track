@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_25_190254) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_25_193248) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -294,10 +294,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_25_190254) do
     t.decimal "biomass", precision: 12, scale: 3
     t.decimal "weight_gain_kg", precision: 12, scale: 3
     t.decimal "gpd", precision: 10, scale: 3
+    t.integer "price_per_kg_cents"
+    t.integer "thousand_value_cents"
+    t.integer "freight_cost_cents"
+    t.integer "loading_cost_cents"
+    t.date "payment_date"
+    t.string "payment_method"
+    t.bigint "customer_id"
+    t.bigint "integrated_id"
+    t.bigint "payment_method_id", null: false
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
+    t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
     t.index ["event_type"], name: "index_stocking_events_on_event_type"
+    t.index ["integrated_id"], name: "index_stocking_events_on_integrated_id"
     t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
+    t.index ["payment_method_id"], name: "index_stocking_events_on_payment_method_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -369,4 +381,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_25_190254) do
   add_foreign_key "simulations", "customers"
   add_foreign_key "simulations", "integrateds"
   add_foreign_key "stocking_events", "batch_stockings"
+  add_foreign_key "stocking_events", "customers"
+  add_foreign_key "stocking_events", "integrateds"
+  add_foreign_key "stocking_events", "payment_methods"
 end

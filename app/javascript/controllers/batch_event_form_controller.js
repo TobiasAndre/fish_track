@@ -3,8 +3,13 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [
     "type",
+    "occurredOn",
+
     "biometryRow",
+    "mortalityRow",
     "feedKgRow",
+    "loadingRow",
+
     "quantity",
     "totalWeight",
     "volume",
@@ -12,52 +17,51 @@ export default class extends Controller {
     "biomass",
     "weightGain",
     "gpd",
+
     "previousBiomass",
     "previousAvgWeight",
     "previousOccurredOn",
-    "occurredOn",
-    "mortalityRow",
+
+    "currentAvgWeight",
     "mortalityQuantity",
     "mortalityAvgWeight",
     "mortalityWeightLoss",
-    "currentAvgWeight"
+
+    "pricePerKg",
+    "pricePerKgCents",
+    "thousandValue",
+    "thousandValueCents",
+    "freightCost",
+    "freightCostCents",
+    "loadingCost",
+    "loadingCostCents"
   ]
 
   connect() {
     this.toggle()
     this.formatInitialValues()
     this.recalculate()
+    this.recalculateMortality()
   }
 
   toggle() {
     const eventType = this.typeTarget.value
-    const isBiometry = this.isBiometryEvent(eventType)
-    const isFeeding = eventType === "feeding"
-    const isMortality = eventType === "mortality"
 
-    console.log("Toggling form for event type:", eventType)
+    const isBiometry = this.isBiometryEvent(eventType)
+    const isMortality = eventType === "mortality"
+    const isFeeding = eventType === "feeding"
+    const isLoading = eventType === "loading"
 
     this.toggleTarget("biometryRow", isBiometry)
-    this.toggleTarget("feedKgRow", isFeeding)
     this.toggleTarget("mortalityRow", isMortality)
+    this.toggleTarget("feedKgRow", isFeeding)
+    this.toggleTarget("loadingRow", isLoading)
 
-    if (!isBiometry) {
-      this.clearBiometryFields()
-      return
-    }
+    if (!isBiometry) this.clearBiometryFields()
+    if (!isMortality) this.clearMortalityFields()
 
-    if (isMortality) {
-      this.recalculateMortality()
-    }
-
-    this.recalculate()
-  }
-
-  parseStoredNumber(value) {
-    if (value == null || value === "") return 0
-
-    const parsed = Number(String(value).trim())
-    return Number.isNaN(parsed) ? 0 : parsed
+    if (isBiometry) this.recalculate()
+    if (isMortality) this.recalculateMortality()
   }
 
   recalculate() {
@@ -70,16 +74,6 @@ export default class extends Controller {
     const previousAvgWeight = this.parseStoredNumber(this.hasPreviousAvgWeightTarget ? this.previousAvgWeightTarget.value : "")
     const previousOccurredOn = this.hasPreviousOccurredOnTarget ? this.previousOccurredOnTarget.value : ""
     const currentOccurredOn = this.hasOccurredOnTarget ? this.occurredOnTarget.value : ""
-
-    console.log("Recalculating with values:", {
-      quantity,
-      totalWeightKg,
-      volume,
-      previousBiomass,
-      previousAvgWeight,
-      previousOccurredOn,
-      currentOccurredOn
-    })
 
     let avgWeightG = 0
     let biomass = 0
@@ -94,7 +88,6 @@ export default class extends Controller {
       biomass = volume * (avgWeightG / 1000)
     }
 
-    // ganho = biomassa atual - biomassa anterior
     if (biomass > 0) {
       weightGainKg = biomass - previousBiomass
     }
@@ -122,14 +115,16 @@ export default class extends Controller {
   }
 
   recalculateMortality() {
+    if (!this.hasTypeTarget || this.typeTarget.value !== "mortality") return
     if (!this.hasMortalityQuantityTarget || !this.hasCurrentAvgWeightTarget) return
 
     const quantity = this.parseNumber(this.mortalityQuantityTarget.value)
     const avgWeight = this.parseStoredNumber(this.currentAvgWeightTarget.value)
 
-    const totalWeightKg = quantity > 0 && avgWeight > 0
-      ? (quantity * avgWeight) / 1000
-      : 0
+    const totalWeightKg =
+      quantity > 0 && avgWeight > 0
+        ? (quantity * avgWeight) / 1000
+        : 0
 
     if (this.hasMortalityAvgWeightTarget) {
       this.mortalityAvgWeightTarget.value = this.formatDecimal(avgWeight, 2)
@@ -138,19 +133,6 @@ export default class extends Controller {
     if (this.hasMortalityWeightLossTarget) {
       this.mortalityWeightLossTarget.value = this.formatDecimal(totalWeightKg, 3)
     }
-  }
-
-  formatMortalityQuantityInput(event) {
-    let value = event.target.value.replace(/\D/g, "")
-
-    if (!value) {
-      event.target.value = ""
-      this.recalculateMortality()
-      return
-    }
-
-    event.target.value = this.formatWithDelimiter(value)
-    this.recalculateMortality()
   }
 
   formatIntegerInput(event) {
@@ -164,6 +146,19 @@ export default class extends Controller {
 
     event.target.value = this.formatWithDelimiter(value)
     this.recalculate()
+  }
+
+  formatMortalityQuantityInput(event) {
+    let value = event.target.value.replace(/\D/g, "")
+
+    if (!value) {
+      event.target.value = ""
+      this.recalculateMortality()
+      return
+    }
+
+    event.target.value = this.formatWithDelimiter(value)
+    this.recalculateMortality()
   }
 
   formatDecimalInput(event) {
@@ -185,6 +180,39 @@ export default class extends Controller {
     this.recalculate()
   }
 
+  maskCurrency(event) {
+    const input = event.currentTarget
+    const digits = input.value.replace(/\D/g, "")
+
+    if (!digits) {
+      input.value = ""
+      this.syncCurrencyHiddenTarget(input)
+      return
+    }
+
+    const value = Number(digits) / 100
+    input.value = this.formatCurrency(value)
+    this.syncCurrencyHiddenTarget(input, Number(digits))
+  }
+
+  syncCurrencyHiddenTarget(input, cents = 0) {
+    if (input === this.pricePerKgTarget && this.hasPricePerKgCentsTarget) {
+      this.pricePerKgCentsTarget.value = cents
+    }
+
+    if (input === this.thousandValueTarget && this.hasThousandValueCentsTarget) {
+      this.thousandValueCentsTarget.value = cents
+    }
+
+    if (input === this.freightCostTarget && this.hasFreightCostCentsTarget) {
+      this.freightCostCentsTarget.value = cents
+    }
+
+    if (input === this.loadingCostTarget && this.hasLoadingCostCentsTarget) {
+      this.loadingCostCentsTarget.value = cents
+    }
+  }
+
   toggleTarget(targetName, show) {
     const targetProperty = `has${this.capitalize(targetName)}Target`
     const elementProperty = `${targetName}Target`
@@ -199,6 +227,11 @@ export default class extends Controller {
     if (this.hasBiomassTarget) this.biomassTarget.value = ""
     if (this.hasWeightGainTarget) this.weightGainTarget.value = this.formatDecimal(0, 2)
     if (this.hasGpdTarget) this.gpdTarget.value = this.formatDecimal(0, 3)
+  }
+
+  clearMortalityFields() {
+    if (this.hasMortalityAvgWeightTarget) this.mortalityAvgWeightTarget.value = ""
+    if (this.hasMortalityWeightLossTarget) this.mortalityWeightLossTarget.value = ""
   }
 
   formatInitialValues() {
@@ -222,7 +255,22 @@ export default class extends Controller {
           : ""
     }
 
+    this.formatCurrencyInitial(this.pricePerKgTarget)
+    this.formatCurrencyInitial(this.thousandValueTarget)
+    this.formatCurrencyInitial(this.freightCostTarget)
+    this.formatCurrencyInitial(this.loadingCostTarget)
+
     this.recalculate()
+    this.recalculateMortality()
+  }
+
+  formatCurrencyInitial(input) {
+    if (!input) return
+
+    const digits = input.value.replace(/\D/g, "")
+    if (!digits) return
+
+    input.value = this.formatCurrency(Number(digits) / 100)
   }
 
   parseNumber(value) {
@@ -231,6 +279,13 @@ export default class extends Controller {
     const normalized = String(value).trim().replace(/\./g, "").replace(",", ".")
     const parsed = parseFloat(normalized)
 
+    return Number.isNaN(parsed) ? 0 : parsed
+  }
+
+  parseStoredNumber(value) {
+    if (value == null || value === "") return 0
+
+    const parsed = Number(String(value).trim())
     return Number.isNaN(parsed) ? 0 : parsed
   }
 
@@ -245,6 +300,13 @@ export default class extends Controller {
     return String(Math.round(Number(value || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
 
+  formatCurrency(value) {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    }).format(Number(value || 0))
+  }
+
   formatWithDelimiter(value) {
     return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
@@ -252,13 +314,27 @@ export default class extends Controller {
   daysBetween(startDate, endDate) {
     if (!startDate || !endDate) return 0
 
-    const start = new Date(startDate + "T00:00:00")
-    const end = new Date(endDate + "T00:00:00")
+    const startParts = String(startDate).split("-")
+    const endParts = String(endDate).split("-")
 
-    if (isNaN(start) || isNaN(end)) return 0
+    if (startParts.length !== 3 || endParts.length !== 3) return 0
+
+    const start = new Date(
+      Number(startParts[0]),
+      Number(startParts[1]) - 1,
+      Number(startParts[2])
+    )
+
+    const end = new Date(
+      Number(endParts[0]),
+      Number(endParts[1]) - 1,
+      Number(endParts[2])
+    )
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0
 
     const diffMs = end - start
-    return Math.round(diffMs / (1000 * 60 * 60 * 24))
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24))
   }
 
   isBiometryEvent(eventType) {

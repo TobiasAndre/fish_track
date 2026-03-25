@@ -1,5 +1,8 @@
 class StockingEvent < ApplicationRecord
   belongs_to :batch_stocking
+  belongs_to :customer, optional: true
+  belongs_to :integrated, optional: true
+  belongs_to :payment_method, optional: true
 
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
