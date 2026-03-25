@@ -15,7 +15,12 @@ export default class extends Controller {
     "previousBiomass",
     "previousAvgWeight",
     "previousOccurredOn",
-    "occurredOn"
+    "occurredOn",
+    "mortalityRow",
+    "mortalityQuantity",
+    "mortalityAvgWeight",
+    "mortalityWeightLoss",
+    "currentAvgWeight"
   ]
 
   connect() {
@@ -28,13 +33,21 @@ export default class extends Controller {
     const eventType = this.typeTarget.value
     const isBiometry = this.isBiometryEvent(eventType)
     const isFeeding = eventType === "feeding"
+    const isMortality = eventType === "mortality"
+
+    console.log("Toggling form for event type:", eventType)
 
     this.toggleTarget("biometryRow", isBiometry)
     this.toggleTarget("feedKgRow", isFeeding)
+    this.toggleTarget("mortalityRow", isMortality)
 
     if (!isBiometry) {
       this.clearBiometryFields()
       return
+    }
+
+    if (isMortality) {
+      this.recalculateMortality()
     }
 
     this.recalculate()
@@ -106,6 +119,38 @@ export default class extends Controller {
     if (this.hasGpdTarget) {
       this.gpdTarget.value = this.formatDecimal(gpd, 3)
     }
+  }
+
+  recalculateMortality() {
+    if (!this.hasMortalityQuantityTarget || !this.hasCurrentAvgWeightTarget) return
+
+    const quantity = this.parseNumber(this.mortalityQuantityTarget.value)
+    const avgWeight = this.parseStoredNumber(this.currentAvgWeightTarget.value)
+
+    const totalWeightKg = quantity > 0 && avgWeight > 0
+      ? (quantity * avgWeight) / 1000
+      : 0
+
+    if (this.hasMortalityAvgWeightTarget) {
+      this.mortalityAvgWeightTarget.value = this.formatDecimal(avgWeight, 2)
+    }
+
+    if (this.hasMortalityWeightLossTarget) {
+      this.mortalityWeightLossTarget.value = this.formatDecimal(totalWeightKg, 3)
+    }
+  }
+
+  formatMortalityQuantityInput(event) {
+    let value = event.target.value.replace(/\D/g, "")
+
+    if (!value) {
+      event.target.value = ""
+      this.recalculateMortality()
+      return
+    }
+
+    event.target.value = this.formatWithDelimiter(value)
+    this.recalculateMortality()
   }
 
   formatIntegerInput(event) {

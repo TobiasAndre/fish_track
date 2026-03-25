@@ -2,6 +2,7 @@ class StockingEventsController < ApplicationController
   before_action :set_batch_stocking
   before_action :set_stocking_event, only: %i[edit update destroy]
   before_action :set_previous_biometry_data, only: %i[new edit]
+  before_action :set_current_avg_weight, only: %i[new edit]
 
   def index
     @events = @batch_stocking.stocking_events
@@ -74,6 +75,19 @@ class StockingEventsController < ApplicationController
     @previous_biomass = previous_event&.biomass.to_d
     @previous_avg_weight = previous_event&.avg_weight_g.to_d
     @previous_occurred_on = previous_event&.occurred_on
+  end
+
+  def set_current_avg_weight
+    latest_biometry = @batch_stocking.stocking_events
+      .where(event_type: "biometrics")
+      .order(occurred_on: :desc, created_at: :desc)
+      .first
+
+    @current_avg_weight_g =
+      latest_biometry&.avg_weight_g ||
+      @batch_stocking.avg_weight_g ||
+      @batch.avg_weight_g ||
+      0
   end
 
   def previous_biometry_event_for(event)

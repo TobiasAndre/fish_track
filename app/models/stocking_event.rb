@@ -3,7 +3,9 @@ class StockingEvent < ApplicationRecord
 
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
+
   after_commit :update_batch_avg_weight, on: %i[create update]
+  after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
 
   EVENT_TYPES = %w[biometrics mortality feeding loading].freeze
 
@@ -83,12 +85,16 @@ class StockingEvent < ApplicationRecord
 
     last_biometry = batch_stocking.stocking_events
       .where(event_type: "biometrics")
-      .order(occurred_on: :desc)
+      .order(occurred_on: :desc, created_at: :desc)
       .first
 
     return unless last_biometry&.avg_weight_g.present?
 
     batch.update(avg_weight_g: last_biometry.avg_weight_g)
+  end
+
+  def recalculate_batch_stocking_balance
+    batch_stocking.recalculate_current_balance!
   end
 
   def biometry?
