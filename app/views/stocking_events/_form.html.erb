@@ -1,8 +1,25 @@
-<%= form_with model: [@batch, @batch_stocking, @stocking_event],
+<%= form_with(
+  model: @stocking_event,
+  url: @stocking_event.persisted? ?
+    batch_batch_stocking_stocking_event_path(@batch, @batch_stocking, @stocking_event) :
+    batch_batch_stocking_stocking_events_path(@batch, @batch_stocking),
   data: { controller: "batch-event-form" },
-  class: "mt-6 space-y-4" do |f| %>
+  class: "mt-6 space-y-4"
+) do |f| %>
 
   <%= render "shared/form_errors", resource: @stocking_event %>
+
+  <%= hidden_field_tag :previous_biomass,
+    @previous_biomass,
+    data: { "batch-event-form-target": "previousBiomass" } %>
+
+  <%= hidden_field_tag :previous_avg_weight,
+    @previous_avg_weight,
+    data: { "batch-event-form-target": "previousAvgWeight" } %>
+
+  <%= hidden_field_tag :previous_occurred_on,
+    @previous_occurred_on,
+    data: { "batch-event-form-target": "previousOccurredOn" } %>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
@@ -21,6 +38,7 @@
     <div>
       <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
       <%= f.date_field :occurred_on,
+        data: { "batch-event-form-target": "occurredOn", action: "change->batch-event-form#recalculate" },
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
                 border-gray-300 dark:border-gray-700
@@ -33,7 +51,8 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div>
         <%= f.label :volume, "Volume", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.text_field :volume, step: 0.01,
+        <%= f.text_field :volume,
+          inputmode: "numeric",
           data: { "batch-event-form-target": "volume", action: "input->batch-event-form#formatIntegerInput" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
                   bg-white dark:bg-gray-950
@@ -45,7 +64,8 @@
       <div>
         <%= f.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
         <%= f.text_field :quantity,
-          data: { "batch-event-form-target": "quantity", action: "input->batch-event-form#formatIntegerInput" },
+          inputmode: "numeric",
+          data: { "batch-event-form-target": "quantity", action: "input->batch-event-form#formatIntegerInput change->batch-event-form#recalculate" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
                   bg-white dark:bg-gray-950
                   border-gray-300 dark:border-gray-700
@@ -55,8 +75,9 @@
 
       <div>
         <%= f.label :total_weight_kg, "Peso (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.number_field :total_weight_kg, step: 0.001,
-          data: { "batch-event-form-target": "totalWeight", action: "input->batch-event-form#recalculate" },
+        <%= f.text_field :total_weight_kg,
+          inputmode: "decimal",
+          data: { "batch-event-form-target": "totalWeight", action: "input->batch-event-form#formatDecimalInput change->batch-event-form#recalculate" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
                   bg-white dark:bg-gray-950
                   border-gray-300 dark:border-gray-700
@@ -65,10 +86,10 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
       <div>
         <%= f.label :avg_weight_g, "Peso médio (g)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.number_field :avg_weight_g, step: 0.01,
+        <%= f.text_field :avg_weight_g,
           readonly: true,
           data: { "batch-event-form-target": "avgWeight" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
@@ -80,7 +101,7 @@
 
       <div>
         <%= f.label :biomass, "Biomassa", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.number_field :biomass, step: 0.01,
+        <%= f.text_field :biomass,
           readonly: true,
           data: { "batch-event-form-target": "biomass" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
@@ -90,15 +111,23 @@
                   focus:outline-none" %>
       </div>
 
-      <%= hidden_field_tag :previous_biomass,
-        @previous_biomass,
-        data: { "batch-event-form-target": "previousBiomass" } %>
-
       <div>
         <%= f.label :weight_gain_kg, "Ganho de peso (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.number_field :weight_gain_kg, step: 0.01,
+        <%= f.text_field :weight_gain_kg,
           readonly: true,
           data: { "batch-event-form-target": "weightGain" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-gray-50 dark:bg-gray-900
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none" %>
+      </div>
+
+      <div>
+        <%= f.label :gpd, "GPD", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+        <%= f.text_field :gpd,
+          readonly: true,
+          data: { "batch-event-form-target": "gpd" },
           class: "w-full rounded-lg border px-3 py-2 text-sm
                   bg-gray-50 dark:bg-gray-900
                   border-gray-300 dark:border-gray-700
