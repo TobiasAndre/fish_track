@@ -88,6 +88,11 @@
 
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                GPD: <%= latest_biometry&.gpd.present? ? number_with_precision(latest_biometry.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
+              </span>
+
+              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                 Peso: <%= b.avg_weight_g ? "#{number_with_precision(b.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
               </span>
             </div>
@@ -134,6 +139,7 @@
                 <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
                 <% parts << "Biomassa: #{number_with_precision(e.biomass, precision: 2, separator: ",", delimiter: ".")}" if e.biomass.present? %>
                 <% parts << "Ganho: #{number_with_precision(e.weight_gain_kg, precision: 2, separator: ",", delimiter: ".")}kg" if e.weight_gain_kg.present? %>
+                <% parts << "GPD: #{number_with_precision(e.gpd, precision: 3, separator: ",", delimiter: ".")}" if e.gpd.present? %>
 
                 <% if parts.any? %>
                   <p class="mt-1 text-xs text-gray-600 dark:text-gray-300"><%= parts.join(" • ") %></p>
