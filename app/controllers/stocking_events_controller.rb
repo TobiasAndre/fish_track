@@ -2,6 +2,8 @@ class StockingEventsController < ApplicationController
   before_action :set_batch
   before_action :set_batch_stocking
   before_action :set_stocking_event, only: %i[edit update destroy]
+  before_action :set_previous_biomass, only: %i[new edit]
+
 
   def index
     @events = @batch_stocking.stocking_events
@@ -60,6 +62,33 @@ class StockingEventsController < ApplicationController
     @stocking_event = @batch_stocking.stocking_events.find(params[:id])
   end
 
+  def set_previous_biomass
+    event = action_name == "edit" ? @stocking_event : @batch_stocking.stocking_events.new
+    @previous_biomass = previous_biomass_for(event)
+  end
+
+  def previous_biomass_for(event)
+    scope = @batch_stocking.stocking_events.where(event_type: "biometrics")
+    scope = scope.where.not(id: event.id) if event.persisted?
+
+    previous_event =
+      if event.occurred_on.present?
+        scope
+          .where(
+            "occurred_on < ? OR (occurred_on = ? AND created_at < ?)",
+            event.occurred_on,
+            event.occurred_on,
+            event.created_at || Time.current
+          )
+          .order(occurred_on: :desc, created_at: :desc)
+          .first
+      else
+        scope.order(occurred_on: :desc, created_at: :desc).first
+      end
+
+    previous_event&.biomass.to_d
+  end
+
   def stocking_event_params
     params.require(:stocking_event).permit(
       :event_type,
@@ -70,7 +99,8 @@ class StockingEventsController < ApplicationController
       :notes,
       :volume,
       :biomass,
-      :total_weight_kg
+      :total_weight_kg,
+      :weight_gain_kg
     )
   end
 end

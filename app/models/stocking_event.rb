@@ -43,7 +43,32 @@ class StockingEvent < ApplicationRecord
     if volume.present? && avg_weight_g.present?
       self.biomass = volume.to_d * (avg_weight_g.to_d / 1000)
     end
+
+    calculate_weight_gain_kg
   end
+
+  def calculate_weight_gain_kg
+    return unless biometria?
+    return if biomass.blank?
+    return unless batch_stocking.present?
+
+    previous_biometry = batch_stocking.stocking_events
+      .where(event_type: self.class.event_types[:biometrics])
+      .where.not(id: id)
+      .where(
+        "occurred_on < ? OR (occurred_on = ? AND created_at < ?)",
+        occurred_on,
+        occurred_on,
+        created_at || Time.current
+      )
+      .order(occurred_on: :desc, created_at: :desc)
+      .first
+
+    previous_biomass = previous_biometry&.biomass.to_d
+
+    self.weight_gain_kg = biomass.to_d - previous_biomass
+  end
+
 
   def biometria?
     event_type == "biometrics"
