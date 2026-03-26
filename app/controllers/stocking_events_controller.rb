@@ -136,7 +136,7 @@ class StockingEventsController < ApplicationController
       :freight_cost_cents,
       :loading_cost_cents,
       :payment_date,
-      :payment_method,
+      :payment_method_id,
       :customer_id,
       :integrated_id
     )

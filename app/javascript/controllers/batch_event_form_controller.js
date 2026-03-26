@@ -34,14 +34,20 @@ export default class extends Controller {
     "freightCost",
     "freightCostCents",
     "loadingCost",
-    "loadingCostCents"
+    "loadingCostCents",
+
+    "loadingQuantity",
+    "loadingTotalWeight",
+    "loadingAvgWeight"
   ]
 
   connect() {
+    console.log("BatchEventFormController connected")
     this.toggle()
     this.formatInitialValues()
     this.recalculate()
     this.recalculateMortality()
+    this.recalculateLoading()
   }
 
   toggle() {
@@ -60,6 +66,7 @@ export default class extends Controller {
     if (!isBiometry) this.clearBiometryFields()
     if (!isMortality) this.clearMortalityFields()
 
+    if (isLoading) this.recalculateLoading()
     if (isBiometry) this.recalculate()
     if (isMortality) this.recalculateMortality()
   }
@@ -70,8 +77,12 @@ export default class extends Controller {
     const quantity = this.parseNumber(this.hasQuantityTarget ? this.quantityTarget.value : "")
     const totalWeightKg = this.parseNumber(this.hasTotalWeightTarget ? this.totalWeightTarget.value : "")
     const volume = this.parseNumber(this.hasVolumeTarget ? this.volumeTarget.value : "")
-    const previousBiomass = this.parseStoredNumber(this.hasPreviousBiomassTarget ? this.previousBiomassTarget.value : "")
-    const previousAvgWeight = this.parseStoredNumber(this.hasPreviousAvgWeightTarget ? this.previousAvgWeightTarget.value : "")
+    const previousBiomass = this.parseStoredNumber(
+      this.hasPreviousBiomassTarget ? this.previousBiomassTarget.value : ""
+    )
+    const previousAvgWeight = this.parseStoredNumber(
+      this.hasPreviousAvgWeightTarget ? this.previousAvgWeightTarget.value : ""
+    )
     const previousOccurredOn = this.hasPreviousOccurredOnTarget ? this.previousOccurredOnTarget.value : ""
     const currentOccurredOn = this.hasOccurredOnTarget ? this.occurredOnTarget.value : ""
 
@@ -114,6 +125,23 @@ export default class extends Controller {
     }
   }
 
+  recalculateLoading() {
+    if (!this.hasTypeTarget || this.typeTarget.value !== "loading") return
+    if (!this.hasLoadingTotalWeightTarget || !this.hasLoadingAvgWeightTarget || !this.hasLoadingQuantityTarget) return
+
+    const totalWeightKg = this.parseNumber(this.loadingTotalWeightTarget.value)
+    const avgWeightKg = this.parseNumber(this.loadingAvgWeightTarget.value)
+
+    let quantity = 0
+
+    if (totalWeightKg > 0 && avgWeightKg > 0) {
+      quantity = totalWeightKg / avgWeightKg
+    }
+
+    this.loadingQuantityTarget.value =
+      quantity > 0 ? this.formatInteger(Math.ceil(quantity)) : ""
+  }
+
   recalculateMortality() {
     if (!this.hasTypeTarget || this.typeTarget.value !== "mortality") return
     if (!this.hasMortalityQuantityTarget || !this.hasCurrentAvgWeightTarget) return
@@ -141,11 +169,13 @@ export default class extends Controller {
     if (!value) {
       event.target.value = ""
       this.recalculate()
+      this.recalculateLoading()
       return
     }
 
     event.target.value = this.formatWithDelimiter(value)
     this.recalculate()
+    this.recalculateLoading()
   }
 
   formatMortalityQuantityInput(event) {
@@ -166,6 +196,7 @@ export default class extends Controller {
 
     if (!value) {
       this.recalculate()
+      this.recalculateLoading()
       return
     }
 
@@ -178,6 +209,7 @@ export default class extends Controller {
 
     event.target.value = value
     this.recalculate()
+    this.recalculateLoading()
   }
 
   maskCurrency(event) {
@@ -196,19 +228,19 @@ export default class extends Controller {
   }
 
   syncCurrencyHiddenTarget(input, cents = 0) {
-    if (input === this.pricePerKgTarget && this.hasPricePerKgCentsTarget) {
+    if (this.hasPricePerKgTarget && input === this.pricePerKgTarget && this.hasPricePerKgCentsTarget) {
       this.pricePerKgCentsTarget.value = cents
     }
 
-    if (input === this.thousandValueTarget && this.hasThousandValueCentsTarget) {
+    if (this.hasThousandValueTarget && input === this.thousandValueTarget && this.hasThousandValueCentsTarget) {
       this.thousandValueCentsTarget.value = cents
     }
 
-    if (input === this.freightCostTarget && this.hasFreightCostCentsTarget) {
+    if (this.hasFreightCostTarget && input === this.freightCostTarget && this.hasFreightCostCentsTarget) {
       this.freightCostCentsTarget.value = cents
     }
 
-    if (input === this.loadingCostTarget && this.hasLoadingCostCentsTarget) {
+    if (this.hasLoadingCostTarget && input === this.loadingCostTarget && this.hasLoadingCostCentsTarget) {
       this.loadingCostCentsTarget.value = cents
     }
   }
@@ -255,13 +287,34 @@ export default class extends Controller {
           : ""
     }
 
-    this.formatCurrencyInitial(this.pricePerKgTarget)
-    this.formatCurrencyInitial(this.thousandValueTarget)
-    this.formatCurrencyInitial(this.freightCostTarget)
-    this.formatCurrencyInitial(this.loadingCostTarget)
+    if (this.hasLoadingTotalWeightTarget) {
+      const rawValue = this.loadingTotalWeightTarget.value
+      const totalWeight = Number(rawValue)
+
+      this.loadingTotalWeightTarget.value =
+        !Number.isNaN(totalWeight) && totalWeight > 0
+          ? this.formatDecimal(totalWeight, 3)
+          : ""
+    }
+
+    if (this.hasLoadingAvgWeightTarget) {
+      const rawValue = this.loadingAvgWeightTarget.value
+      const avgWeight = Number(rawValue)
+
+      this.loadingAvgWeightTarget.value =
+        !Number.isNaN(avgWeight) && avgWeight > 0
+          ? this.formatDecimal(avgWeight, 2)
+          : ""
+    }
+
+    if (this.hasPricePerKgTarget) this.formatCurrencyInitial(this.pricePerKgTarget)
+    if (this.hasThousandValueTarget) this.formatCurrencyInitial(this.thousandValueTarget)
+    if (this.hasFreightCostTarget) this.formatCurrencyInitial(this.freightCostTarget)
+    if (this.hasLoadingCostTarget) this.formatCurrencyInitial(this.loadingCostTarget)
 
     this.recalculate()
     this.recalculateMortality()
+    this.recalculateLoading()
   }
 
   formatCurrencyInitial(input) {

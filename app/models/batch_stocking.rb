@@ -23,6 +23,8 @@ class BatchStocking < ApplicationRecord
     current_quantity_value = base_quantity
     current_biomass_value = base_biomass_kg
 
+    Rails.logger.info("Recalculating current balance for BatchStocking ##{id} - Base Quantity: #{base_quantity}, Base Biomass (kg): #{base_biomass_kg}")
+
     ordered_events = stocking_events.order(:occurred_on, :created_at)
 
     ordered_events.each do |event|
@@ -34,17 +36,23 @@ class BatchStocking < ApplicationRecord
         current_quantity_value -= dead_quantity
         current_biomass_value -= (dead_quantity.to_d * avg_weight.to_d) / 1000
 
+        Rails.logger.info("Processed mortality event ##{event.id} - Dead Quantity: #{dead_quantity}, Avg Weight: #{avg_weight}, Current Quantity: #{current_quantity_value}, Current Biomass (kg): #{current_biomass_value}")
+
       when "loading"
         loaded_quantity = event.quantity.to_i
         avg_weight = event_avg_weight_for(event)
 
         current_quantity_value -= loaded_quantity
         current_biomass_value -= (loaded_quantity.to_d * avg_weight.to_d) / 1000
+
+        Rails.logger.info("Processed loading event ##{event.id} - Loaded Quantity: #{loaded_quantity}, Avg Weight: #{avg_weight}, Current Quantity: #{current_quantity_value}, Current Biomass (kg): #{current_biomass_value}")
       end
     end
 
     current_quantity_value = [current_quantity_value, 0].max
     current_biomass_value = [current_biomass_value, 0.to_d].max
+
+    Rails.logger.info("Final current balance for BatchStocking ##{id} - Current Quantity: #{current_quantity_value}, Current Biomass (kg): #{current_biomass_value}")
 
     update_columns(
       current_quantity: current_quantity_value,

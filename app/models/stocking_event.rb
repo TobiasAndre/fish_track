@@ -6,6 +6,7 @@ class StockingEvent < ApplicationRecord
 
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
+  before_validation :calculate_loading_fields
 
   after_commit :update_batch_avg_weight, on: %i[create update]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
@@ -20,6 +21,14 @@ class StockingEvent < ApplicationRecord
   }, _suffix: true
 
   private
+
+  def calculate_loading_fields
+    return unless loading?
+    return if total_weight_kg.blank? || avg_weight_g.blank?
+    return if avg_weight_g.to_d <= 0
+
+    self.quantity = ((total_weight_kg.to_d * 1000) / avg_weight_g.to_d).floor
+  end
 
   def calculate_biometry_fields
     return unless biometry?
@@ -102,6 +111,10 @@ class StockingEvent < ApplicationRecord
 
   def biometry?
     event_type == "biometrics"
+  end
+
+  def loading?
+    event_type == "loading"
   end
 
   def normalize_numeric_fields
