@@ -27,7 +27,7 @@ class StockingEvent < ApplicationRecord
     return if total_weight_kg.blank? || avg_weight_g.blank?
     return if avg_weight_g.to_d <= 0
 
-    self.quantity = ((total_weight_kg.to_d * 1000) / avg_weight_g.to_d).floor
+    self.quantity = ((total_weight_kg.to_d * 1000) / avg_weight_g.to_d).ceil
   end
 
   def calculate_biometry_fields

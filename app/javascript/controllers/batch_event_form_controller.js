@@ -130,12 +130,12 @@ export default class extends Controller {
     if (!this.hasLoadingTotalWeightTarget || !this.hasLoadingAvgWeightTarget || !this.hasLoadingQuantityTarget) return
 
     const totalWeightKg = this.parseNumber(this.loadingTotalWeightTarget.value)
-    const avgWeightKg = this.parseNumber(this.loadingAvgWeightTarget.value)
+    const avgWeightG = this.parseNumber(this.loadingAvgWeightTarget.value)
 
     let quantity = 0
 
-    if (totalWeightKg > 0 && avgWeightKg > 0) {
-      quantity = totalWeightKg / avgWeightKg
+    if (totalWeightKg > 0 && avgWeightG > 0) {
+      quantity = (totalWeightKg * 1000) / avgWeightG
     }
 
     this.loadingQuantityTarget.value =
