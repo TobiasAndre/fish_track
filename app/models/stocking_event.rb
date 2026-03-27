@@ -94,6 +94,7 @@ class StockingEvent < ApplicationRecord
 
     batch = batch_stocking&.batch
     return unless batch
+    return if batch.destroyed? || batch.marked_for_destruction?
 
     last_biometry = batch_stocking.stocking_events
       .where(event_type: "biometrics")
@@ -106,6 +107,10 @@ class StockingEvent < ApplicationRecord
   end
 
   def recalculate_batch_stocking_balance
+    return unless batch_stocking.present?
+    return if batch_stocking.destroyed? || batch_stocking.marked_for_destruction?
+    return unless batch_stocking.persisted?
+
     batch_stocking.recalculate_current_balance!
   end
 

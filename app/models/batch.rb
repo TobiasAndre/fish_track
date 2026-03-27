@@ -21,11 +21,31 @@ class Batch < ApplicationRecord
 
   validate :stockings_must_belong_to_same_unit
 
+  before_validation :sync_quantities_from_stockings
+
   def unit
     ponds.first&.unit
   end
 
+  def recalculate_current_quantity!
+    return if destroyed? || marked_for_destruction?
+
+    total_current_quantity = batch_stockings.sum(:current_quantity)
+    update_columns(current_quantity: total_current_quantity)
+  end
+
   private
+
+  def sync_quantities_from_stockings
+    valid_stockings = batch_stockings.reject(&:marked_for_destruction?)
+    return if valid_stockings.blank?
+
+    self.initial_quantity = valid_stockings.sum { |stocking| stocking.quantity.to_i }
+
+    self.current_quantity = valid_stockings.sum do |stocking|
+      stocking.current_quantity.present? ? stocking.current_quantity.to_i : stocking.quantity.to_i
+    end
+  end
 
   def stockings_must_belong_to_same_unit
     valid_stockings = batch_stockings.reject(&:marked_for_destruction?)

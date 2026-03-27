@@ -45,7 +45,7 @@
         <% @active_batches.each do |b| %>
           <% unit_names = b.batch_stockings.map { |s| s.pond.unit.name }.uniq.join(", ") %>
           <% pond_names = b.batch_stockings.map { |s| s.pond.name }.uniq.join(", ") %>
-          <% stocked_quantity = b.batch_stockings.sum { |s| s.current_quantity.to_i } %>
+          <% current_quantity = b.current_quantity.to_i %>
 
           <% latest_biometry = b.batch_stockings
             .flat_map(&:stocking_events)
@@ -73,7 +73,7 @@
             <div class="mt-3 flex flex-wrap gap-2">
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Alojado: <%= stocked_quantity.positive? ? number_with_delimiter(stocked_quantity, delimiter: ".") : "—" %>
+                Atual: <%= current_quantity.positive? ? number_with_delimiter(current_quantity, delimiter: ".") : "—" %>
               </span>
 
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
