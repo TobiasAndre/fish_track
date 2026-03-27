@@ -251,7 +251,12 @@ export default class extends Controller {
 
     if (!this[targetProperty]) return
 
-    this[elementProperty].classList.toggle("hidden", !show)
+    const element = this[elementProperty]
+    element.classList.toggle("hidden", !show)
+
+    element.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.disabled = !show
+    })
   }
 
   clearBiometryFields() {

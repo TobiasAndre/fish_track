@@ -21,7 +21,7 @@ class Batch < ApplicationRecord
 
   validate :stockings_must_belong_to_same_unit
 
-  before_validation :sync_quantities_from_stockings
+  before_validation :sync_batch_totals_from_stockings
 
   def unit
     ponds.first&.unit
@@ -34,16 +34,31 @@ class Batch < ApplicationRecord
     update_columns(current_quantity: total_current_quantity)
   end
 
+  def recalculate_current_biomass!
+    return if destroyed? || marked_for_destruction?
+
+    total_current_biomass = batch_stockings.sum(:current_biomass_kg)
+    update_columns(current_biomass_kg: total_current_biomass)
+  end
+
   private
 
-  def sync_quantities_from_stockings
+  def sync_batch_totals_from_stockings
     valid_stockings = batch_stockings.reject(&:marked_for_destruction?)
     return if valid_stockings.blank?
 
-    self.initial_quantity = valid_stockings.sum { |stocking| stocking.quantity.to_i }
-
     self.current_quantity = valid_stockings.sum do |stocking|
       stocking.current_quantity.present? ? stocking.current_quantity.to_i : stocking.quantity.to_i
+    end
+
+    self.current_biomass_kg = valid_stockings.sum do |stocking|
+      if stocking.current_biomass_kg.present?
+        stocking.current_biomass_kg.to_d
+      elsif stocking.quantity.present? && stocking.avg_weight_g.present?
+        (stocking.quantity.to_d * stocking.avg_weight_g.to_d) / 1000
+      else
+        0.to_d
+      end
     end
   end
 

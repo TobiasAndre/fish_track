@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_27_174015) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_27_182420) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -44,6 +44,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_27_174015) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "product_id"
+    t.decimal "current_biomass_kg", precision: 14, scale: 3
     t.index ["name"], name: "index_batches_on_name"
     t.index ["product_id"], name: "index_batches_on_product_id"
     t.index ["started_on"], name: "index_batches_on_started_on"

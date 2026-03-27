@@ -10,6 +10,7 @@ class BatchStocking < ApplicationRecord
   validates :avg_weight_g, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true
 
   before_validation :initialize_current_fields, on: :create
+  after_commit :create_initial_biometry_event, on: :create
 
   def recalculate_current_balance!
     base_quantity = quantity.to_i
@@ -55,18 +56,48 @@ class BatchStocking < ApplicationRecord
     return if batch.destroyed? || batch.marked_for_destruction?
 
     batch.recalculate_current_quantity!
+    batch.recalculate_current_biomass!
   end
 
   private
 
   def initialize_current_fields
-    self.current_quantity ||= quantity.to_i
+    return if quantity.blank?
 
-    if avg_weight_g.present? && quantity.present?
-      self.current_biomass_kg ||= (quantity.to_d * avg_weight_g.to_d) / 1000
+    self.current_quantity = quantity.to_i if current_quantity.blank?
+
+    if avg_weight_g.present?
+      self.current_biomass_kg = (quantity.to_d * avg_weight_g.to_d) / 1000 if current_biomass_kg.blank?
     else
-      self.current_biomass_kg ||= 0
+      self.current_biomass_kg = 0 if current_biomass_kg.blank?
     end
+  end
+
+  def create_initial_biometry_event
+    return if stocked_on.blank?
+    return if quantity.blank? || quantity.to_i <= 0
+    return if avg_weight_g.blank? || avg_weight_g.to_d <= 0
+
+    # evita duplicação caso o callback rode novamente ou exista seed/import
+    existing_initial_biometry = stocking_events.find_by(
+      event_type: "biometrics",
+      occurred_on: stocked_on,
+      quantity: quantity.to_i
+    )
+
+    return if existing_initial_biometry.present?
+
+    total_weight_kg = (quantity.to_d * avg_weight_g.to_d) / 1000
+    initial_volume = current_quantity.presence || quantity
+
+    stocking_events.create!(
+      event_type: "biometrics",
+      occurred_on: stocked_on,
+      quantity: quantity.to_i,
+      volume: initial_volume.to_i,
+      avg_weight_g: avg_weight_g.to_d,
+      total_weight_kg: total_weight_kg
+    )
   end
 
   def event_avg_weight_for(event)

@@ -144,7 +144,15 @@ class StockingEvent < ApplicationRecord
     value = read_attribute_before_type_cast(field)
     return if value.blank?
 
-    normalized = value.to_s.gsub(".", "").tr(",", ".")
+    string_value = value.to_s.strip
+
+    normalized =
+      if string_value.include?(",")
+        string_value.gsub(".", "").tr(",", ".")
+      else
+        string_value
+      end
+
     self[field] = normalized.to_d
   end
 end

@@ -46,6 +46,7 @@
           <% unit_names = b.batch_stockings.map { |s| s.pond.unit.name }.uniq.join(", ") %>
           <% pond_names = b.batch_stockings.map { |s| s.pond.name }.uniq.join(", ") %>
           <% current_quantity = b.current_quantity.to_i %>
+          <% current_biomass = b.current_biomass_kg.to_d %>
 
           <% latest_biometry = b.batch_stockings
             .flat_map(&:stocking_events)
@@ -78,7 +79,7 @@
 
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Biomassa: <%= latest_biometry&.biomass.present? ? number_with_precision(latest_biometry.biomass, precision: 2, separator: ",", delimiter: ".") : "—" %>
+                Biomassa: <%= current_biomass.positive? ? number_with_precision(current_biomass, precision: 2, separator: ",", delimiter: ".") : "—" %>
               </span>
 
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs

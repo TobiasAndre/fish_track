@@ -165,27 +165,31 @@
       </div>
 
       <div>
-        <%= f.label :avg_weight_g, "Peso médio usado (g)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.text_field :avg_weight_g,
-          readonly: true,
-          data: { "batch-event-form-target": "mortalityAvgWeight" },
-          class: "w-full rounded-lg border px-3 py-2 text-sm
-                  bg-gray-50 dark:bg-gray-900
-                  border-gray-300 dark:border-gray-700
-                  text-gray-900 dark:text-gray-100
-                  focus:outline-none" %>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Peso médio usado (g)</label>
+        <input
+          type="text"
+          readonly
+          data-batch-event-form-target="mortalityAvgWeight"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                 bg-gray-50 dark:bg-gray-900
+                 border-gray-300 dark:border-gray-700
+                 text-gray-900 dark:text-gray-100
+                 focus:outline-none"
+        >
       </div>
 
       <div>
-        <%= f.label :total_weight_kg, "Peso perdido (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.text_field :total_weight_kg,
-          readonly: true,
-          data: { "batch-event-form-target": "mortalityWeightLoss" },
-          class: "w-full rounded-lg border px-3 py-2 text-sm
-                  bg-gray-50 dark:bg-gray-900
-                  border-gray-300 dark:border-gray-700
-                  text-gray-900 dark:text-gray-100
-                  focus:outline-none" %>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Peso perdido (kg)</label>
+        <input
+          type="text"
+          readonly
+          data-batch-event-form-target="mortalityWeightLoss"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                 bg-gray-50 dark:bg-gray-900
+                 border-gray-300 dark:border-gray-700
+                 text-gray-900 dark:text-gray-100
+                 focus:outline-none"
+        >
       </div>
     </div>
 
@@ -261,15 +265,17 @@
       </div>
 
       <div>
-        <%= f.label :quantity, "Quantidade calculada", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-        <%= f.text_field :quantity,
-          readonly: true,
-          data: { "batch-event-form-target": "loadingQuantity" },
-          class: "w-full rounded-lg border px-3 py-2 text-sm
-                  bg-gray-50 dark:bg-gray-900
-                  border-gray-300 dark:border-gray-700
-                  text-gray-900 dark:text-gray-100
-                  focus:outline-none" %>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Quantidade calculada</label>
+        <input
+          type="text"
+          readonly
+          data-batch-event-form-target="loadingQuantity"
+          class="w-full rounded-lg border px-3 py-2 text-sm
+                 bg-gray-50 dark:bg-gray-900
+                 border-gray-300 dark:border-gray-700
+                 text-gray-900 dark:text-gray-100
+                 focus:outline-none"
+        >
       </div>
     </div>
 
