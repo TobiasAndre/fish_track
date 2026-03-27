@@ -45,7 +45,7 @@
         <% @active_batches.each do |b| %>
           <% unit_names = b.batch_stockings.map { |s| s.pond.unit.name }.uniq.join(", ") %>
           <% pond_names = b.batch_stockings.map { |s| s.pond.name }.uniq.join(", ") %>
-          <% stocked_quantity = b.batch_stockings.sum { |s| s.quantity.to_i } %>
+          <% stocked_quantity = b.batch_stockings.sum { |s| s.current_quantity.to_i } %>
 
           <% latest_biometry = b.batch_stockings
             .flat_map(&:stocking_events)

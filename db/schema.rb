@@ -10,19 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_25_193248) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_27_113824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-
-  create_table "batch_ponds", force: :cascade do |t|
-    t.bigint "batch_id", null: false
-    t.bigint "pond_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["batch_id", "pond_id"], name: "index_batch_ponds_on_batch_id_and_pond_id", unique: true
-    t.index ["batch_id"], name: "index_batch_ponds_on_batch_id"
-    t.index ["pond_id"], name: "index_batch_ponds_on_pond_id"
-  end
 
   create_table "batch_stockings", force: :cascade do |t|
     t.bigint "batch_id", null: false
@@ -357,8 +347,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_25_193248) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
-  add_foreign_key "batch_ponds", "batches"
-  add_foreign_key "batch_ponds", "ponds"
   add_foreign_key "batch_stockings", "batches"
   add_foreign_key "batch_stockings", "ponds"
   add_foreign_key "batch_stockings", "suppliers"
