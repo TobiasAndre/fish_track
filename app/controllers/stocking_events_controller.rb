@@ -138,7 +138,9 @@ class StockingEventsController < ApplicationController
       :payment_date,
       :payment_method_id,
       :customer_id,
-      :integrated_id
+      :integrated_id,
+      :feed_kg,
+      :feed_conversion
     )
   end
 end

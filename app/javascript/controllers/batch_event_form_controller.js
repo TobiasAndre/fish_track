@@ -38,7 +38,10 @@ export default class extends Controller {
 
     "loadingQuantity",
     "loadingTotalWeight",
-    "loadingAvgWeight"
+    "loadingAvgWeight",
+
+    "feedKgBiometry",
+    "feedConversion"
   ]
 
   connect() {
@@ -85,11 +88,13 @@ export default class extends Controller {
     )
     const previousOccurredOn = this.hasPreviousOccurredOnTarget ? this.previousOccurredOnTarget.value : ""
     const currentOccurredOn = this.hasOccurredOnTarget ? this.occurredOnTarget.value : ""
+    const feedKg = this.parseNumber(this.hasFeedKgBiometryTarget ? this.feedKgBiometryTarget.value : "")
 
     let avgWeightG = 0
     let biomass = 0
     let weightGainKg = 0
     let gpd = 0
+    let feedConversion = 0
 
     if (quantity > 0 && totalWeightKg > 0) {
       avgWeightG = (totalWeightKg / quantity) * 1000
@@ -108,6 +113,10 @@ export default class extends Controller {
       gpd = (avgWeightG - previousAvgWeight) / daysDiff
     }
 
+    if (feedKg > 0 && weightGainKg > 0) {
+      feedConversion = weightGainKg / feedKg
+    }
+
     if (this.hasAvgWeightTarget) {
       this.avgWeightTarget.value = avgWeightG > 0 ? this.formatDecimal(avgWeightG, 2) : ""
     }
@@ -122,6 +131,10 @@ export default class extends Controller {
 
     if (this.hasGpdTarget) {
       this.gpdTarget.value = this.formatDecimal(gpd, 3)
+    }
+
+    if (this.hasFeedConversionTarget) {
+      this.feedConversionTarget.value = this.formatDecimal(feedConversion, 3)
     }
   }
 
@@ -264,6 +277,7 @@ export default class extends Controller {
     if (this.hasBiomassTarget) this.biomassTarget.value = ""
     if (this.hasWeightGainTarget) this.weightGainTarget.value = this.formatDecimal(0, 2)
     if (this.hasGpdTarget) this.gpdTarget.value = this.formatDecimal(0, 3)
+    if (this.hasFeedConversionTarget) this.feedConversionTarget.value = this.formatDecimal(0, 3)
   }
 
   clearMortalityFields() {
@@ -309,6 +323,16 @@ export default class extends Controller {
       this.loadingAvgWeightTarget.value =
         !Number.isNaN(avgWeight) && avgWeight > 0
           ? this.formatDecimal(avgWeight, 2)
+          : ""
+    }
+
+    if (this.hasFeedKgBiometryTarget) {
+      const rawValue = this.feedKgBiometryTarget.value
+      const feedKg = Number(rawValue)
+
+      this.feedKgBiometryTarget.value =
+        !Number.isNaN(feedKg) && feedKg > 0
+          ? this.formatDecimal(feedKg, 3)
           : ""
     }
 

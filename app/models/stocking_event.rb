@@ -35,6 +35,7 @@ class StockingEvent < ApplicationRecord
 
     self.weight_gain_kg = 0
     self.gpd = 0
+    self.feed_conversion = 0
 
     if quantity.present? && total_weight_kg.present? && quantity.to_d > 0
       self.avg_weight_g = (total_weight_kg.to_d / quantity.to_d) * 1000
@@ -47,6 +48,18 @@ class StockingEvent < ApplicationRecord
     end
 
     calculate_weight_gain_and_gpd
+    calculate_feed_conversion
+  end
+
+  def calculate_feed_conversion
+    return unless biometry?
+
+    self.feed_conversion = 0
+
+    return if feed_kg.blank?
+    return if weight_gain_kg.blank? || weight_gain_kg.to_d <= 0
+
+    self.feed_conversion = feed_kg.to_d / weight_gain_kg.to_d
   end
 
   def calculate_weight_gain_and_gpd
@@ -131,6 +144,8 @@ class StockingEvent < ApplicationRecord
     normalize_decimal_field(:biomass)
     normalize_decimal_field(:weight_gain_kg)
     normalize_decimal_field(:gpd)
+    normalize_decimal_field(:feed_kg)
+    normalize_decimal_field(:feed_conversion)
   end
 
   def normalize_integer_field(field)
