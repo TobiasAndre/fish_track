@@ -134,7 +134,7 @@
                 </p>
 
                 <% parts = [] %>
-                <% parts << "Qtde: #{e.quantity}" if e.quantity.present? %>
+                <% parts << "Qtde: #{number_with_delimiter(e.quantity, delimiter: ".")}" if e.quantity.present? %>
                 <% parts << "Peso: #{e.avg_weight_g}g" if e.avg_weight_g.present? %>
                 <% parts << "Ração: #{e.feed_kg}kg" if e.feed_kg.present? %>
                 <% parts << "Biomassa: #{number_with_precision(e.biomass, precision: 2, separator: ",", delimiter: ".")}" if e.biomass.present? %>
