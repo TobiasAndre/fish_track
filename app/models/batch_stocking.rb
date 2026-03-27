@@ -14,38 +14,52 @@ class BatchStocking < ApplicationRecord
 
   def recalculate_current_balance!
     base_quantity = quantity.to_i
-    base_biomass_kg =
-      if quantity.present? && avg_weight_g.present?
-        (quantity.to_d * avg_weight_g.to_d) / 1000
+    current_quantity_value = base_quantity
+
+    current_avg_weight = latest_avg_weight_for_balance
+    current_biomass_value =
+      if current_quantity_value.positive? && current_avg_weight.positive?
+        (current_quantity_value.to_d * current_avg_weight.to_d) / 1000
       else
         0.to_d
       end
-
-    current_quantity_value = base_quantity
-    current_biomass_value = base_biomass_kg
 
     ordered_events = stocking_events.order(:occurred_on, :created_at)
 
     ordered_events.each do |event|
       case event.event_type
+      when "biometrics"
+        if event.avg_weight_g.present?
+          current_avg_weight = event.avg_weight_g.to_d
+          current_biomass_value =
+            if current_quantity_value.positive? && current_avg_weight.positive?
+              (current_quantity_value.to_d * current_avg_weight.to_d) / 1000
+            else
+              0.to_d
+            end
+        end
+
       when "mortality"
         dead_quantity = event.quantity.to_i
-        avg_weight = event_avg_weight_for(event)
+        avg_weight = event_avg_weight_for(event, current_avg_weight)
 
         current_quantity_value -= dead_quantity
+        current_quantity_value = [current_quantity_value, 0].max
+
         current_biomass_value -= (dead_quantity.to_d * avg_weight.to_d) / 1000
+        current_biomass_value = [current_biomass_value, 0.to_d].max
 
       when "loading"
         loaded_quantity = event.quantity.to_i
-        avg_weight = event_avg_weight_for(event)
+        avg_weight = event_avg_weight_for(event, current_avg_weight)
 
         current_quantity_value -= loaded_quantity
+        current_quantity_value = [current_quantity_value, 0].max
+
         current_biomass_value -= (loaded_quantity.to_d * avg_weight.to_d) / 1000
+        current_biomass_value = [current_biomass_value, 0.to_d].max
       end
     end
-
-    current_quantity_value = [current_quantity_value, 0].max
-    current_biomass_value = [current_biomass_value, 0.to_d].max
 
     update_columns(
       current_quantity: current_quantity_value,
@@ -78,7 +92,6 @@ class BatchStocking < ApplicationRecord
     return if quantity.blank? || quantity.to_i <= 0
     return if avg_weight_g.blank? || avg_weight_g.to_d <= 0
 
-    # evita duplicação caso o callback rode novamente ou exista seed/import
     existing_initial_biometry = stocking_events.find_by(
       event_type: "biometrics",
       occurred_on: stocked_on,
@@ -100,7 +113,16 @@ class BatchStocking < ApplicationRecord
     )
   end
 
-  def event_avg_weight_for(event)
+  def latest_avg_weight_for_balance
+    latest_biometry = stocking_events
+      .where(event_type: "biometrics")
+      .order(occurred_on: :desc, created_at: :desc)
+      .first
+
+    latest_biometry&.avg_weight_g.to_d.presence || avg_weight_g.to_d || 0.to_d
+  end
+
+  def event_avg_weight_for(event, fallback_avg_weight = 0.to_d)
     return event.avg_weight_g.to_d if event.avg_weight_g.present?
 
     previous_biometry = stocking_events
@@ -110,6 +132,6 @@ class BatchStocking < ApplicationRecord
       .order(occurred_on: :desc, created_at: :desc)
       .first
 
-    previous_biometry&.avg_weight_g.to_d.presence || avg_weight_g.to_d || 0.to_d
+    previous_biometry&.avg_weight_g.to_d.presence || fallback_avg_weight.to_d || avg_weight_g.to_d || 0.to_d
   end
 end
