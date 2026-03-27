@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto">
+<div class="max-w-7xl mx-auto">
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Lotes</h1>
@@ -76,7 +76,7 @@
 
           <tr class="bg-gray-50/70 dark:bg-gray-950/30">
             <td colspan="5" class="px-4 pb-4">
-              <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <div class="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                 <table class="w-full text-sm">
                   <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-500 dark:text-gray-400">
                     <tr>
@@ -85,6 +85,7 @@
                       <th class="text-left px-4 py-2 font-medium">Quantidade</th>
                       <th class="text-left px-4 py-2 font-medium">Alojamento</th>
                       <th class="text-left px-4 py-2 font-medium">Peso médio</th>
+                      <th class="text-left px-4 py-2 font-medium">Peixes m²</th>
                       <th class="text-left px-4 py-2 font-medium">Fornecedor</th>
                       <th class="text-right px-4 py-2 font-medium">Eventos</th>
                     </tr>
@@ -111,6 +112,12 @@
 
                         <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
                           <%= stocking.avg_weight_g.present? ? "#{stocking.avg_weight_g} g" : "—" %>
+                        </td>
+
+                        <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+                          <% fish_per_m2 = stocking.quantity / (stocking.pond.capacity || 1) %>
+
+                          <%= fish_per_m2.present? ? fish_per_m2 : "—" %>
                         </td>
 
                         <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
