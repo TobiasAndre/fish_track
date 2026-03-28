@@ -4,6 +4,7 @@ pt-BR:
       default: "%d/%m/%Y"
       short: "%d/%m"
       long: "%d de %B de %Y"
+
   number:
     currency:
       format:
@@ -14,16 +15,32 @@ pt-BR:
         precision: 2
 
   activerecord:
+    models:
+      batch: Lote
+      batch_event: Evento do Lote
+      batch_stocking: 
+        one: "Loteamento"
+        other: "Loteamentos"
+      employee: Funcionário
+      financial_entry: Lançamento Financeiro
+      payroll_item: Item de Folha de Pagamento
+      pond: Tanque
+      product: Produto
+      supplier: Fornecedor
+      unit: Unidade
+      order: Pedido
+      user: Usuário
     attributes:
-      companies:
+      batch/batch_stockings:
+        pond: "Tanque"
+        supplier: "Fornecedor"
+        occurred_on: "Data de Ocorrência"
+        pond_id: "Viveiro"
+        quantity: "Quantidade"
+        stocked_on: "Data de alojamento"
+        avg_weight_g: "Peso médio (g)"
+      company:
         name: Nome
-      batch_event:
-        event_type: Tipo de Evento
-        occurred_on: Data de Ocorrência
-        quantity: Quantidade
-        avg_weight_g: Peso Médio (g)
-        feed_kg: Ração (kg)
-        notes: Notas
       batch:
         name: Nome
         species: Espécie
@@ -34,29 +51,35 @@ pt-BR:
         initial_quantity: Quantidade Inicial
         current_quantity: Quantidade Atual
         avg_weight_g: Peso Médio (g)
-      employees:
+      batch_stocking:
+        pond_id: Tanque
+        supplier_id: Fornecedor
+        occurred_on: Data de Ocorrência
+        quantity: Quantidade
+        weight_g: Peso (g)
+      employee:
         name: Nome
         role: Função
         salary_cents: Salário (centavos)
-      financial_entries:
+      financial_entry:
         entry_type: Tipo de Lançamento
         stage: Etapa
         occurred_on: Data de Ocorrência
         amount_cents: Valor (centavos)
         description: Descrição
         notes: Notas
-      payroll_items:
+      payroll_item:
         year: Ano
         month: Mês
         amount_cents: Valor (centavos)
         notes: Notas
         item_type: Tipo de Item
         occurred_on: Data de Ocorrência
-      ponds:
+      pond:
         name: Nome
         capacity: Capacidade
         capacity_unit: Unid.
-      units:
+      unit:
         name: Nome
       order:
         statuses:
@@ -64,7 +87,7 @@ pt-BR:
           confirmed: Confirmado
           delivered: Entregue
           canceled: Cancelado
-      users:
+      user:
         name: Nome
         email: E-mail
         password: Senha
@@ -95,3 +118,11 @@ pt-BR:
         growout: Engorda
         nursery: Berçário
         general: Geral
+  errors:
+    messages:
+      blank: "não pode ficar em branco"
+      required: "é obrigatório"
+      invalid: "é inválido"
+      too_short: "é muito curto (mínimo %{count} caracteres)"
+      too_long: "é muito longo (máximo %{count} caracteres)"
+      not_a_number: "não é um número"

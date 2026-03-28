@@ -95,3 +95,4 @@ class BatchesController < ApplicationController
     )
   end
 end
+
