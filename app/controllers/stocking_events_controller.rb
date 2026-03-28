@@ -11,6 +11,7 @@ class StockingEventsController < ApplicationController
 
     @events = @events.where(event_type: params[:event_type]) if params[:event_type].present?
     @events = @events.where(occurred_on: params[:date]) if params[:date].present?
+    @last_biometry_event = @batch_stocking.stocking_events.where(event_type: "biometrics").order(occurred_on: :desc, created_at: :desc).first
   end
 
   def new
