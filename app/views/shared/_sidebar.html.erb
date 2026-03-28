@@ -1,6 +1,35 @@
 <!-- ========================================================= -->
 <!-- Mobile overlay + drawer -->
 <!-- ========================================================= -->
+<%
+  cadastro_controllers = %w[
+    units
+    ponds
+    batches
+    suppliers
+    customers
+    products
+    payment_terms
+    payment_methods
+    employees
+  ]
+
+  lancamento_controllers = %w[
+    payroll
+    financial_entries
+    orders
+    simulations
+  ]
+
+  admin_controllers = %w[
+    admin_users
+    admin_companies
+  ]
+
+  cadastros_open = cadastro_controllers.include?(controller_name)
+  selected_menu = 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+  unselected_menu = 'hover:bg-gray-100 dark:hover:bg-gray-800'
+%>
 <div
   data-sidebar-target="overlay"
   class="hidden lg:hidden fixed inset-0 z-50"
@@ -51,67 +80,94 @@
         <span>📊</span><span class="text-sm font-medium">Dashboard</span>
       <% end %>
 
-      <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>📍</span><span class="text-sm font-medium">Unidades</span>
-      <% end %>
+      <!-- Cadastros -->
+      <details 
+        class="group rounded-lg"
+        data-controller="menu-group"
+        data-menu-group-open-value="<%= cadastros_open %>">
+        <summary class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium text-gray-800 dark:text-gray-100">
+          <span class="flex items-center gap-3">
+            <span>🗂️</span>
+            <span>Cadastros</span>
+          </span>
+          <span class="transition-transform group-open:rotate-180">⌄</span>
+        </summary>
 
-      <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>💧</span><span class="text-sm font-medium">Tanques</span>
-      <% end %>
+        <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
+          <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'units' ? selected_menu : unselected_menu}" do %>
+            <span>📍</span><span class="text-sm font-medium">Unidades</span>
+          <% end %>
 
-      <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>🏷️</span><span class="text-sm font-medium">Produtos</span>
-      <% end %>
+          <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'ponds' ? selected_menu : unselected_menu}" do %>
+            <span>💧</span><span class="text-sm font-medium">Tanques</span>
+          <% end %>
 
-      <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>📦</span><span class="text-sm font-medium">Lotes</span>
-      <% end %>
+          <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batches' ? selected_menu : unselected_menu}" do %>
+            <span>📦</span><span class="text-sm font-medium">Lotes</span>
+          <% end %>
 
-      <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>📄</span><span class="text-sm font-medium">Condições de pagamento</span>
-      <% end %>
+          <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
+            <span>🏭</span><span class="text-sm font-medium">Fornecedores</span>
+          <% end %>
 
-      <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>💳</span><span class="text-sm font-medium">Formas de pagamento</span>
-      <% end %>
+          <%= link_to customers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'customers' ? selected_menu : unselected_menu}" do %>
+            <span>🤝</span><span class="text-sm font-medium">Clientes</span>
+          <% end %>
 
-      <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>👥</span><span class="text-sm font-medium">Funcionários</span>
-      <% end %>
+          <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'products' ? selected_menu : unselected_menu}" do %>
+            <span>🏷️</span><span class="text-sm font-medium">Produtos</span>
+          <% end %>
 
-      <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+          <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_terms' ? selected_menu : unselected_menu}" do %>
+            <span>📄</span><span class="text-sm font-medium">Condições de pagamento</span>
+          <% end %>
+
+          <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_methods' ? selected_menu : unselected_menu}" do %>
+            <span>💳</span><span class="text-sm font-medium">Formas de pagamento</span>
+          <% end %>
+
+          <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'employees' ? selected_menu : unselected_menu}" do %>
+            <span>👥</span><span class="text-sm font-medium">Funcionários</span>
+          <% end %>
+        </div>
+      </details>
+
+      <!-- Lançamentos -->
+      <p class="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        Lançamentos
+      </p>
+
+      <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
         <span>🧾</span><span class="text-sm font-medium">Folha</span>
       <% end %>
 
-      <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-        <span>💳</span><span class="text-sm font-medium">Financeiro</span>
+      <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'financial_entries' ? selected_menu : unselected_menu}" do %>
+        <span>💰</span><span class="text-sm font-medium">Financeiro</span>
       <% end %>
 
-      <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'orders' ? selected_menu : unselected_menu}" do %>
         <span>📋</span><span class="text-sm font-medium">Pedidos</span>
       <% end %>
 
-      <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'simulations' ? selected_menu : unselected_menu}" do %>
         <span>🧮</span><span class="text-sm font-medium">Orçamentos</span>
       <% end %>
 
       <% if system_admin? %>
-        <!-- Divider -->
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
 
-        <!-- Section label -->
         <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
           Administração
         </p>
 
-        <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'admin_users' ? selected_menu : unselected_menu}" do %>
           <span>👤</span>
-          <span data-sidebar-target="label">Usuários</span>
+          <span class="text-sm font-medium">Usuários</span>
         <% end %>
 
-        <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'admin_companies' ? selected_menu : unselected_menu}" do %>
           <span>🏢</span>
-          <span data-sidebar-target="label">Empresas</span>
+          <span class="text-sm font-medium">Empresas</span>
         <% end %>
       <% end %>
     </nav>
@@ -156,74 +212,94 @@
       <span>📊</span><span data-sidebar-target="label">Dashboard</span>
     <% end %>
 
-    <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>📍</span><span data-sidebar-target="label">Unidades</span>
-    <% end %>
+    <!-- Cadastros -->
+    <details 
+      class="group rounded-lg"
+      data-controller="menu-group"
+      data-menu-group-open-value="<%= cadastros_open %>">
+      <summary class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100">
+        <span class="flex items-center gap-3 min-w-0">
+          <span>🗂️</span>
+          <span data-sidebar-target="label">Cadastros</span>
+        </span>
+        <span data-sidebar-target="label" class="transition-transform group-open:rotate-180">⌄</span>
+      </summary>
 
-    <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>💧</span><span data-sidebar-target="label">Tanques</span>
-    <% end %>
+      <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
+        <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'units' ? selected_menu : unselected_menu}" do %>
+          <span>📍</span><span data-sidebar-target="label">Unidades</span>
+        <% end %>
 
-    <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>📦</span><span data-sidebar-target="label">Lotes</span>
-    <% end %>
+        <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'ponds' ? selected_menu : unselected_menu}" do %>
+          <span>💧</span><span data-sidebar-target="label">Tanques</span>
+        <% end %>
 
-    <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>🏭</span><span data-sidebar-target="label">Fornecedores</span>
-    <% end %>
+        <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batches' ? selected_menu : unselected_menu}" do %>
+          <span>📦</span><span data-sidebar-target="label">Lotes</span>
+        <% end %>
 
-    <%= link_to customers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>🤝</span><span data-sidebar-target="label">Clientes</span>
-    <% end %>
+        <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
+          <span>🏭</span><span data-sidebar-target="label">Fornecedores</span>
+        <% end %>
 
-    <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>🏷️</span><span data-sidebar-target="label">Produtos</span>
-    <% end %>
+        <%= link_to customers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'customers' ? selected_menu : unselected_menu}" do %>
+          <span>🤝</span><span data-sidebar-target="label">Clientes</span>
+        <% end %>
 
-    <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>📄</span><span data-sidebar-target="label">Condições de pagamento</span>
-    <% end %>
+        <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'products' ? selected_menu : unselected_menu}" do %>
+          <span>🏷️</span><span data-sidebar-target="label">Produtos</span>
+        <% end %>
 
-    <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>💳</span><span data-sidebar-target="label">Formas de pagamento</span>
-    <% end %>
+        <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_terms' ? selected_menu : unselected_menu}" do %>
+          <span>📄</span><span data-sidebar-target="label">Condições de pagamento</span>
+        <% end %>
 
-    <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>👥</span><span data-sidebar-target="label">Funcionários</span>
-    <% end %>
+        <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_methods' ? selected_menu : unselected_menu}" do %>
+          <span>💳</span><span data-sidebar-target="label">Formas de pagamento</span>
+        <% end %>
 
-    <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'employees' ? selected_menu : unselected_menu}" do %>
+          <span>👥</span><span data-sidebar-target="label">Funcionários</span>
+        <% end %>
+      </div>
+    </details>
+
+    <!-- Lançamentos -->
+    <p class="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+      data-sidebar-target="label">
+      Lançamentos
+    </p>
+
+    <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
       <span>🧾</span><span data-sidebar-target="label">Folha</span>
     <% end %>
 
-    <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
-      <span>💳</span><span data-sidebar-target="label">Financeiro</span>
+    <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'financial_entries' ? selected_menu : unselected_menu}" do %>
+      <span>💰</span><span data-sidebar-target="label">Financeiro</span>
     <% end %>
 
-    <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+    <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'orders' ? selected_menu : unselected_menu}" do %>
       <span>📋</span><span data-sidebar-target="label">Pedidos</span>
     <% end %>
 
-    <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+    <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'simulations' ? selected_menu : unselected_menu}" do %>
       <span>🧮</span><span data-sidebar-target="label">Orçamentos</span>
     <% end %>
 
     <% if system_admin? %>
-      <!-- Divider -->
       <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
 
-      <!-- Section label -->
       <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
         data-sidebar-target="label">
         Administração
       </p>
 
-      <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <%= link_to admin_users_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'admin_users' ? selected_menu : unselected_menu}" do %>
         <span>👤</span>
         <span data-sidebar-target="label">Usuários</span>
       <% end %>
 
-      <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+      <%= link_to admin_companies_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'admin_companies' ? selected_menu : unselected_menu}" do %>
         <span>🏢</span>
         <span data-sidebar-target="label">Empresas</span>
       <% end %>
