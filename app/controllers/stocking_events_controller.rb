@@ -14,7 +14,7 @@ class StockingEventsController < ApplicationController
   end
 
   def new
-    @stocking_event = @batch_stocking.stocking_events.new(occurred_on: Date.current)
+    @stocking_event = @batch_stocking.stocking_events.new(event_type: params[:event_type], occurred_on: Date.current)
   end
 
   def create

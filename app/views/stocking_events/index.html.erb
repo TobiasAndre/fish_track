@@ -3,61 +3,98 @@
   <% pond = @batch_stocking.pond %>
   <% unit = pond.unit %>
 
-  <div class="flex items-start justify-between gap-4">
+  <div class="flex flex-col gap-3">
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Eventos</h1>
-      <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-        <div><%= unit.name %></div>
-        <div>Lote: <span class="font-medium"><%= batch.name %></span></div>
-        <div>Tanque: <%= pond.name %></div>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Eventos
+      </h1>
+
+      <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
+        <span class="font-medium text-gray-800 dark:text-gray-100"><%= unit.name %></span>
+        <span class="text-gray-400">•</span>
+        <span>Lote: <span class="font-medium text-gray-800 dark:text-gray-100"><%= batch.name %></span></span>
+        <span class="text-gray-400">•</span>
+        <span>Tanque: <span class="font-medium text-gray-800 dark:text-gray-100"><%= pond.name %></span></span>
       </div>
 
-      <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        <div><%= "Qtd. alojada: #{number_with_delimiter(@batch_stocking.quantity, delimiter: ".")}" if @batch_stocking.quantity.present? %></div>
-        <div><%= "Peso inicial: #{@batch_stocking.avg_weight_g}g" if @batch_stocking.avg_weight_g.present? %></div>
-        <div><%= "Fornecedor: #{@batch_stocking.supplier.name}" if @batch_stocking.supplier.present? %></div>
-        <div><%= "Alojamento: #{l(@batch_stocking.stocked_on)}" if @batch_stocking.stocked_on.present? %></div>
-      </div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                      bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Atual: <%= @batch_stocking.current_quantity.positive? ? number_with_delimiter(@batch_stocking.current_quantity, delimiter: ".") : "—" %>
-        </span>
+      <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+        <% if @batch_stocking.stocked_on.present? %>
+          <span class="text-gray-400">•</span>
+          <span>
+            Alojamento:
+            <span class="font-medium text-gray-700 dark:text-gray-200">
+              <%= l(@batch_stocking.stocked_on) %>
+            </span>
+          </span>
+        <% end %>
 
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                      bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Biomassa: <%= @batch_stocking.current_biomass_kg.positive? ? number_with_precision(@batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
-        </span>
+        <% if @batch_stocking.quantity.present? %>
+          <span class="text-gray-400">•</span>
+          <span>
+            Qtd. alojada:
+            <span class="font-medium text-gray-700 dark:text-gray-200">
+              <%= number_with_delimiter(@batch_stocking.quantity, delimiter: ".") %>
+            </span>
+          </span>
+        <% end %>
 
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                      bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Ganho: <%= @last_biometry_event&.weight_gain_kg.present? ? number_with_precision(@last_biometry_event.weight_gain_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
-        </span>
+        <% if @batch_stocking.avg_weight_g.present? %>
+          <span class="text-gray-400">•</span>
+          <span>
+            Peso inicial:
+            <span class="font-medium text-gray-700 dark:text-gray-200">
+              <%= @batch_stocking.avg_weight_g %>g
+            </span>
+          </span>
+        <% end %>
 
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                      bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          GPD: <%= @last_biometry_event&.gpd.present? ? number_with_precision(@last_biometry_event.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
-        </span>
-
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                      bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Peso: <%= @last_biometry_event&.avg_weight_g ? "#{number_with_precision(@last_biometry_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
-        </span>
+        <% if @batch_stocking.supplier.present? %>
+          <span class="text-gray-400">•</span>
+          <span>
+            Fornecedor:
+            <span class="font-medium text-gray-700 dark:text-gray-200">
+              <%= @batch_stocking.supplier.name %>
+            </span>
+          </span>
+        <% end %>
       </div>
     </div>
 
-    <div class="flex items-start gap-2 self-start">
-      <%= link_to "Novo evento", new_batch_batch_stocking_stocking_event_path(batch, @batch_stocking),
-        class: "inline-flex items-center shrink-0 whitespace-nowrap px-4 py-2 rounded-lg
-                bg-indigo-600 hover:bg-indigo-700
-                dark:bg-indigo-500 dark:hover:bg-indigo-400
-                text-white text-sm font-medium transition" %>
+    <div class="flex flex-wrap gap-2">
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Atual:
+        <span class="ml-1 font-medium">
+          <%= @batch_stocking.current_quantity.positive? ? number_with_delimiter(@batch_stocking.current_quantity, delimiter: ".") : "—" %>
+        </span>
+      </span>
 
-      <%= link_to "Voltar", batches_path,
-        class: "inline-flex items-center shrink-0 whitespace-nowrap px-4 py-2 rounded-lg
-                border border-gray-300 dark:border-gray-700
-                hover:bg-gray-50 dark:hover:bg-gray-800
-                text-sm font-medium transition" %>
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Biomassa:
+        <span class="ml-1 font-medium">
+          <%= @batch_stocking.current_biomass_kg.positive? ? number_with_precision(@batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
+        </span>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Ganho:
+        <span class="ml-1 font-medium">
+          <%= @last_biometry_event&.weight_gain_kg.present? ? number_with_precision(@last_biometry_event.weight_gain_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
+        </span>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        GPD:
+        <span class="ml-1 font-medium">
+          <%= @last_biometry_event&.gpd.present? ? number_with_precision(@last_biometry_event.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
+        </span>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Peso:
+        <span class="ml-1 font-medium">
+          <%= @last_biometry_event&.avg_weight_g ? "#{number_with_precision(@last_biometry_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
+        </span>
+      </span>
     </div>
   </div>
 
