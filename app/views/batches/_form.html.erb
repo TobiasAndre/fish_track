@@ -200,7 +200,7 @@
               <div class="xl:col-span-3">
                 <%= stocking_form.label :pond_id, "Tanque", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
                 <div class="mt-1">
-                  <%= stocking_form.collection_select :pond_id, @ponds, :id, :name,
+                  <%= stocking_form.collection_select :pond_id, @ponds, :id, :full_name,
                     { prompt: "Selecione um tanque" },
                     class: "w-full rounded-lg border px-3 py-2 text-sm
                             bg-white dark:bg-gray-950
