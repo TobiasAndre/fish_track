@@ -16,6 +16,32 @@
     <div><%= "Qtd. alojada: #{number_with_delimiter(@batch_stocking.quantity, delimiter: ".")}" if @batch_stocking.quantity.present? %></div>
     <div><%= "Peso inicial: #{@batch_stocking.avg_weight_g}g" if @batch_stocking.avg_weight_g.present? %></div>
     <div><%= "Alojamento: #{l(@batch_stocking.stocked_on)}" if @batch_stocking.stocked_on.present? %></div>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                    bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Atual: <%= @batch_stocking.current_quantity.positive? ? number_with_delimiter(@batch_stocking.current_quantity, delimiter: ".") : "—" %>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                    bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Biomassa: <%= @batch_stocking.current_biomass_kg.positive? ? number_with_precision(@batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                    bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Ganho: <%= @last_biometry_event&.weight_gain_kg.present? ? number_with_precision(@last_biometry_event.weight_gain_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                    bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        GPD: <%= @last_biometry_event&.gpd.present? ? number_with_precision(@last_biometry_event.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
+      </span>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
+                    bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Peso: <%= @last_biometry_event&.avg_weight_g ? "#{number_with_precision(@last_biometry_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
+      </span>
+    </div>
   </div>
 
   <%= render "form" %>

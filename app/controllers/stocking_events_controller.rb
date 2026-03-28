@@ -3,7 +3,7 @@ class StockingEventsController < ApplicationController
   before_action :set_stocking_event, only: %i[edit update destroy]
   before_action :set_previous_biometry_data, only: %i[new edit]
   before_action :set_current_avg_weight, only: %i[new edit]
-  before_action :load_loading_form_data, only: %i[new edit create update]
+  before_action :load_loading_form_data, only: %i[index new edit create update]
 
   def index
     @events = @batch_stocking.stocking_events
@@ -11,7 +11,6 @@ class StockingEventsController < ApplicationController
 
     @events = @events.where(event_type: params[:event_type]) if params[:event_type].present?
     @events = @events.where(occurred_on: params[:date]) if params[:date].present?
-    @last_biometry_event = @batch_stocking.stocking_events.where(event_type: "biometrics").order(occurred_on: :desc, created_at: :desc).first
   end
 
   def new
@@ -60,6 +59,7 @@ class StockingEventsController < ApplicationController
     @customers = Customer.order(:name)
     @integrateds = Integrated.order(:name)
     @payment_methods = PaymentMethod.order(:name)
+    @last_biometry_event = @batch_stocking.stocking_events.where(event_type: "biometrics").order(occurred_on: :desc, created_at: :desc).first
   end
 
   def set_stocking_event
