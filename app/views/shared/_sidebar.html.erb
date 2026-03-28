@@ -85,12 +85,23 @@
         class="group rounded-lg"
         data-controller="menu-group"
         data-menu-group-open-value="<%= cadastros_open %>">
-        <summary class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <summary class="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium text-gray-800 dark:text-gray-100">
           <span class="flex items-center gap-3">
             <span>🗂️</span>
             <span>Cadastros</span>
           </span>
-          <span class="transition-transform group-open:rotate-180">⌄</span>
+
+          <span class="flex items-center justify-center w-5 h-5">
+            <svg
+              class="w-4 h-4 transition-transform group-open:rotate-180"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
         </summary>
 
         <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
@@ -217,12 +228,23 @@
       class="group rounded-lg"
       data-controller="menu-group"
       data-menu-group-open-value="<%= cadastros_open %>">
-      <summary class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100">
-        <span class="flex items-center gap-3 min-w-0">
+      <summary class="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium text-gray-800 dark:text-gray-100">
+        <span class="flex items-center gap-3">
           <span>🗂️</span>
-          <span data-sidebar-target="label">Cadastros</span>
+          <span>Cadastros</span>
         </span>
-        <span data-sidebar-target="label" class="transition-transform group-open:rotate-180">⌄</span>
+
+        <span class="flex items-center justify-center w-5 h-5">
+          <svg
+            class="w-4 h-4 transition-transform group-open:rotate-180"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+          </svg>
+        </span>
       </summary>
 
       <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
