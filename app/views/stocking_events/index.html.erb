@@ -41,7 +41,7 @@
 
         <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                       bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Peso: <%= @batch_stocking.avg_weight_g ? "#{number_with_precision(@batch_stocking.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
+          Peso: <%= @last_biometry_event&.avg_weight_g ? "#{number_with_precision(@last_biometry_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
         </span>
       </div>
     </div>
