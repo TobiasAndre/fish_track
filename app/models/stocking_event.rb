@@ -7,9 +7,22 @@ class StockingEvent < ApplicationRecord
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
   before_validation :calculate_loading_fields
+  validates :occurred_on, presence: true
+  validates :event_type, presence: true
+  validates :batch_stocking_id, presence: true
 
   after_commit :update_batch_avg_weight, on: %i[create update]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
+
+  with_options if: :biometrics? do
+    validates :volume, presence: true, numericality: { greater_than: 0 }
+    validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }
+    validates :total_weight_kg, presence: true, numericality: { greater_than: 0 }
+    validates :avg_weight_g, presence: true, numericality: { greater_than: 0 }
+    validates :biomass, presence: true, numericality: { greater_than: 0 }
+    validates :weight_gain_kg, presence: true
+    validates :gpd, presence: true
+  end
 
   EVENT_TYPES = %w[biometrics mortality feeding loading].freeze
 
@@ -19,6 +32,8 @@ class StockingEvent < ApplicationRecord
     feeding: "feeding",
     loading: "loading"
   }, _suffix: true
+
+  scope :recent_first, -> { order(occurred_on: :desc, created_at: :desc) }
 
   private
 

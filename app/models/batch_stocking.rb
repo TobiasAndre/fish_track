@@ -12,6 +12,10 @@ class BatchStocking < ApplicationRecord
   before_validation :initialize_current_fields, on: :create
   after_commit :create_initial_biometry_event, on: :create
 
+  def display_name
+    "#{pond.unit.name} • Lote: #{batch.name} • Tanque: #{pond.name}"
+  end
+
   def recalculate_current_balance!
     base_quantity = quantity.to_i
     current_quantity_value = base_quantity

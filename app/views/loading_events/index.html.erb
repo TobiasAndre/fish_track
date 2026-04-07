@@ -1,0 +1,21 @@
+<div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+  <div class="mb-3">
+    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Selecionar lote</h2>
+    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+      Ao selecionar um lote, o histórico abaixo será carregado automaticamente.
+    </p>
+  </div>
+
+  <%= form_with url: biometry_events_path, method: :get, local: true do %>
+    <%= select_tag :batch_stocking_id,
+      options_from_collection_for_select(
+        @batch_stockings,
+        :id,
+        :display_name,
+        @selected_batch_stocking&.id
+      ),
+      prompt: "Selecione um lote",
+      onchange: "this.form.submit()",
+      class: "w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" %>
+  <% end %>
+</div>
