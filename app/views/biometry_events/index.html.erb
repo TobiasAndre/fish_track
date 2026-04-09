@@ -32,6 +32,15 @@
 
   <% if @selected_batch_stocking.present? %>
     <div class="flex flex-wrap gap-2">
+      <% if @selected_batch_stocking.stocked_on.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Alojamento:
+          <span class="ml-1 font-medium">
+            <%= l(@selected_batch_stocking.stocked_on) %>
+          </span>
+        </span>
+      <% end %>
+
       <% if @selected_batch_stocking.quantity.present? %>
         <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
           Qtd. alojada:
@@ -46,15 +55,6 @@
           Peso atual:
           <span class="ml-1 font-medium">
             <%= number_with_precision(@current_avg_weight_g, precision: 2, separator: ",", delimiter: ".") %>g
-          </span>
-        </span>
-      <% end %>
-
-      <% if @selected_batch_stocking.stocked_on.present? %>
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Alojamento:
-          <span class="ml-1 font-medium">
-            <%= l(@selected_batch_stocking.stocked_on) %>
           </span>
         </span>
       <% end %>
