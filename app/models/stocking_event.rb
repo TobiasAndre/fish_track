@@ -46,7 +46,7 @@ class StockingEvent < ApplicationRecord
   end
 
   def calculate_biometry_fields
-    return unless biometry?
+    return unless biometrics?
 
     self.weight_gain_kg = 0
     self.gpd = 0
@@ -67,7 +67,7 @@ class StockingEvent < ApplicationRecord
   end
 
   def calculate_feed_conversion
-    return unless biometry?
+    return unless biometrics?
 
     self.feed_conversion = 0
 
@@ -117,7 +117,7 @@ class StockingEvent < ApplicationRecord
   end
 
   def update_batch_avg_weight
-    return unless biometry?
+    return unless biometrics?
     return if avg_weight_g.blank?
 
     batch = batch_stocking&.batch
@@ -142,7 +142,7 @@ class StockingEvent < ApplicationRecord
     batch_stocking.recalculate_current_balance!
   end
 
-  def biometry?
+  def biometrics?
     event_type == "biometrics"
   end
 

@@ -1,23 +1,250 @@
-<div class="max-w-5xl mx-auto">
-  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-    <div class="mb-3">
-      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Selecionar lote</h2>
-      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        Ao selecionar um lote, o histórico abaixo será carregado automaticamente.
-      </p>
+<div class="max-w-5xl mx-auto space-y-4">
+  <div class="flex flex-col gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Mortalidade
+      </h1>
     </div>
 
-    <%= form_with url: biometry_events_path, method: :get, local: true do %>
-      <%= select_tag :batch_stocking_id,
-        options_from_collection_for_select(
-          @batch_stockings,
-          :id,
-          :display_name,
-          @selected_batch_stocking&.id
-        ),
-        prompt: "Selecione um lote",
-        onchange: "this.form.submit()",
-        class: "w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" %>
-    <% end %>
+    <div class="w-full sm:max-w-sm">
+      <%= form_with url: mortality_events_path, method: :get, local: true do %>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          Selecione o lote
+        </label>
+
+        <%= select_tag :batch_stocking_id,
+          options_from_collection_for_select(
+            @batch_stockings || [],
+            :id,
+            :display_name,
+            @selected_batch_stocking&.id
+          ),
+          prompt: "Selecione um lote",
+          onchange: "this.form.submit()",
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      <% end %>
+    </div>
   </div>
+
+  <% if @selected_batch_stocking.present? %>
+    <div class="flex flex-wrap gap-2">
+      <% if @selected_batch_stocking.stocked_on.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Alojamento:
+          <span class="ml-1 font-medium">
+            <%= l(@selected_batch_stocking.stocked_on) %>
+          </span>
+        </span>
+      <% end %>
+
+      <% if @selected_batch_stocking.quantity.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Qtd. alojada:
+          <span class="ml-1 font-medium">
+            <%= number_with_delimiter(@selected_batch_stocking.quantity, delimiter: ".") %>
+          </span>
+        </span>
+      <% end %>
+
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Peso atual:
+        <span class="ml-1 font-medium">
+          <%= number_with_precision(@current_avg_weight_g.to_f, precision: 2, separator: ",", delimiter: ".") %>g
+        </span>
+      </span>
+
+      <% fish_per_m2 = @selected_batch_stocking.quantity.to_f / ((@selected_batch_stocking.pond&.capacity || 1).to_f.nonzero? || 1) %>
+      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+        Peixes por m²:
+        <span class="ml-1 font-medium">
+          <%= number_with_precision(fish_per_m2, precision: 2, separator: ",", delimiter: ".") %>
+        </span>
+      </span>
+
+      <% if @selected_batch_stocking.current_biomass_kg.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Biomassa atual:
+          <span class="ml-1 font-medium">
+            <%= number_with_precision(@selected_batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") %>kg
+          </span>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="mb-3">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Novo lançamento
+        </h2>
+      </div>
+
+      <% if @stocking_event.errors.any? %>
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <p class="font-medium mb-1">Não foi possível salvar:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <% @stocking_event.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with model: @stocking_event,
+        url: mortality_events_path,
+        local: true,
+        data: { controller: "mortality-form" },
+        class: "space-y-4" do |f| %>
+
+        <%= f.hidden_field :batch_stocking_id, value: @selected_batch_stocking.id %>
+
+        <%= hidden_field_tag :current_avg_weight_g,
+          @current_avg_weight_g.to_f,
+          data: { "mortality-form-target": "currentAvgWeight" } %>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.date_field :occurred_on,
+              required: true,
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :quantity,
+              required: true,
+              inputmode: "numeric",
+              data: {
+                "mortality-form-target": "quantity",
+                action: "input->mortality-form#formatQuantityInput"
+              },
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :avg_weight_g, "Peso médio usado (g)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :avg_weight_g,
+              readonly: true,
+              data: { "mortality-form-target": "avgWeight" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-gray-50 dark:bg-gray-900
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none" %>
+          </div>
+
+          <div>
+            <%= f.label :total_weight_kg, "Peso perdido (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :total_weight_kg,
+              readonly: true,
+              data: { "mortality-form-target": "weightLoss" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-gray-50 dark:bg-gray-900
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none" %>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Este lançamento vai descontar a quantidade informada e o peso correspondente do saldo atual do tanque.
+        </div>
+
+        <div>
+          <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_area :notes,
+            rows: 1,
+            class: "w-full rounded-lg border px-3 py-2 text-sm
+                    bg-white dark:bg-gray-950
+                    border-gray-300 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500
+                    resize-none" %>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <%= f.submit "Salvar mortalidade",
+            class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Histórico
+        </h2>
+
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          <%= @events.count %> registro(s)
+        </span>
+      </div>
+
+      <% if @events.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+                <th class="py-2 pr-4 font-medium">Data</th>
+                <th class="py-2 pr-4 font-medium">Quantidade</th>
+                <th class="py-2 pr-4 font-medium">Peso médio usado</th>
+                <th class="py-2 pr-4 font-medium">Peso perdido</th>
+                <th class="py-2 pr-4 font-medium">Observações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% @events.each do |event| %>
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                  <td class="py-2 pr-4">
+                    <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")}kg" : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.notes.presence || "—" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Nenhuma mortalidade registrada para este lote.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 text-center">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Selecione um lote para visualizar o formulário e o histórico.
+      </p>
+    </div>
+  <% end %>
 </div>
