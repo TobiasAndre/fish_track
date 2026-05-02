@@ -28,6 +28,7 @@ class SimulationsController < ApplicationController
   end
 
   def edit
+     @simulation.regenerate_share_token if @simulation.share_token.blank?
   end
 
   def update
