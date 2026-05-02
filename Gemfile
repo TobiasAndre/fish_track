@@ -41,6 +41,8 @@ gem "groupdate"
 
 gem "faraday"
 gem "faraday-multipart"
+gem "wicked_pdf"
+gem "wkhtmltopdf-binary"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"

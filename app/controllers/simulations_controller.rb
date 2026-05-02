@@ -44,7 +44,32 @@ class SimulationsController < ApplicationController
   end
 
   def print
-    render layout: "print"
+    @simulation = Simulation.find(params[:id])
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+  html = render_to_string(
+    template: "simulations/print",
+    layout: "pdf",
+    formats: [:html]
+  )
+
+  File.write(Rails.root.join("tmp", "orcamento-debug.html"), html)
+
+  pdf = WickedPdf.new.pdf_from_string(
+    html,
+    page_size: "A4",
+    encoding: "UTF-8",
+    margin: { top: 10, bottom: 10, left: 10, right: 10 }
+  )
+
+  send_data pdf,
+            filename: "orcamento-#{@simulation.id}.pdf",
+            type: "application/pdf",
+            disposition: "inline"
+end
+    end
   end
 
   private

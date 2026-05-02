@@ -1,127 +1,147 @@
 <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
 
-<div class="actions">
-  <button onclick="window.print()">Imprimir</button>
-</div>
+<div style="width: 100%; font-family: Arial, sans-serif; color: #111827;">
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+    <tr>
+      <td style="border: none; vertical-align: top;">
+        <h1 style="font-size: 28px; margin: 0 0 8px 0;">Orçamento</h1>
 
-<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-  <div>
-    <h1 class="title">Orçamento</h1>
-    <div class="subtitle">
-      Cliente: <strong><%= @simulation.customer.name %></strong><br>
-      <% if @simulation.integrated.present? %>
-        Integrado: <strong><%= @simulation.integrated.name %></strong><br>
-      <% end %>
+        <div style="font-size: 14px; color: #4b5563;">
+          Cliente: <strong><%= @simulation.customer.name %></strong><br>
 
-      Data: <strong><%= l(@simulation.simulated_on) %></strong>
+          <% if @simulation.integrated.present? %>
+            Integrado: <strong><%= @simulation.integrated.name %></strong><br>
+          <% end %>
+
+          Data: <strong><%= l(@simulation.simulated_on) %></strong>
+        </div>
+      </td>
+
+      <td style="border: none; text-align: right; vertical-align: top;">
+        <% if company&.logo_url.present? %>
+          <img src="<%= company.logo_url %>"
+               alt="Logomarca"
+               style="max-height: 80px; max-width: 200px;">
+        <% end %>
+      </td>
+    </tr>
+  </table>
+
+  <% if @simulation.products.any? %>
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">
+        Produtos do orçamento
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse;">
+        <tbody>
+          <% @simulation.products.each do |product| %>
+            <tr>
+              <th style="width: 70%; border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">
+                <%= product.name %>
+              </th>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <div style="margin-bottom: 24px;">
+    <div style="width: 48%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box; margin-right: 2%;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Quantidade</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= number_with_delimiter(@simulation.quantity, delimiter: ".") %>
+      </div>
+    </div>
+
+    <div style="width: 48%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso médio (kg)</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= number_with_precision(@simulation.avg_weight_kg, precision: 3, separator: ",", delimiter: ".") %>
+      </div>
+    </div>
+
+    <div style="height: 16px;"></div>
+
+    <div style="width: 48%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box; margin-right: 2%;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso total (kg)</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= number_with_precision(@simulation.total_weight_kg, precision: 3, separator: ",", delimiter: ".") %>
+      </div>
+    </div>
+
+    <div style="width: 48%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Quantidade de viagens</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= @simulation.loading_count %>
+      </div>
     </div>
   </div>
 
-  <% if company.logo_url.present? %>
-    <div style="text-align: right;">
-      <img
-        src="<%= company.logo_url %>"
-        alt="Logomarca"
-        style="max-height: 80px; max-width: 200px;"
-      >
+  <% fish_total_cents =
+       (
+         (@simulation.avg_weight_kg.to_d * @simulation.price_per_kg_cents.to_i * 1000) +
+         @simulation.thousand_value_cents.to_i
+       ) * (@simulation.quantity.to_d / 1000) %>
+
+  <div style="margin-bottom: 24px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">
+      Composição dos valores
     </div>
-  <% end %>
-</div>
 
-<% if @simulation.products.any? %>
-  <div class="section" style="margin-bottom: 24px;">
-    <div class="section-title">Produtos do orçamento</div>
-
-    <table>
+    <table style="width: 100%; border-collapse: collapse;">
       <tbody>
-        <% @simulation.products.each do |product| %>
-          <tr>
-            <th style="width: 70%"><%= product.name %></th>
-          </tr>
-        <% end %>
+        <tr>
+          <th style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">Preço por kg</th>
+          <td style="border: 1px solid #d1d5db; padding: 10px 12px;"><%= number_to_currency(@simulation.price_per_kg_cents.to_i / 100.0) %></td>
+        </tr>
+
+        <tr>
+          <th style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">Valor por milheiro do Alevino</th>
+          <td style="border: 1px solid #d1d5db; padding: 10px 12px;"><%= number_to_currency(@simulation.thousand_value_cents.to_i / 100.0) %></td>
+        </tr>
+
+        <tr>
+          <th style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">Valor do peixe</th>
+          <td style="border: 1px solid #d1d5db; padding: 10px 12px;"><%= number_to_currency(fish_total_cents.to_i / 100.0) %></td>
+        </tr>
+
+        <tr>
+          <th style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">Valor do carregamento</th>
+          <td style="border: 1px solid #d1d5db; padding: 10px 12px;"><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
+        </tr>
+
+        <tr>
+          <th style="border: 1px solid #d1d5db; background: #f3f4f6; padding: 10px 12px; text-align: left;">Valor do frete</th>
+          <td style="border: 1px solid #d1d5db; padding: 10px 12px;"><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
+        </tr>
       </tbody>
     </table>
   </div>
-<% end %>
 
-<div class="grid">
-  <div class="card">
-    <div class="label">Quantidade</div>
-    <div class="value"><%= number_with_delimiter(@simulation.quantity, delimiter: ".") %></div>
+  <div style="border: 2px solid #111827; border-radius: 12px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
+    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Valor total</div>
+    <div style="font-size: 28px; font-weight: bold;">
+      <%= number_to_currency(@simulation.total_cents.to_i / 100.0) %>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="label">Peso médio (kg)</div>
-    <div class="value"><%= number_with_precision(@simulation.avg_weight_kg, precision: 3, separator: ",", delimiter: ".") %></div>
-  </div>
+  <div style="margin-top: 24px;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">
+      Observações
+    </div>
 
-  <div class="card">
-    <div class="label">Peso total (kg)</div>
-    <div class="value"><%= number_with_precision(@simulation.total_weight_kg, precision: 3, separator: ",", delimiter: ".") %></div>
-  </div>
+    <% if company&.print_message_line_1.present? %>
+      <p style="margin-bottom: 4px;"><%= company.print_message_line_1 %></p>
+    <% end %>
 
-  <div class="card">
-    <div class="label">Quantidade de viagens</div>
-    <div class="value"><%= @simulation.loading_count %></div>
-  </div>
-</div>
+    <% if company&.print_message_line_2.present? %>
+      <p style="margin-bottom: 4px;"><%= company.print_message_line_2 %></p>
+    <% end %>
 
-<% fish_total_cents =
-     (
-       (@simulation.avg_weight_kg.to_d * @simulation.price_per_kg_cents.to_i * 1000) +
-       @simulation.thousand_value_cents.to_i
-     ) * (@simulation.quantity.to_d / 1000) %>
-
-<div class="section">
-  <div class="section-title">Composição dos valores</div>
-
-  <table>
-    <tbody>
-      <tr>
-        <th>Preço por kg</th>
-        <td><%= number_to_currency(@simulation.price_per_kg_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Valor por milheiro do Alevino</th>
-        <td><%= number_to_currency(@simulation.thousand_value_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Valor do peixe</th>
-        <td><%= number_to_currency(fish_total_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Valor do carregamento</th>
-        <td><%= number_to_currency(@simulation.loading_cost_cents.to_i / 100.0) %></td>
-      </tr>
-      <tr>
-        <th>Valor do frete</th>
-        <td><%= number_to_currency(@simulation.freight_cost_cents.to_i / 100.0) %></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="total-box">
-  <div class="label">Valor total</div>
-  <div class="total-value"><%= number_to_currency(@simulation.total_cents.to_i / 100.0) %></div>
-</div>
-
-<div class="section">
-  <div class="section-title">Observações</div>
-  <div style="margin-top: 24px; page-break-inside: avoid;">
-    <% if company.print_message_line_1.present? || company.print_message_line_2.present? %>
-      <div style="margin-top: 24px; font-size: 14px;">
-        <% if company.print_message_line_1.present? %>
-          <p style="margin-bottom: 4px;"><%= company.print_message_line_1 %></p>
-        <% end %>
-
-        <% if company.print_message_line_2.present? %>
-          <p style="margin-bottom: 4px;"><%= company.print_message_line_2 %></p>
-        <% end %>
-      </div>
+    <% if @simulation.notes.present? %>
+      <div><%= simple_format(@simulation.notes) %></div>
     <% end %>
   </div>
-  <% if @simulation.notes.present? %>
-    <div><%= simple_format(@simulation.notes) %></div>
-  <% end %>
 </div>

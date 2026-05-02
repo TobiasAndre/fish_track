@@ -57,10 +57,11 @@
               </td>
               <td class="px-4 py-3 text-right text-sm">
                 <div class="flex items-center justify-end gap-3">
-                  <%= link_to "Imprimir", print_simulation_path(simulation),
+                  <%= link_to "Imprimir", print_simulation_path(simulation, format: :pdf),
                     target: "_blank",
                     rel: "noopener",
-                    class: "text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100" %>
+                    class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                            hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
 
                   <%= link_to "Editar", edit_simulation_path(simulation),
                     class: "text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" %>

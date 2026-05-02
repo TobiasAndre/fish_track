@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_27_200604) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_02_133324) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -266,8 +266,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_27_200604) do
     t.integer "loading_count", default: 1, null: false
     t.bigint "thousand_value_cents", default: 0, null: false
     t.bigint "integrated_id"
+    t.string "share_token"
     t.index ["customer_id"], name: "index_simulations_on_customer_id"
     t.index ["integrated_id"], name: "index_simulations_on_integrated_id"
+    t.index ["share_token"], name: "index_simulations_on_share_token", unique: true
     t.index ["simulated_on"], name: "index_simulations_on_simulated_on"
   end
 

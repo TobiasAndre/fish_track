@@ -31,7 +31,8 @@ Rails.application.routes.draw do
     end
     resources :simulations do
       member do
-        get :print
+        get :print, defaults: { format: :html }
+        get "share/:share_token", to: "simulations#share_pdf", as: :share_pdf
       end
     end
     resources :batches do
