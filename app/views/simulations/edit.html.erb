@@ -12,7 +12,17 @@
 
     <!-- Botões alinhados à direita -->
     <div class="flex items-center gap-2">
-      <%= link_to "https://wa.me/?text=#{CGI.escape("Olá, segue o orçamento em PDF: #{public_share_simulation_pdf_url(tenant_name: session[:tenant_name], id: @simulation.id, share_token: @simulation.share_token, format: :pdf)}")}",
+      <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+
+      <% mensagem = "Orçamento #{company&.name}: #{@simulation.customer.name}" %>
+      <% url = public_share_simulation_pdf_url(
+        tenant_name: session[:tenant_name],
+        id: @simulation.id,
+        share_token: @simulation.share_token,
+        format: :pdf
+      ) %>
+
+      <%= link_to "https://wa.me/?text=#{CGI.escape("#{mensagem} #{url}")}",
             target: "_blank",
             rel: "noopener",
             title: "Compartilhar no WhatsApp",
