@@ -50,26 +50,46 @@ class SimulationsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-  html = render_to_string(
-    template: "simulations/print",
-    layout: "pdf",
-    formats: [:html]
-  )
+        html = render_to_string(
+          template: "simulations/print",
+          layout: "pdf",
+          formats: [:html]
+        )
 
-  File.write(Rails.root.join("tmp", "orcamento-debug.html"), html)
+        File.write(Rails.root.join("tmp", "orcamento-debug.html"), html)
 
-  pdf = WickedPdf.new.pdf_from_string(
-    html,
-    page_size: "A4",
-    encoding: "UTF-8",
-    margin: { top: 10, bottom: 10, left: 10, right: 10 }
-  )
+        pdf = WickedPdf.new.pdf_from_string(
+          html,
+          page_size: "A4",
+          encoding: "UTF-8",
+          margin: { top: 10, bottom: 10, left: 10, right: 10 }
+        )
 
-  send_data pdf,
-            filename: "orcamento-#{@simulation.id}.pdf",
-            type: "application/pdf",
-            disposition: "inline"
-end
+        send_data pdf,
+                  filename: "orcamento-#{@simulation.id}.pdf",
+                  type: "application/pdf",
+                  disposition: "inline"
+      end
+    end
+  end
+
+  def share_pdf
+    Apartment::Tenant.switch(params[:tenant_name]) do
+      @simulation = Simulation.find_by!(
+        id: params[:id],
+        share_token: params[:share_token]
+      )
+
+      respond_to do |format|
+        format.pdf do
+          render pdf: "orcamento-#{@simulation.id}",
+                template: "simulations/print",
+                layout: "pdf",
+                formats: [:html],
+                encoding: "UTF-8",
+                page_size: "A4"
+        end
+      end
     end
   end
 
