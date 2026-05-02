@@ -2,6 +2,7 @@ class StockingEventPagesController < ApplicationController
   before_action :load_batch_stockings
   before_action :load_selected_batch_stocking
   before_action :load_current_avg_weight
+  before_action :load_loading_form_collections
 
   def index
     @stocking_event = build_event
@@ -38,6 +39,14 @@ class StockingEventPagesController < ApplicationController
 
   def load_current_avg_weight
     @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+  end
+
+  def load_loading_form_collections
+    return unless event_type == "loading"
+
+    @customers = Customer.order(:name)
+    @integrateds = Supplier.order(:name)
+    @payment_methods = PaymentMethod.order(:name)
   end
 
   def build_event
@@ -101,7 +110,15 @@ class StockingEventPagesController < ApplicationController
       :gpd,
       :feed_kg,
       :feed_conversion,
-      :notes
+      :notes,
+      :customer_id,
+      :integrated_id,
+      :payment_date,
+      :price_per_kg_cents,
+      :thousand_value_cents,
+      :freight_cost_cents,
+      :loading_cost_cents,
+      :payment_method_id
     )
   end
 end
