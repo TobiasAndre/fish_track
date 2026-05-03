@@ -17,6 +17,7 @@ export default class extends Controller {
   ]
 
   connect() {
+    console.log("LoadingFormController connected")
     this.formatInitialCurrencyValues()
     this.recalculate()
   }

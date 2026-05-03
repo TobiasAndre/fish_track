@@ -24,6 +24,37 @@ class StockingEventPagesController < ApplicationController
     end
   end
 
+  def edit
+    @stocking_event = StockingEvent.find(params[:id])
+    @selected_batch_stocking = @stocking_event.batch_stocking
+    @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+    @events = filtered_events(@stocking_event.batch_stocking_id)
+  end
+
+  def update
+    @stocking_event = StockingEvent.find(params[:id])
+    @stocking_event.assign_attributes(event_params)
+    apply_event_calculations(@stocking_event)
+
+    if @stocking_event.save
+      redirect_to redirect_path_for(@stocking_event.batch_stocking),
+        notice: "Lançamento atualizado com sucesso."
+    else
+      @selected_batch_stocking = @stocking_event.batch_stocking
+      @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+      @events = filtered_events(@stocking_event.batch_stocking_id)
+
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @stocking_event = StockingEvent.find(params[:id])
+    batch_stocking = @stocking_event.batch_stocking
+    @stocking_event.destroy
+    redirect_to redirect_path_for(batch_stocking), notice: "Lançamento removido com sucesso."
+  end
+
   private
 
   def load_batch_stockings

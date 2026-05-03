@@ -109,6 +109,7 @@
             <%= f.label :customer_id, "Cliente", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.collection_select :customer_id, @customers || [], :id, :name,
               { prompt: "Selecione um cliente" },
+              required: true,
               class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
           </div>
 
@@ -130,6 +131,7 @@
             <%= f.label :total_weight_kg, "Peso total carregado (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.text_field :total_weight_kg,
               required: true,
+              value: @stocking_event.total_weight_kg.presence || 0,
               inputmode: "decimal",
               data: {
                 "loading-form-target": "totalWeight",
@@ -155,6 +157,7 @@
             <%= f.label :quantity, "Quantidade calculada", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.text_field :quantity,
               readonly: true,
+              value: @stocking_event.quantity.presence || 0,
               data: { "loading-form-target": "quantity" },
               class: "w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none" %>
           </div>
@@ -164,34 +167,40 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preço por kg</label>
             <input type="text" inputmode="numeric" placeholder="R$ 0,00"
-              value="<%= @stocking_event.price_per_kg_cents.to_i > 0 ? number_to_currency(@stocking_event.price_per_kg_cents.to_i / 100.0) : "" %>"
+              value="<%= @stocking_event.price_per_kg_cents.to_i > 0 ? number_to_currency(@stocking_event.price_per_kg_cents.to_i / 100.0) : "0,00" %>"
               data-action="input->loading-form#maskCurrency"
               data-loading-form-target="pricePerKg"
               class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-            <%= f.hidden_field :price_per_kg_cents, data: { "loading-form-target": "pricePerKgCents" } %>
+              <%= f.hidden_field :price_per_kg_cents,
+              value: @stocking_event.price_per_kg_cents.to_i,
+              data: { "loading-form-target": "pricePerKgCents" } %>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Milheiro</label>
             <input type="text" inputmode="numeric" placeholder="R$ 0,00"
-              value="<%= @stocking_event.thousand_value_cents.to_i > 0 ? number_to_currency(@stocking_event.thousand_value_cents.to_i / 100.0) : "" %>"
+              value="<%= @stocking_event.thousand_value_cents.to_i > 0 ? number_to_currency(@stocking_event.thousand_value_cents.to_i / 100.0) : "0,00" %>"
               data-action="input->loading-form#maskCurrency"
               data-loading-form-target="thousandValue"
               class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-            <%= f.hidden_field :thousand_value_cents, data: { "loading-form-target": "thousandValueCents" } %>
+            <%= f.hidden_field :thousand_value_cents,
+              value: @stocking_event.thousand_value_cents.to_i,
+              data: { "loading-form-target": "thousandValueCents" } %>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor do frete</label>
             <input type="text" inputmode="numeric" placeholder="R$ 0,00"
-              value="<%= @stocking_event.freight_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.freight_cost_cents.to_i / 100.0) : "" %>"
+              value="<%= @stocking_event.freight_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.freight_cost_cents.to_i / 100.0) : "0,00" %>"
               data-action="input->loading-form#maskCurrency"
               data-loading-form-target="freightCost"
               class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-            <%= f.hidden_field :freight_cost_cents, data: { "loading-form-target": "freightCostCents" } %>
+            <%= f.hidden_field :freight_cost_cents,
+              value: @stocking_event.freight_cost_cents.to_i,
+              data: { "loading-form-target": "freightCostCents" } %>
           </div>
         </div>
 
@@ -199,18 +208,21 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor do carregamento</label>
             <input type="text" inputmode="numeric" placeholder="R$ 0,00"
-              value="<%= @stocking_event.loading_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.loading_cost_cents.to_i / 100.0) : "" %>"
+              value="<%= @stocking_event.loading_cost_cents.to_i > 0 ? number_to_currency(@stocking_event.loading_cost_cents.to_i / 100.0) : "0,00" %>"
               data-action="input->loading-form#maskCurrency"
               data-loading-form-target="loadingCost"
               class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-            <%= f.hidden_field :loading_cost_cents, data: { "loading-form-target": "loadingCostCents" } %>
+            <%= f.hidden_field :loading_cost_cents,
+              value: @stocking_event.loading_cost_cents.to_i,
+              data: { "loading-form-target": "loadingCostCents" } %>
           </div>
 
           <div>
             <%= f.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.collection_select :payment_method_id, @payment_methods || [], :id, :name,
               { prompt: "Selecione a forma de pagamento" },
+              required: true,
               class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
           </div>
         </div>
@@ -250,6 +262,7 @@
                 <th class="py-2 pr-4 font-medium">Peso médio</th>
                 <th class="py-2 pr-4 font-medium">Preço/kg</th>
                 <th class="py-2 pr-4 font-medium">Pagamento</th>
+                <th class="py-2 pr-4 font-medium text-right">Ações</th>
               </tr>
             </thead>
 
@@ -288,6 +301,26 @@
 
                   <td class="py-2 pr-4">
                     <%= event.payment_method&.name || "—" %>
+                  </td>
+                  <td class="py-2 pr-4 text-right">
+                    <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      
+                      <!-- Editar -->
+                      <%= link_to edit_loading_event_path(event),
+                        class: "text-gray-500 hover:text-indigo-600 transition",
+                        title: "Editar" do %>
+                        ✏️
+                      <% end %>
+
+                      <!-- Excluir -->
+                      <%= link_to loading_event_path(event),
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        class: "text-gray-500 hover:text-red-600 transition",
+                        title: "Excluir" do %>
+                        🗑️
+                      <% end %>
+
+                    </div>
                   </td>
                 </tr>
               <% end %>
