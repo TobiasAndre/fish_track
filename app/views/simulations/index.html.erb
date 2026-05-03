@@ -57,6 +57,7 @@
               </td>
               <td class="px-4 py-3 text-right text-sm">
                 <div class="flex items-center justify-end gap-3">
+                  <% simulation.regenerate_share_token if simulation.share_token.blank? %>
                   <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
 
                   <% mensagem = "Orçamento #{company&.name}: #{simulation.customer.name}" %>
