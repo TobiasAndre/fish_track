@@ -28,7 +28,7 @@ class SimulationsController < ApplicationController
   end
 
   def edit
-     @simulation.regenerate_share_token if @simulation.share_token.blank?
+    @simulation.regenerate_share_token if @simulation.share_token.blank?
   end
 
   def update
@@ -55,8 +55,6 @@ class SimulationsController < ApplicationController
           layout: "pdf",
           formats: [:html]
         )
-
-        File.write(Rails.root.join("tmp", "orcamento-debug.html"), html)
 
         pdf = WickedPdf.new.pdf_from_string(
           html,
