@@ -1,6 +1,6 @@
 class SimulationsController < ApplicationController
   before_action :set_simulation, only: %i[show edit update destroy print]
-  before_action :load_form_data, only: %i[new create edit update]
+  before_action :load_form_data, only: %i[index new create edit update]
 
   def index
     @simulations = Simulation
@@ -8,6 +8,10 @@ class SimulationsController < ApplicationController
       .order(simulated_on: :desc, created_at: :desc)
       .page(params[:page])
       .per(10)
+
+    if params[:customer_id].present?
+      @simulations = @simulations.where(customer_id: params[:customer_id])
+    end
   end
 
   def show

@@ -11,6 +11,22 @@
       class: "inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700" %>
   </div>
 
+  <div class="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <%= form_with url: simulations_path, method: :get, local: true do %>
+      <div class="w-full sm:max-w-xs">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Filtrar por cliente
+        </label>
+
+        <%= select_tag :customer_id,
+          options_from_collection_for_select(@customers || [], :id, :name, params[:customer_id]),
+          prompt: "Todos os clientes",
+          onchange: "this.form.submit()",
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    <% end %>
+  </div>
+
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
