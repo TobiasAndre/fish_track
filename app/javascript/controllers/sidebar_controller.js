@@ -1,14 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["sidebar", "overlay", "label", "collapseIcon"]
+  static targets = ["sidebar", "overlay", "mobileDrawer", "label", "collapseIcon"]
 
   connect() {
-    // restore collapsed state (desktop)
     const collapsed = localStorage.getItem("sidebar:collapsed") === "true"
     this.setCollapsed(collapsed)
 
-    // start closed on mobile
     this.closeMobile()
   }
 
@@ -18,14 +16,11 @@ export default class extends Controller {
   }
 
   setCollapsed(collapsed) {
-    // Width
     this.sidebarTarget.classList.toggle("w-64", !collapsed)
     this.sidebarTarget.classList.toggle("w-20", collapsed)
 
-    // Hide labels when collapsed
     this.labelTargets.forEach((el) => el.classList.toggle("hidden", collapsed))
 
-    // Rotate icon
     if (this.hasCollapseIconTarget) {
       this.collapseIconTarget.classList.toggle("rotate-180", collapsed)
     }
@@ -34,20 +29,30 @@ export default class extends Controller {
   }
 
   openMobile() {
-    if (!this.hasOverlayTarget) return
+    if (!this.hasOverlayTarget || !this.hasMobileDrawerTarget) return
+
     this.overlayTarget.classList.remove("hidden")
+    this.mobileDrawerTarget.dataset.open = "true"
     document.body.classList.add("overflow-hidden")
   }
 
   closeMobile() {
-    if (!this.hasOverlayTarget) return
-    this.overlayTarget.classList.add("hidden")
+    if (!this.hasOverlayTarget || !this.hasMobileDrawerTarget) return
+
+    this.mobileDrawerTarget.dataset.open = "false"
     document.body.classList.remove("overflow-hidden")
+
+    setTimeout(() => {
+      this.overlayTarget.classList.add("hidden")
+    }, 200)
   }
 
   toggleMobile() {
     if (!this.hasOverlayTarget) return
-    this.overlayTarget.classList.contains("hidden") ? this.openMobile() : this.closeMobile()
+
+    this.overlayTarget.classList.contains("hidden")
+      ? this.openMobile()
+      : this.closeMobile()
   }
 
   closeOnEscape(event) {
