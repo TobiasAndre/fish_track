@@ -7,6 +7,10 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  get "shared/:tenant_name/simulations/:id/:share_token",
+    to: "simulations#share_pdf",
+    as: :shared_simulation_pdf
+
   # Defines the root path route ("/")
   # 
   namespace :admin do
@@ -34,10 +38,6 @@ Rails.application.routes.draw do
         get :print, defaults: { format: :html }
       end
     end
-
-    get "shared/:tenant_name/simulations/:id/:share_token",
-      to: "simulations#share_pdf",
-      as: :shared_simulation_pdf
 
     resources :batches do
       resources :batch_stockings, only: [] do
