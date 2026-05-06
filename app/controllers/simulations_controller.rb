@@ -1,7 +1,6 @@
 class SimulationsController < ApplicationController
   before_action :set_simulation, only: %i[show edit update destroy print]
   before_action :load_form_data, only: %i[index new create edit update]
-  skip_around_action :switch_tenant, only: [:share_pdf], raise: false
 
   def index
     @simulations = Simulation
