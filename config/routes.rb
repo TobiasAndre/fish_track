@@ -35,7 +35,7 @@ Rails.application.routes.draw do
       end
     end
 
-    get "shared/:tenant_name/simulations/:id/:share_token.pdf",
+    get "shared/:tenant_name/simulations/:id/:share_token",
       to: "simulations#share_pdf",
       as: :shared_simulation_pdf
 
