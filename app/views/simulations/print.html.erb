@@ -1,4 +1,4 @@
-<% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+<% company ||= @company || Company.find_by(tenant_name: session[:tenant_name]) %>
 
 <div style="width: 100%; font-family: Arial, sans-serif; color: #111827;">
   <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
