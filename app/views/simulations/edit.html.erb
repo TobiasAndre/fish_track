@@ -17,8 +17,8 @@
       <% mensagem = "Orçamento #{company&.name}: #{@simulation.customer.name}" %>
       <% url = shared_simulation_pdf_url(
         tenant_name: session[:tenant_name],
-        id: simulation.id,
-        share_token: simulation.share_token,
+        id: @simulation.id,
+        share_token: @simulation.share_token,
         format: :pdf
       ) %>
 
