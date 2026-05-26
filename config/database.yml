@@ -21,7 +21,7 @@ default: &default
 
 development:
   <<: *default
-  database: saas_app_development
+  database: fish_track
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.

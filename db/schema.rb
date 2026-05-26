@@ -296,7 +296,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_133324) do
     t.string "payment_method"
     t.bigint "customer_id"
     t.bigint "integrated_id"
-    t.bigint "payment_method_id", null: false
+    t.bigint "payment_method_id"
     t.decimal "feed_conversion", precision: 14, scale: 3
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"

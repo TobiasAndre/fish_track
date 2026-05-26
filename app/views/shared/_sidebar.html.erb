@@ -157,6 +157,10 @@
         <span>☠️</span><span class="text-sm font-medium">Mortalidade</span>
       <% end %>
 
+      <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
+        <span>🚚</span><span class="text-sm font-medium">Carregamento</span>
+      <% end %>
+
       <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
         <span>🧾</span><span class="text-sm font-medium">Folha</span>
       <% end %>
@@ -307,6 +311,10 @@
 
     <%= link_to mortality_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>☠️</span><span class="text-sm font-medium">Mortalidade</span>
+    <% end %>
+
+    <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
+      <span>🚚</span><span data-sidebar-target="label">Carregamento</span>
     <% end %>
 
     <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
