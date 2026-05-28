@@ -97,7 +97,7 @@
               <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 3) %> kg</td>
               <td class="px-4 py-3">
                 <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
-                  <%= @batch.status %>
+                  <%= enum_t(@batch, :status) %>
                 </span>
               </td>
             </tr>
@@ -135,7 +135,7 @@
                 </td>
 
                 <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  <%= event.event_type %>
+                  <%= enum_t(event, :event_type) %>
                 </td>
 
                 <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
