@@ -92,6 +92,11 @@ pt-BR:
         email: E-mail
         password: Senha
         password_confirmation: Confirmação de Senha
+      stocking_event:
+        event_type:
+          biometrics: "Biometria"
+          mortality: "Mortalidade"
+          loading: "Carregamento"
   enums:
     batch:
       stage:

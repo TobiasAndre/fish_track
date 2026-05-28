@@ -177,6 +177,14 @@
         <span>🧮</span><span class="text-sm font-medium">Orçamentos</span>
       <% end %>
 
+      <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
+
+      <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        Relatórios
+      </p>
+
+      <%= link_to "Relatório de Lote", batch_reports_path %>
+
       <% if system_admin? %>
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
 
@@ -331,6 +339,17 @@
 
     <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'simulations' ? selected_menu : unselected_menu}" do %>
       <span>🧮</span><span data-sidebar-target="label">Orçamentos</span>
+    <% end %>
+
+    <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
+
+    <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
+      data-sidebar-target="label">
+      Relatórios
+    </p>
+
+    <%= link_to batch_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_reports' ? selected_menu : unselected_menu}" do %>
+      <span>📦</span><span data-sidebar-target="label">Lotes</span>
     <% end %>
 
     <% if system_admin? %>

@@ -1,0 +1,63 @@
+<div class="report">
+  <h1>Relatório do Lote</h1>
+
+  <h2>Dados atuais do lote</h2>
+
+  <table class="master-table">
+    <thead>
+      <tr>
+        <th>Lote</th>
+        <th>Tanque</th>
+        <th>Espécie</th>
+        <th>Qtd. atual</th>
+        <th>Peso médio atual</th>
+        <th>Biomassa atual</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td><%= @batch.name %></td>
+        <td><%= @batch.pond&.name %></td>
+        <td><%= @batch.species %></td>
+        <td><%= number_with_delimiter(@batch.current_quantity || 0, delimiter: ".") %></td>
+        <td><%= number_with_precision(@batch.current_average_weight || 0, precision: 2) %> g</td>
+        <td><%= number_with_precision(@batch.current_biomass || 0, precision: 2) %> kg</td>
+        <td><%= @batch.status %></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Histórico de eventos</h2>
+
+  <table class="detail-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Quantidade</th>
+        <th>Peso médio</th>
+        <th>Mortalidade</th>
+        <th>Observação</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @events.each do |event| %>
+        <tr>
+          <td><%= l(event.event_date, format: :short) if event.event_date %></td>
+          <td><%= event.event_type %></td>
+          <td><%= event.quantity %></td>
+          <td>
+            <% if event.average_weight.present? %>
+              <%= number_with_precision(event.average_weight, precision: 2) %> g
+            <% end %>
+          </td>
+          <td><%= event.mortality_quantity %></td>
+          <td><%= event.notes %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

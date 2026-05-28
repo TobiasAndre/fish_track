@@ -1,0 +1,235 @@
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #111;
+    background: #fff;
+  }
+
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+
+  th {
+    background: #f0f0f0;
+    border: 1px solid #bbb;
+    padding: 6px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    vertical-align: top;
+  }
+
+  .master-table td {
+    font-weight: bold;
+  }
+
+  .muted {
+    color: #666;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: #e8f5e9;
+    color: #1b5e20;
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .empty {
+    text-align: center;
+    color: #777;
+    padding: 18px;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #666;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+
+<div class="header">
+  <h1 class="title">Relatorio de Lote</h1>
+
+  <div class="subtitle">
+    Gerado em <%= l(Date.current) %>
+    <% if @batch.present? %>
+      Lote: <strong><%= @batch.name %></strong>
+    <% end %>
+  </div>
+</div>
+
+<% if @batch.present? %>
+  <div class="section-title">Dados atuais do lote</div>
+
+  <table class="master-table">
+    <thead>
+      <tr>
+        <th>Lote</th>
+        <th>Tanque atual</th>
+        <th>Especie</th>
+        <th>Qtd. atual</th>
+        <th>Peso medio</th>
+        <th>Biomassa</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td><%= @batch.name %></td>
+        <td><%= @batch.current_pond&.name || "-" %></td>
+        <td><%= @batch.species.presence || "-" %></td>
+        <td class="text-right"><%= number_with_delimiter(@batch.current_quantity || 0, delimiter: ".") %></td>
+        <td class="text-right"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2) %> g</td>
+        <td class="text-right"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 3) %> kg</td>
+        <td><span class="badge"><%= @batch.status %></span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <tbody>
+      <tr>
+        <th scope="row" id="data-inicial">Data inicial</th>
+        <td><%= l(@batch.started_on) if @batch.started_on %></td>
+
+        <th scope="row" id="data-final">Data de encerramento</th>
+        <td><%= @batch.closed_on.present? ? l(@batch.closed_on) : "-" %></td>
+
+        <th scope="row" id="fase">Fase</th>
+        <td><%= @batch.stage.presence || "-" %></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Filtros utilizados</div>
+
+  <table>
+    <tbody>
+      <tr>
+        <th scope="row">Tipo de evento</th>
+        <td><%= params[:event_type].presence || "Todos" %></td>
+
+        <th scope="row">Data inicial</th>
+        <td><%= params[:start_date].presence || "-" %></td>
+
+        <th scope="row">Data final</th>
+        <td><%= params[:end_date].presence || "-" %></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Historico de eventos</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Tanque</th>
+        <th>Quantidade</th>
+        <th>Peso medio</th>
+        <th>Biomassa</th>
+        <th>GPD</th>
+        <th>Observacao</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if @events.any? %>
+        <% @events.each do |event| %>
+          <tr>
+            <td><%= event.occurred_on.present? ? l(event.occurred_on) : "-" %></td>
+            <td><%= enum_t(event, :event_type) %></td>
+            <td><%= event.batch_stocking&.pond&.name || "-" %></td>
+            <td class="text-right"><%= event.quantity || "-" %></td>
+
+            <td class="text-right">
+              <% if event.avg_weight_g.present? %>
+                <%= number_with_precision(event.avg_weight_g, precision: 2) %> g
+              <% else %>
+                -
+              <% end %>
+            </td>
+
+            <td class="text-right">
+              <% if event.biomass.present? %>
+                <%= number_with_precision(event.biomass, precision: 3) %> kg
+              <% else %>
+                -
+              <% end %>
+            </td>
+
+            <td class="text-right">
+              <% if event.gpd.present? %>
+                <%= number_with_precision(event.gpd, precision: 3) %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+
+            <td><%= event.notes.presence || "-" %></td>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="8" class="empty">
+            Nenhum evento encontrado para os filtros selecionados.
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Relatorio gerado automaticamente pelo Fish Track.
+  </div>
+<% else %>
+  <p class="empty">Nenhum lote selecionado.</p>
+<% end %>

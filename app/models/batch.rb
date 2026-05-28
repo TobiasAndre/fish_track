@@ -1,6 +1,7 @@
 class Batch < ApplicationRecord
   has_many :batch_stockings, dependent: :destroy
   has_many :ponds, through: :batch_stockings
+  has_many :stocking_events, through: :batch_stockings
 
   belongs_to :product, optional: true
 
@@ -39,6 +40,10 @@ class Batch < ApplicationRecord
 
     total_current_biomass = batch_stockings.sum(:current_biomass_kg)
     update_columns(current_biomass_kg: total_current_biomass)
+  end
+
+  def current_pond
+    batch_stockings.order(stocked_on: :desc, created_at: :desc).first&.pond
   end
 
   private

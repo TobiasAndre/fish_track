@@ -48,6 +48,33 @@ class BatchesController < ApplicationController
     redirect_to batches_path, notice: "Lote removido com sucesso."
   end
 
+  def report
+    @batch = Batch
+      .includes(:pond, :batch_stockings)
+      .find(params[:id])
+
+    @events = StockingEvent
+      .where(batch_id: @batch.id)
+      .order(event_date: :asc, created_at: :asc)
+
+    respond_to do |format|
+      format.html
+
+      format.pdf do
+        render pdf: "relatorio-lote-#{@batch.id}",
+              template: "batches/report",
+              layout: "pdf",
+              page_size: "A4",
+              margin: {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10
+              }
+      end
+    end
+  end
+
   private
 
   def set_batch

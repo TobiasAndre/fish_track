@@ -1,0 +1,189 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      Relatório de Lote
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Consulte os dados atuais do lote e o histórico de eventos.
+    </p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <%= form_with url: batch_reports_path, method: :get, local: true do %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <%= label_tag :batch_id, "Lote", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :batch_id,
+              options_from_collection_for_select(@batches, :id, :name, params[:batch_id]),
+              include_blank: "Selecione um lote",
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :event_type, "Tipo de evento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :event_type,
+                options_for_select([
+                  ["Todos", ""],
+                  ["Biometria", "biometrics"],
+                  ["Mortalidade", "mortality"],
+                  ["Carregamento", "loading"]
+                ], params[:event_type]),
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :start_date, "Data inicial", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= date_field_tag :start_date, params[:start_date],
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :end_date, "Data final", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= date_field_tag :end_date, params[:end_date],
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 mt-6">
+        <%= submit_tag "Filtrar",
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer" %>
+
+        <%= link_to "Limpar filtros",
+              batch_reports_path,
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700" %>
+
+        <% if @batch.present? %>
+          <%= link_to "Gerar PDF",
+                batch_reports_path(
+                  format: :pdf,
+                  batch_id: params[:batch_id],
+                  event_type: params[:event_type],
+                  start_date: params[:start_date],
+                  end_date: params[:end_date]
+                ),
+                target: "_blank",
+                class: "inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @batch.present? %>
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Dados atuais do lote</h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Lote</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Qtd. atual</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Peso médio</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Biomassa</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= @batch.name %></td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= @batch.current_pond&.name || "-" %></td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_delimiter(@batch.current_quantity || 0, delimiter: ".") %></td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2) %> g</td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 3) %> kg</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
+                  <%= @batch.status %>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Histórico de eventos</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= @events.size %> evento(s) encontrado(s)</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tipo</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Quantidade</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Peso médio</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Biomassa</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Observação</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
+            <% @events.each do |event| %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <%= l(event.occurred_on) if event.occurred_on %>
+                </td>
+
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <%= event.event_type %>
+                </td>
+
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <%= event.quantity || "-" %>
+                </td>
+
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <% if event.avg_weight_g.present? %>
+                    <%= number_with_precision(event.avg_weight_g, precision: 2) %> g
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <% if event.biomass.present? %>
+                    <%= number_with_precision(event.biomass, precision: 3) %> kg
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  <%= event.notes.presence || "-" %>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @events.empty? %>
+              <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                  Nenhum evento encontrado para os filtros selecionados.
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+      <h2 class="text-base font-semibold text-blue-900 dark:text-blue-100">
+        Selecione um lote
+      </h2>
+
+      <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+        Use os filtros acima para visualizar o relatório.
+      </p>
+    </div>
+  <% end %>
+</div>

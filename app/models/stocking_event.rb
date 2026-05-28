@@ -35,6 +35,10 @@ class StockingEvent < ApplicationRecord
 
   scope :recent_first, -> { order(occurred_on: :desc, created_at: :desc) }
 
+  def human_event_type
+    I18n.t("stocking_events.event_types.#{event_type}", default: event_type.to_s)
+  end
+
   private
 
   def calculate_loading_fields
