@@ -92,9 +92,9 @@
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= @batch.name %></td>
               <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= @batch.current_pond&.name || "-" %></td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_delimiter(@batch.current_quantity || 0, delimiter: ".") %></td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2) %> g</td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 3) %> kg</td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= @batch.current_quantity.present? ? number_with_delimiter(@batch.current_quantity, delimiter: ".") : "—" %></td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2, separator: ",", delimiter: ".") %> g</td>
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 2, separator: ",", delimiter: ".") %> kg</td>
               <td class="px-4 py-3">
                 <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
                   <%= enum_t(@batch, :status) %>
@@ -139,7 +139,8 @@
                 </td>
 
                 <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  <%= event.quantity || "-" %>
+                  <%= number_with_delimiter(event.quantity, delimiter: ".") || "-" %>
+                  
                 </td>
 
                 <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
@@ -152,7 +153,7 @@
 
                 <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
                   <% if event.biomass.present? %>
-                    <%= number_with_precision(event.biomass, precision: 3) %> kg
+                    <%= number_with_precision(event.biomass, precision: 2, separator: ",", delimiter: ".") %> kg
                   <% else %>
                     -
                   <% end %>
