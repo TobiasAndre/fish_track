@@ -128,7 +128,7 @@
         <td class="text-right"><%= number_with_delimiter(@batch.current_quantity || 0, delimiter: ".") %></td>
         <td class="text-right"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2) %> g</td>
         <td class="text-right"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 3) %> kg</td>
-        <td><span class="badge"><%= @batch.status %></span></td>
+        <td><span class="badge"><%= enum_t(@batch, :status) %></span></td>
       </tr>
     </tbody>
   </table>
@@ -143,7 +143,7 @@
         <td><%= @batch.closed_on.present? ? l(@batch.closed_on) : "-" %></td>
 
         <th scope="row" id="fase">Fase</th>
-        <td><%= @batch.stage.presence || "-" %></td>
+        <td><%= enum_t(@batch, :stage) || "-" %></td>
       </tr>
     </tbody>
   </table>
@@ -188,7 +188,7 @@
             <td><%= event.occurred_on.present? ? l(event.occurred_on) : "-" %></td>
             <td><%= enum_t(event, :event_type) %></td>
             <td><%= event.batch_stocking&.pond&.name || "-" %></td>
-            <td class="text-right"><%= event.quantity || "-" %></td>
+            <td class="text-right"><%= number_with_delimiter(event.quantity, delimiter: ".") || "-" %></td>
 
             <td class="text-right">
               <% if event.avg_weight_g.present? %>
@@ -200,7 +200,7 @@
 
             <td class="text-right">
               <% if event.biomass.present? %>
-                <%= number_with_precision(event.biomass, precision: 3) %> kg
+                <%= number_with_precision(event.biomass, precision: 2, separator: ",", delimiter: ".") %> kg
               <% else %>
                 -
               <% end %>
