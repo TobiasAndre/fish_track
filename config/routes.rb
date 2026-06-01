@@ -60,6 +60,13 @@ Rails.application.routes.draw do
 
     resources :payroll_items, only: [:create, :destroy]
 
+    resources :feeding_tables do
+      member do
+        get :print, defaults: { format: :html }
+      end
+      resources :feeding_strategy_items, only: %i[create destroy]
+    end
+
     root "dashboard#show"
   end
 end

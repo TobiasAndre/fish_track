@@ -1,0 +1,39 @@
+<div style="width:100%;font-family:Arial,sans-serif;color:#111827;">
+  <h1 style="margin-bottom:20px;">
+    <%= @feeding_table.name %>
+  </h1>
+
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="border:1px solid #d1d5db;padding:8px;">
+          Peso / Temperatura
+        </th>
+
+        <% @temperature_ranges.each do |temp| %>
+          <th style="border:1px solid #d1d5db;padding:8px;">
+            <%= temp.temperature_from %>-<%= temp.temperature_to %>°C
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @weight_ranges.each do |weight| %>
+        <tr>
+          <td style="border:1px solid #d1d5db;padding:8px;font-weight:bold;">
+            <%= weight.weight_from %>-<%= weight.weight_to %> g
+          </td>
+
+          <% @temperature_ranges.each do |temp| %>
+            <% item = @strategy_matrix[[weight.id, temp.id]] %>
+
+            <td style="border:1px solid #d1d5db;padding:8px;text-align:center;">
+              <%= item&.feeding_percentage || "-" %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

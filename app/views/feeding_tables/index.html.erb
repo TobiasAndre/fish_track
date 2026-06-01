@@ -1,0 +1,141 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        Tabelas de Arraçoamento
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        Gerencie as tabelas utilizadas para cálculo de alimentação.
+      </p>
+    </div>
+
+    <%= link_to new_feeding_table_path,
+          class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition" do %>
+      <span>➕</span>
+      <span>Nova Tabela</span>
+    <% end %>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+    <% if @feeding_tables.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Nome
+              </th>
+
+              <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Faixas de Peso
+              </th>
+
+              <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Faixas de Temperatura
+              </th>
+
+              <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Percentuais
+              </th>
+
+              <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Criado em
+              </th>
+
+              <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Ações
+              </th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <% @feeding_tables.each do |table| %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                <td class="px-6 py-4">
+                  <div class="font-medium text-gray-900 dark:text-white">
+                    <%= table.name %>
+                  </div>
+
+                  <% if table.description.present? %>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      <%= table.description %>
+                    </div>
+                  <% end %>
+                </td>
+
+                <td class="px-6 py-4 text-center">
+                  <span class="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    <%= FeedingWeightRange.count %>
+                  </span>
+                </td>
+
+                <td class="px-6 py-4 text-center">
+                  <span class="inline-flex rounded-full bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
+                    <%= FeedingTemperatureRange.count %>
+                  </span>
+                </td>
+
+                <td class="px-6 py-4 text-center">
+                  <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <%= table.feeding_strategy_items.count %>
+                  </span>
+                </td>
+
+                <td class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <%= l(table.created_at.to_date) %>
+                </td>
+
+                <td class="px-6 py-4">
+                  <div class="flex justify-end gap-2">
+                    <%= link_to edit_feeding_table_path(table),
+                          class: "rounded-lg px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950" do %>
+                      ✏️ Editar
+                    <% end %>
+
+                    <%= button_to feeding_table_path(table),
+                          method: :delete,
+                          form: {
+                            data: {
+                              turbo_confirm: "Deseja realmente excluir esta tabela?"
+                            }
+                          },
+                          class: "rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950" do %>
+                      🗑️ Excluir
+                    <% end %>
+
+                    <%= link_to print_feeding_table_path(table),
+                          target: "_blank",
+                          class: "rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950" do %>
+                      🖨️ Imprimir
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="p-12 text-center">
+        <div class="text-5xl mb-4">🐟</div>
+
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+          Nenhuma tabela cadastrada
+        </h3>
+
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Crie sua primeira tabela de arraçoamento.
+        </p>
+
+        <div class="mt-6">
+          <%= link_to new_feeding_table_path,
+                class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition" do %>
+            <span>➕</span>
+            <span>Nova Tabela</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,116 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <%= @feeding_table.name %>
+    </h1>
+
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      Preencha os percentuais por faixa de peso e temperatura.
+    </p>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+      Adicionar percentual
+    </h2>
+
+    <%= form_with model: [@feeding_table, @feeding_strategy_item], class: "grid grid-cols-1 gap-4 md:grid-cols-4" do |form| %>
+      <div>
+        <%= form.label :feeding_weight_range_id, "Faixa de peso", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.collection_select(
+              :feeding_weight_range_id,
+              @weight_ranges,
+              :id,
+              ->(range) { "#{range.weight_from}g até #{range.weight_to}g" },
+              { prompt: "Selecione" },
+              class: "w-full mt-1 rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            ) %>
+      </div>
+
+      <div>
+        <%= form.label :feeding_temperature_range_id, "Temperatura", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.collection_select(
+              :feeding_temperature_range_id,
+              @temperature_ranges,
+              :id,
+              ->(range) { "#{range.temperature_from}°C até #{range.temperature_to}°C" },
+              { prompt: "Selecione" },
+              class: "mt-1 w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            ) %>
+      </div>
+
+      <div>
+        <%= form.label :feeding_percentage, "% Ração", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= form.number_field :feeding_percentage,
+              step: 0.01,
+              class: "mt-1 w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500",
+              placeholder: "Ex: 3.5" %>
+      </div>
+
+      <div class="flex items-end">
+        <%= form.submit "Salvar percentual",
+              class: "w-full rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-collapse text-sm">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-900">
+            <th class="sticky left-0 z-10 border border-gray-200 bg-gray-50 px-3 py-2 text-left dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+              Faixa de Peso
+            </th>
+
+            <% @temperature_ranges.each do |temp| %>
+              <th class="border border-gray-200 px-3 py-2 text-center text-gray-700 dark:border-gray-700 dark:text-gray-300">
+                <%= temp.temperature_from %>°C até <%= temp.temperature_to %>°C
+              </th>
+            <% end %>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @weight_ranges.each do |weight| %>
+            <tr>
+              <td class="sticky left-0 z-10 border border-gray-200 bg-white px-3 py-2 font-medium text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                <%= weight.weight_from %>g até <%= weight.weight_to %>g
+              </td>
+
+              <% @temperature_ranges.each do |temp| %>
+                <% item = @strategy_matrix[[weight.id, temp.id]] %>
+
+                <td class="border border-gray-200 px-3 py-2 text-center dark:border-gray-700">
+                  <% if item.present? %>
+                    <div class="flex items-center justify-center gap-2">
+                      <span class="font-medium text-gray-900 dark:text-white">
+                        <%= number_with_precision(item.feeding_percentage, precision: 2) %>%
+                      </span>
+
+                      <%= button_to "×",
+                            feeding_table_feeding_strategy_item_path(@feeding_table, item),
+                            method: :delete,
+                            form: { data: { turbo_confirm: "Remover este percentual?" } },
+                            class: "text-red-600 hover:text-red-800" %>
+                    </div>
+                  <% else %>
+                    <span class="text-gray-300 dark:text-gray-600">-</span>
+                  <% end %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

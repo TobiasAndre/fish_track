@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_02_133324) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_01_214726) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -87,6 +87,41 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_133324) do
     t.bigint "salary_cents", default: 0, null: false
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
+  end
+
+  create_table "feeding_strategy_items", force: :cascade do |t|
+    t.bigint "feeding_table_id", null: false
+    t.bigint "feeding_weight_range_id", null: false
+    t.bigint "feeding_temperature_range_id", null: false
+    t.decimal "feeding_percentage", precision: 5, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["feeding_table_id", "feeding_weight_range_id", "feeding_temperature_range_id"], name: "idx_feeding_strategy_items_unique_cell", unique: true
+    t.index ["feeding_table_id"], name: "index_feeding_strategy_items_on_feeding_table_id"
+    t.index ["feeding_temperature_range_id"], name: "index_feeding_strategy_items_on_feeding_temperature_range_id"
+    t.index ["feeding_weight_range_id"], name: "index_feeding_strategy_items_on_feeding_weight_range_id"
+  end
+
+  create_table "feeding_tables", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_feeding_tables_on_name", unique: true
+  end
+
+  create_table "feeding_temperature_ranges", force: :cascade do |t|
+    t.decimal "temperature_from", precision: 5, scale: 2, null: false
+    t.decimal "temperature_to", precision: 5, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "feeding_weight_ranges", force: :cascade do |t|
+    t.decimal "weight_from", precision: 10, scale: 2, null: false
+    t.decimal "weight_to", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "financial_entries", force: :cascade do |t|
@@ -356,6 +391,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_133324) do
   add_foreign_key "batch_stockings", "ponds"
   add_foreign_key "batch_stockings", "suppliers"
   add_foreign_key "batches", "products"
+  add_foreign_key "feeding_strategy_items", "feeding_tables"
+  add_foreign_key "feeding_strategy_items", "feeding_temperature_ranges"
+  add_foreign_key "feeding_strategy_items", "feeding_weight_ranges"
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "units"
