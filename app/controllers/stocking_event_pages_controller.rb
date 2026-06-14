@@ -76,7 +76,7 @@ class StockingEventPagesController < ApplicationController
     return unless event_type == "loading"
 
     @customers = Customer.order(:name)
-    @integrateds = Supplier.order(:name)
+    @integrateds = Integrated.order(:name)
     @payment_methods = PaymentMethod.order(:name)
   end
 
