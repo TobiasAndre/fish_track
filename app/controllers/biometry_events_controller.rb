@@ -55,10 +55,10 @@ class BiometryEventsController < StockingEventPagesController
 
     @active_batch_stockings =
       BatchStocking
-        .includes(:batch, :pond, :stocking_events)
+        .includes(:batch, :pond, :biometry_events)
         .joins(:batch)
         .where(batches: { status: "active" })
-        .order(created_at: :desc)
+        .order("batches.name ASC", "batch_stockings.stocked_on DESC")
 
     return unless @selected_batch_stocking.present?
 
