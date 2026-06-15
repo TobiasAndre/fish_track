@@ -53,6 +53,13 @@ class BiometryEventsController < StockingEventPagesController
     @previous_occurred_on = nil
     @current_avg_weight_g = 0
 
+    @active_batch_stockings =
+      BatchStocking
+        .includes(:batch, :pond, :stocking_events)
+        .joins(:batch)
+        .where(batches: { status: "active" })
+        .order(created_at: :desc)
+
     return unless @selected_batch_stocking.present?
 
     last_biometry = StockingEvent
