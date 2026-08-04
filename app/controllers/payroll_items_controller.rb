@@ -4,6 +4,7 @@ class PayrollItemsController < ApplicationController
   def create
     item = PayrollItem.new(payroll_item_params)
     item.item_type ||= "advance"
+    item.occurred_on ||= Date.new(item.year.to_i, item.month.to_i, 1)
 
     item.save!
     redirect_to payroll_path(year: item.year, month: item.month), notice: "Adiantamento lançado!"

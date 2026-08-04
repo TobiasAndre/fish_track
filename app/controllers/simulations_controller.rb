@@ -27,7 +27,7 @@ class SimulationsController < ApplicationController
     if @simulation.save
       redirect_to simulations_path, notice: "Simulação criada com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -39,7 +39,7 @@ class SimulationsController < ApplicationController
     if @simulation.update(simulation_params)
       redirect_to simulations_path, notice: "Simulação atualizada com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

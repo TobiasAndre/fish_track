@@ -22,7 +22,7 @@ class FeedingTablesController < ApplicationController
     if @feeding_table.save
       redirect_to edit_feeding_table_path(@feeding_table), notice: "Tabela criada. Agora preencha os percentuais."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -37,7 +37,7 @@ class FeedingTablesController < ApplicationController
     else
       @feeding_strategy_item = @feeding_table.feeding_strategy_items.build
       build_matrix
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

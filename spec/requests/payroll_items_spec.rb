@@ -1,0 +1,55 @@
+require "rails_helper"
+
+RSpec.describe "PayrollItems", type: :request do
+  let(:user) { create(:user) }
+  let(:employee) { create(:employee) }
+
+  before { sign_in user }
+
+  describe "POST /payroll_items" do
+    it "creates an advance and its linked financial entry" do
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 50_000,
+            item_type: "advance"
+          }
+        }
+      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+    end
+
+    it "redirects back with an alert when the amount is invalid" do
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 0,
+            item_type: "advance"
+          }
+        }
+      end.not_to change(PayrollItem, :count)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+      expect(flash[:alert]).to be_present
+    end
+  end
+
+  describe "DELETE /payroll_items/:id" do
+    it "removes the payroll item" do
+      item = create(:payroll_item, employee: employee, year: 2026, month: 6)
+
+      expect do
+        delete payroll_item_path(item)
+      end.to change(PayrollItem, :count).by(-1)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+    end
+  end
+end

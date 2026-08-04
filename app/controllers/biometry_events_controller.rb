@@ -12,7 +12,7 @@ class BiometryEventsController < StockingEventPagesController
       @events = filtered_events(@selected_batch_stocking&.id)
       load_previous_biometry_data
 
-      render :index, status: :unprocessable_entity
+      render :index, status: :unprocessable_content
     end
   end
 

@@ -17,7 +17,7 @@ class EmployeesController < ApplicationController
     if @employee.save
       redirect_to employees_path, notice: "Funcionário criado!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -27,7 +27,7 @@ class EmployeesController < ApplicationController
     if @employee.update(employee_params)
       redirect_to employees_path, notice: "Funcionário atualizado!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

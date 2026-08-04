@@ -25,7 +25,7 @@ class StockingEventsController < ApplicationController
         notice: "Evento criado com sucesso."
     else
       set_previous_biometry_data_for(@stocking_event)
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -38,7 +38,7 @@ class StockingEventsController < ApplicationController
         notice: "Evento atualizado com sucesso."
     else
       set_previous_biometry_data_for(@stocking_event)
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

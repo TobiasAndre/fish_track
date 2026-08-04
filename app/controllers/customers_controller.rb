@@ -17,7 +17,7 @@ class CustomersController < ApplicationController
     if @customer.save
       redirect_to customers_path, notice: "Cliente criado!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -27,7 +27,7 @@ class CustomersController < ApplicationController
     if @customer.update(customer_params)
       redirect_to customers_path, notice: "Cliente atualizado!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

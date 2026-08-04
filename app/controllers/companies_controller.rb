@@ -19,7 +19,7 @@ class CompaniesController < ApplicationController
 
       redirect_to units_path, notice: "Empresa criada com sucesso!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -29,7 +29,7 @@ class CompaniesController < ApplicationController
     if @company.update(company_params)
       redirect_to units_path, notice: "Empresa atualizada com sucesso!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

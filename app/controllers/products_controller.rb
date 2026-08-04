@@ -21,7 +21,7 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to products_path, notice: "Produto criado com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -32,7 +32,7 @@ class ProductsController < ApplicationController
     if @product.update(product_params)
       redirect_to products_path, notice: "Produto atualizado com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

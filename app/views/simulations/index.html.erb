@@ -73,22 +73,24 @@
               </td>
               <td class="px-4 py-3 text-right text-sm">
                 <div class="flex items-center justify-end gap-3">
-                  <% simulation.regenerate_share_token if simulation.share_token.blank? %>
-                  <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+                  <% if session[:tenant_name].present? %>
+                    <% simulation.regenerate_share_token if simulation.share_token.blank? %>
+                    <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
 
-                  <% mensagem = "Orçamento #{company&.name}: #{simulation.customer.name}" %>
-                  <% url = shared_simulation_pdf_url(
-                    tenant_name: session[:tenant_name],
-                    id: simulation.id,
-                    share_token: simulation.share_token,
-                    format: :pdf
-                  ) %>
-                   <%= link_to "https://wa.me/?text=#{CGI.escape("#{mensagem} #{url}")}",
-                        target: "_blank",
-                        rel: "noopener",
-                        title: "Compartilhar no WhatsApp",
-                        class: "inline-flex items-center justify-center rounded-lg bg-green-500 p-2 text-white hover:bg-green-600 transition" do %>
-                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <% mensagem = "Orçamento #{company&.name}: #{simulation.customer.name}" %>
+                    <% url = shared_simulation_pdf_url(
+                      tenant_name: session[:tenant_name],
+                      id: simulation.id,
+                      share_token: simulation.share_token,
+                      format: :pdf
+                    ) %>
+                     <%= link_to "https://wa.me/?text=#{CGI.escape("#{mensagem} #{url}")}",
+                          target: "_blank",
+                          rel: "noopener",
+                          title: "Compartilhar no WhatsApp",
+                          class: "inline-flex items-center justify-center rounded-lg bg-green-500 p-2 text-white hover:bg-green-600 transition" do %>
+                      <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <% end %>
                   <% end %>
                   <%= link_to "Imprimir", print_simulation_path(simulation, format: :pdf),
                     target: "_blank",

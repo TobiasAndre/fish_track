@@ -27,7 +27,7 @@ class BatchesController < ApplicationController
     if @batch.save
       redirect_to batches_path, notice: "Lote criado com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -39,7 +39,7 @@ class BatchesController < ApplicationController
     if @batch.update(batch_params)
       redirect_to batches_path, notice: "Lote atualizado com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

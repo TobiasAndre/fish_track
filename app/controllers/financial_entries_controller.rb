@@ -37,7 +37,7 @@ class FinancialEntriesController < ApplicationController
     if @entry.save
       redirect_to financial_entries_path, notice: "Lançamento criado!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -47,7 +47,7 @@ class FinancialEntriesController < ApplicationController
     if @entry.update(financial_entry_params)
       redirect_to financial_entries_path, notice: "Lançamento atualizado!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

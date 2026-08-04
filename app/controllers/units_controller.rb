@@ -16,7 +16,7 @@ class UnitsController < ApplicationController
     if @unit.save
       redirect_to units_path, notice: "Unidade criada!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -26,7 +26,7 @@ class UnitsController < ApplicationController
     if @unit.update(unit_params)
       redirect_to units_path, notice: "Unidade atualizada!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

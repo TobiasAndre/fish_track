@@ -24,7 +24,7 @@ module Admin
       @company = e.record.is_a?(Company) ? e.record : Company.new(company_params)
       load_users
       flash.now[:alert] = "Não foi possível criar a empresa."
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
 
     def edit
@@ -36,7 +36,7 @@ module Admin
         redirect_to admin_companies_path, notice: "Empresa atualizada com sucesso."
       else
         load_users
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
       end
     end
 

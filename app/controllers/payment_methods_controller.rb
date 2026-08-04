@@ -15,7 +15,7 @@ class PaymentMethodsController < ApplicationController
     if @payment_method.save
       redirect_to payment_methods_path, notice: "Forma de pagamento criada com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -26,7 +26,7 @@ class PaymentMethodsController < ApplicationController
     if @payment_method.update(payment_method_params)
       redirect_to payment_methods_path, notice: "Forma de pagamento atualizada com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

@@ -17,7 +17,7 @@ class IntegratedsController < ApplicationController
     if @integrated.save
       redirect_to customer_integrateds_path(@customer), notice: "Integrado criado com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -28,7 +28,7 @@ class IntegratedsController < ApplicationController
     if @integrated.update(integrated_params)
       redirect_to customer_integrateds_path(@customer), notice: "Integrado atualizado com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

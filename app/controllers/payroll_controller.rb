@@ -28,7 +28,7 @@ class PayrollController < ApplicationController
 
         # se vazio/zero, remove o salário do mês
         if cents <= 0
-          PayrollItem.where(employee: employee, year: year, month: month, item_type: "salary").delete_all
+          PayrollItem.where(employee: employee, year: year, month: month, item_type: "salary").destroy_all
           next
         end
 
@@ -41,6 +41,7 @@ class PayrollController < ApplicationController
 
         item.amount_cents = cents
         item.notes = "Salário base #{month}/#{year}"
+        item.occurred_on ||= Date.new(year, month, 1)
         item.save!
       end
     end

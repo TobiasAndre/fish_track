@@ -19,7 +19,7 @@ class PondsController < ApplicationController
     if @pond.save
       redirect_to ponds_path, notice: "Tanque criado!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -29,7 +29,7 @@ class PondsController < ApplicationController
     if @pond.update(pond_params)
       redirect_to ponds_path, notice: "Tanque atualizado!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

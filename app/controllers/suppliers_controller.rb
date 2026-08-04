@@ -20,7 +20,7 @@ class SuppliersController < ApplicationController
     if @supplier.save
       redirect_to suppliers_path, notice: "Fornecedor criado!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -30,7 +30,7 @@ class SuppliersController < ApplicationController
     if @supplier.update(supplier_params)
       redirect_to suppliers_path, notice: "Fornecedor atualizado!"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

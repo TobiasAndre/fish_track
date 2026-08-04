@@ -15,7 +15,7 @@ class PaymentTermsController < ApplicationController
     if @payment_term.save
       redirect_to payment_terms_path, notice: "Condição de pagamento criada com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -26,7 +26,7 @@ class PaymentTermsController < ApplicationController
     if @payment_term.update(payment_term_params)
       redirect_to payment_terms_path, notice: "Condição de pagamento atualizada com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

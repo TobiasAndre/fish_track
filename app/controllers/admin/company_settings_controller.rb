@@ -9,7 +9,7 @@ module Admin
       if @company.update(company_params)
         redirect_to edit_admin_company_setting_path(@company), notice: "Configurações atualizadas com sucesso."
       else
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
       end
     end
 

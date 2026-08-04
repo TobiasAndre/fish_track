@@ -2,11 +2,13 @@ class Users::SessionsController < Devise::SessionsController
   before_action :load_companies, only: %i[new create]
 
   def create
+    self.resource = resource_class.new(sign_in_params)
+
     tenant_name = params.dig(resource_name, :tenant_name).to_s.strip
 
     if tenant_name.blank?
       flash.now[:alert] = "Selecione uma empresa."
-      return render :new, status: :unprocessable_entity
+      return render :new, status: :unprocessable_content
     end
 
     # valida se existe no public (Company é excluded_model)
@@ -16,7 +18,7 @@ class Users::SessionsController < Devise::SessionsController
 
     unless company
       flash.now[:alert] = "Empresa inválida."
-      return render :new, status: :unprocessable_entity
+      return render :new, status: :unprocessable_content
     end
 
     # faz auth no tenant escolhido (seu User é global, isso só garante que o tenant fica ativo)
@@ -39,10 +41,10 @@ class Users::SessionsController < Devise::SessionsController
 
     redirect_to after_sign_in_path_for(resource)
   rescue ActiveRecord::RecordNotFound
-    render :new, status: :unprocessable_entity
+    render :new, status: :unprocessable_content
   rescue Apartment::TenantNotFound
     flash.now[:alert] = "Tenant inválido."
-    render :new, status: :unprocessable_entity
+    render :new, status: :unprocessable_content
   end
 
   private

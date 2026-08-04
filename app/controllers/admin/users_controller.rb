@@ -16,7 +16,7 @@ module Admin
       if @user.save
         redirect_to admin_users_path, notice: "Usuário criado com sucesso."
       else
-        render :new, status: :unprocessable_entity
+        render :new, status: :unprocessable_content
       end
     end
 
@@ -28,12 +28,12 @@ module Admin
         if @user.update(user_params.except(:password, :password_confirmation))
           redirect_to admin_users_path, notice: "Usuário atualizado com sucesso."
         else
-          render :edit, status: :unprocessable_entity
+          render :edit, status: :unprocessable_content
         end
       elsif @user.update(user_params)
         redirect_to admin_users_path, notice: "Usuário atualizado com sucesso."
       else
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
       end
     end
 

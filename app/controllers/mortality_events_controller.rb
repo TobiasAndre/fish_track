@@ -13,7 +13,7 @@ class MortalityEventsController < StockingEventPagesController
       @events = filtered_events(@selected_batch_stocking&.id)
       load_active_batch_stockings
 
-      render :index, status: :unprocessable_entity
+      render :index, status: :unprocessable_content
     end
   end
 

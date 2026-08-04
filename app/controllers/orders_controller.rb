@@ -26,7 +26,7 @@ class OrdersController < ApplicationController
     if @order.save
       redirect_to orders_path, notice: "Pedido criado com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -38,7 +38,7 @@ class OrdersController < ApplicationController
     if @order.update(order_params)
       redirect_to orders_path, notice: "Pedido atualizado com sucesso."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

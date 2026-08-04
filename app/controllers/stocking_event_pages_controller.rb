@@ -20,7 +20,7 @@ class StockingEventPagesController < ApplicationController
       @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
       @events = filtered_events(@stocking_event.batch_stocking_id)
 
-      render :index, status: :unprocessable_entity
+      render :index, status: :unprocessable_content
     end
   end
 
@@ -44,7 +44,7 @@ class StockingEventPagesController < ApplicationController
       @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
       @events = filtered_events(@stocking_event.batch_stocking_id)
 
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
