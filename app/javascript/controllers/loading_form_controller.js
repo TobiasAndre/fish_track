@@ -37,6 +37,10 @@ export default class extends Controller {
     this.recalculate()
   }
 
+  formatDigitsOnlyInput(event) {
+    event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "")
+  }
+
   recalculate() {
     const totalWeightKg = this.parseLocalizedNumber(this.totalWeightTarget.value)
     const avgWeightG = this.parseLocalizedNumber(this.avgWeightTarget.value)

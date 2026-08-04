@@ -47,7 +47,9 @@ RSpec.describe "LoadingEvents", type: :request do
             total_weight_kg: 100,
             avg_weight_g: 500,
             tax_percentage: 12.5,
-            loading_destination: "Tanque 3"
+            loading_destination: "Tanque 3",
+            gta_number: "123456",
+            invoice_number: "987654"
           }
         }
       end.to change { batch_stocking.stocking_events.where(event_type: "loading").count }.by(1)
@@ -58,6 +60,8 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(event.quantity).to eq(200) # ceil((100 * 1000) / 500)
       expect(event.tax_percentage.to_f).to eq(12.5)
       expect(event.loading_destination).to eq("Tanque 3")
+      expect(event.gta_number).to eq("123456")
+      expect(event.invoice_number).to eq("987654")
     end
 
     it "does not create a loading event without an occurred_on" do

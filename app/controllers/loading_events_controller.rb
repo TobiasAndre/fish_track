@@ -30,7 +30,9 @@ class LoadingEventsController < StockingEventPagesController
       :loading_cost_cents,
       :payment_method_id,
       :tax_percentage,
-      :loading_destination
+      :loading_destination,
+      :gta_number,
+      :invoice_number
     )
   end
 end
