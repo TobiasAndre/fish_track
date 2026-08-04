@@ -11,9 +11,55 @@
               focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
   </div>
 
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :started_on, "Data de contratação", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.date_field :started_on, required: true,
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :role, "Cargo (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.text_field :role,
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :department, "Departamento (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.text_field :department,
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div>
+      <%= f.label :status, "Status", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.select :status,
+        Employee.statuses.keys.map { |s| [Employee.new(status: s).human_status, s] },
+        {},
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
   <div>
-    <%= f.label :started_on, "Data de contratação", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-    <%= f.date_field :started_on, required: true,
+    <%= f.label :terminated_on, "Data de desligamento (se aplicável)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.date_field :terminated_on,
       class: "w-full rounded-lg border px-3 py-2 text-sm
               bg-white dark:bg-gray-950
               border-gray-300 dark:border-gray-700
@@ -21,41 +67,41 @@
               focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
   </div>
 
+  <% if @employee.new_record? %>
+    <div data-controller="money-input">
+      <%= f.label :salary_cents, "Salário base (R$)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+
+      <input
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        placeholder="Ex: 4.500,00"
+        data-money-input-target="display"
+        data-action="input->money-input#input blur->money-input#blur"
+        class="w-full rounded-lg border px-3 py-2 text-sm
+              bg-white dark:bg-gray-950
+              border-gray-300 dark:border-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+
+      <%= f.hidden_field :salary_cents, data: { "money-input-target": "cents" } %>
+    </div>
+  <% else %>
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+      O salário atual é
+      <strong><%= number_to_currency(@employee.salary_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></strong>.
+      Para alterá-lo, registre uma nova alteração salarial na página do funcionário — assim o histórico fica preservado.
+    </div>
+  <% end %>
+
   <div>
-    <%= f.label :role, "Cargo (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-    <%= f.text_field :role,
+    <%= f.label :notes, "Observações (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.text_area :notes, rows: 2,
       class: "w-full rounded-lg border px-3 py-2 text-sm
               bg-white dark:bg-gray-950
               border-gray-300 dark:border-gray-700
               text-gray-900 dark:text-gray-100
-              focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
-  </div>
-
-  <div data-controller="money-input">
-    <%= f.label :salary_cents, "Salário base (R$)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
-
-    <input
-      type="text"
-      inputmode="decimal"
-      autocomplete="off"
-      placeholder="Ex: 4.500,00"
-      data-money-input-target="display"
-      data-action="input->money-input#input blur->money-input#blur"
-      class="w-full rounded-lg border px-3 py-2 text-sm
-            bg-white dark:bg-gray-950
-            border-gray-300 dark:border-gray-700
-            text-gray-900 dark:text-gray-100
-            focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-
-    <%= f.hidden_field :salary_cents, data: { "money-input-target": "cents" } %>
-
-    <script>
-      // prefill no edit (sem depender do connect do controller em múltiplos forms)
-      document.addEventListener("turbo:load", () => {
-        const el = document.querySelector('[name="employee[salary_cents]"]')
-        if (!el) return
-      })
-    </script>
+              focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
   </div>
 
   <div class="flex gap-2">

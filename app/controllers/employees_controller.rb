@@ -4,9 +4,20 @@ class EmployeesController < ApplicationController
 
   def index
     @employees = Employee.order(:name)
+    @employees = @employees.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    @employees = @employees.where(status: params[:status]) if params[:status].present?
+    @employees = @employees.where(department: params[:department]) if params[:department].present?
+
+    @departments = Employee.where.not(department: [nil, ""]).distinct.order(:department).pluck(:department)
   end
 
-  def show; end
+  def show
+    @salary_changes = @employee.salary_changes
+    @vacations = @employee.vacations
+    @alerts = EmployeeAlerts.new(@employee).call
+    @new_salary_change = EmployeeSalaryChange.new(effective_on: Date.current, change_type: "adjustment")
+    @new_vacation = EmployeeVacation.new(employee: @employee, accrual_started_on: @employee.started_on)
+  end
 
   def new
     @employee = Employee.new(started_on: Date.current)
@@ -24,7 +35,10 @@ class EmployeesController < ApplicationController
   def edit; end
 
   def update
-    if @employee.update(employee_params)
+    # salary_cents is intentionally excluded here: once an employee exists,
+    # it must only change through Employees::RegisterSalaryChange so the
+    # history in employee_salary_changes stays the source of truth.
+    if @employee.update(employee_params.except(:salary_cents))
       redirect_to employees_path, notice: "Funcionário atualizado!"
     else
       render :edit, status: :unprocessable_content
@@ -43,6 +57,9 @@ class EmployeesController < ApplicationController
   end
 
   def employee_params
-    params.require(:employee).permit(:name, :role, :salary_cents, :started_on)
+    params.require(:employee).permit(
+      :name, :role, :salary_cents, :started_on,
+      :department, :status, :terminated_on, :notes
+    )
   end
 end

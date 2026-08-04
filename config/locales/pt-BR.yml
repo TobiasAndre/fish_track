@@ -22,6 +22,8 @@ pt-BR:
         one: "Loteamento"
         other: "Loteamentos"
       employee: Funcionário
+      employee_salary_change: Alteração Salarial
+      employee_vacation: Período de Férias
       financial_entry: Lançamento Financeiro
       payroll_item: Item de Folha de Pagamento
       pond: Tanque
@@ -61,6 +63,30 @@ pt-BR:
         name: Nome
         role: Função
         salary_cents: Salário (centavos)
+        department: Departamento
+        status: Status
+        started_on: Data de contratação
+        terminated_on: Data de desligamento
+        notes: Observações
+      employee_salary_change:
+        salary_cents: Novo salário (centavos)
+        previous_salary_cents: Salário anterior (centavos)
+        effective_on: Data de vigência
+        change_type: Tipo de alteração
+        reason: Motivo
+      employee_vacation:
+        accrual_started_on: Início do período aquisitivo
+        accrual_ended_on: Fim do período aquisitivo
+        scheduled_start_on: Início programado
+        scheduled_end_on: Fim programado
+        taken_start_on: Início realizado
+        taken_end_on: Fim realizado
+        status: Situação
+        entitled_days: Dias disponíveis
+        taken_days: Dias utilizados
+        payment_amount_cents: Valor do pagamento (centavos)
+        payment_due_on: Vencimento do pagamento
+        paid_on: Data do pagamento
       financial_entry:
         entry_type: Tipo de Lançamento
         stage: Etapa
@@ -123,6 +149,26 @@ pt-BR:
         growout: Engorda
         nursery: Berçário
         general: Geral
+    employee:
+      status:
+        active: Ativo
+        inactive: Inativo
+        terminated: Desligado
+    employee_salary_change:
+      change_type:
+        initial: Inicial
+        adjustment: Reajuste
+        promotion: Promoção
+        correction: Correção
+        other: Outro
+    employee_vacation:
+      status:
+        accruing: Em aquisição
+        available: Disponível
+        scheduled: Programada
+        taken: Realizada
+        partially_taken: Parcialmente realizada
+        cancelled: Cancelada
   errors:
     messages:
       blank: "não pode ficar em branco"

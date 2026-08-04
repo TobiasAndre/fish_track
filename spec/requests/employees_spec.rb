@@ -23,6 +23,50 @@ RSpec.describe "Employees", type: :request do
       expect(response.body).to include(employee.name)
       expect(response.body).to include(I18n.l(Date.new(2026, 3, 10)))
     end
+
+    it "filters by name" do
+      match = create(:employee, name: "Maria Souza")
+      other = create(:employee, name: "João Lima")
+
+      get employees_path, params: { q: "Maria" }
+
+      expect(response.body).to include(match.name)
+      expect(response.body).not_to include(other.name)
+    end
+
+    it "filters by status" do
+      active = create(:employee, name: "Ativa", status: "active")
+      inactive = create(:employee, name: "Inativa", status: "inactive")
+
+      get employees_path, params: { status: "inactive" }
+
+      expect(response.body).to include(inactive.name)
+      expect(response.body).not_to include(active.name)
+    end
+
+    it "filters by department" do
+      sales = create(:employee, name: "Fulano Vendas", department: "Vendas")
+      ops = create(:employee, name: "Ciclano Operações", department: "Operações")
+
+      get employees_path, params: { department: "Vendas" }
+
+      expect(response.body).to include(sales.name)
+      expect(response.body).not_to include(ops.name)
+    end
+  end
+
+  describe "GET /employees/:id" do
+    it "shows the employee's summary, tenure, salary history and vacations" do
+      employee = create(:employee, name: "Perfil Teste", started_on: Date.new(2024, 1, 1), salary_cents: 300_000)
+
+      get employee_path(employee)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Perfil Teste")
+      expect(response.body).to include(employee.employment_duration_label)
+      expect(response.body).to include("Histórico salarial")
+      expect(response.body).to include("Férias")
+    end
   end
 
   describe "POST /employees" do
@@ -52,6 +96,16 @@ RSpec.describe "Employees", type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it "does not create a terminated employee without a terminated_on" do
+      expect do
+        post employees_path, params: {
+          employee: { name: "Funcionário C", salary_cents: 300_000, started_on: Date.current, status: "terminated" }
+        }
+      end.not_to change(Employee, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
   end
 
   describe "PATCH /employees/:id" do
@@ -62,6 +116,15 @@ RSpec.describe "Employees", type: :request do
 
       expect(response).to redirect_to(employees_path)
       expect(employee.reload.name).to eq("New name")
+    end
+
+    it "ignores salary_cents -- current salary can only change through a tracked salary change" do
+      employee = create(:employee, salary_cents: 300_000)
+
+      patch employee_path(employee), params: { employee: { salary_cents: 999_999 } }
+
+      expect(response).to redirect_to(employees_path)
+      expect(employee.reload.salary_cents).to eq(300_000)
     end
   end
 

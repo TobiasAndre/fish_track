@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_04_115425) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_04_125019) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -79,6 +79,46 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_115425) do
     t.string "phone"
   end
 
+  create_table "employee_salary_changes", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.bigint "previous_salary_cents"
+    t.bigint "salary_cents", null: false
+    t.date "effective_on", null: false
+    t.string "change_type", null: false
+    t.text "reason"
+    t.bigint "created_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["change_type"], name: "index_employee_salary_changes_on_change_type"
+    t.index ["created_by_id"], name: "index_employee_salary_changes_on_created_by_id"
+    t.index ["effective_on"], name: "index_employee_salary_changes_on_effective_on"
+    t.index ["employee_id", "effective_on"], name: "idx_employee_salary_changes_on_employee_and_effective_on"
+    t.index ["employee_id"], name: "index_employee_salary_changes_on_employee_id"
+  end
+
+  create_table "employee_vacations", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.date "accrual_started_on", null: false
+    t.date "accrual_ended_on", null: false
+    t.date "scheduled_start_on"
+    t.date "scheduled_end_on"
+    t.date "taken_start_on"
+    t.date "taken_end_on"
+    t.string "status", default: "accruing", null: false
+    t.integer "entitled_days", default: 30, null: false
+    t.integer "taken_days", default: 0, null: false
+    t.bigint "payment_amount_cents"
+    t.date "payment_due_on"
+    t.date "paid_on"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id", "accrual_started_on"], name: "idx_employee_vacations_on_employee_and_accrual_start"
+    t.index ["employee_id"], name: "index_employee_vacations_on_employee_id"
+    t.index ["payment_due_on"], name: "index_employee_vacations_on_payment_due_on"
+    t.index ["status"], name: "index_employee_vacations_on_status"
+  end
+
   create_table "employees", force: :cascade do |t|
     t.string "name", null: false
     t.string "role"
@@ -86,8 +126,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_115425) do
     t.datetime "updated_at", null: false
     t.bigint "salary_cents", default: 0, null: false
     t.date "started_on", default: -> { "CURRENT_DATE" }, null: false
+    t.string "department"
+    t.string "status", default: "active", null: false
+    t.date "terminated_on"
+    t.text "notes"
+    t.index ["department"], name: "index_employees_on_department"
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
+    t.index ["status"], name: "index_employees_on_status"
   end
 
   create_table "feeding_strategy_items", force: :cascade do |t|
@@ -398,6 +444,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_115425) do
   add_foreign_key "batch_stockings", "ponds"
   add_foreign_key "batch_stockings", "suppliers"
   add_foreign_key "batches", "products"
+  add_foreign_key "employee_salary_changes", "employees"
+  add_foreign_key "employee_vacations", "employees"
   add_foreign_key "feeding_strategy_items", "feeding_tables"
   add_foreign_key "feeding_strategy_items", "feeding_temperature_ranges"
   add_foreign_key "feeding_strategy_items", "feeding_weight_ranges"

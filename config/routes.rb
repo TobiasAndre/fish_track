@@ -59,7 +59,10 @@ Rails.application.routes.draw do
     end
     resource :dashboard, only: [:show]
     resources :financial_entries
-    resources :employees
+    resources :employees do
+      resources :salary_changes, only: [:create], controller: "employee_salary_changes"
+      resources :vacations, only: [:create, :update], controller: "employee_vacations"
+    end
     resources :suppliers
     resources :customers do
       resources :integrateds, except: :show

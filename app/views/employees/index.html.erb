@@ -1,4 +1,4 @@
-<div class="max-w-5xl mx-auto">
+<div class="max-w-6xl mx-auto">
   <div class="flex items-start justify-between gap-4">
     <div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Funcionários</h1>
@@ -19,31 +19,101 @@
     </div>
   </div>
 
-  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+  <%= form_with url: employees_path, method: :get, local: true,
+        class: "mt-4 flex flex-wrap items-end gap-2" do %>
+    <div class="w-48">
+      <%= label_tag :q, "Buscar por nome", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= text_field_tag :q, params[:q], placeholder: "Nome…",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="w-40">
+      <%= label_tag :status, "Status", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :status,
+        options_for_select(Employee.statuses.keys.map { |s| [Employee.new(status: s).human_status, s] }, params[:status]),
+        prompt: "Todos",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="w-40">
+      <%= label_tag :department, "Departamento", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :department,
+        options_for_select(@departments, params[:department]),
+        prompt: "Todos",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <%= submit_tag "Filtrar",
+      class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+              hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+
+    <% if params[:q].present? || params[:status].present? || params[:department].present? %>
+      <%= link_to "Limpar filtros", employees_path,
+        class: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2" %>
+    <% end %>
+  <% end %>
+
+  <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
     <table class="w-full text-sm">
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
         <tr>
           <th class="text-left px-4 py-3 font-medium">Nome</th>
           <th class="text-left px-4 py-3 font-medium">Cargo</th>
+          <th class="text-left px-4 py-3 font-medium">Departamento</th>
+          <th class="text-left px-4 py-3 font-medium">Status</th>
           <th class="text-left px-4 py-3 font-medium">Data de contratação</th>
-          <th class="text-right px-4 py-3 font-medium">Salário base</th>
+          <th class="text-left px-4 py-3 font-medium">Tempo de empresa</th>
+          <th class="text-right px-4 py-3 font-medium">Salário atual</th>
+          <th class="text-center px-4 py-3 font-medium">Alertas</th>
           <th class="text-right px-4 py-3 font-medium">Ações</th>
         </tr>
       </thead>
 
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <% @employees.each do |e| %>
+          <% alerts_count = EmployeeAlerts.new(e).call.size %>
           <tr>
-            <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= e.name %></td>
+            <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+              <%= link_to e.name, employee_path(e), class: "hover:underline" %>
+            </td>
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.role.presence || "—" %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.department.presence || "—" %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.human_status %></td>
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.started_on.present? ? l(e.started_on) : "—" %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.employment_duration_label %></td>
 
             <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-gray-100">
               <%= number_to_currency(e.salary_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
             </td>
 
+            <td class="px-4 py-3 text-center">
+              <% if alerts_count.positive? %>
+                <span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-950 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+                  <%= alerts_count %>
+                </span>
+              <% else %>
+                <span class="text-gray-300 dark:text-gray-700">—</span>
+              <% end %>
+            </td>
+
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <%= link_to "Lançamentos", employee_path(e),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
                 <%= link_to "Editar", edit_employee_path(e),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
@@ -59,8 +129,8 @@
 
         <% if @employees.empty? %>
           <tr>
-            <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
-              Nenhum funcionário cadastrado ainda.
+            <td colspan="9" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+              Nenhum funcionário encontrado.
               <%= link_to "Criar funcionário", new_employee_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
             </td>
           </tr>

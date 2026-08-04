@@ -3,6 +3,7 @@ class PayrollController < ApplicationController
   def show
    @year  = (params[:year] || Date.current.year).to_i
     @month = (params[:month] || Date.current.month).to_i
+    @competence_date = Date.new(@year, @month, 1)
 
     @employees = Employee.order(:name)
 
