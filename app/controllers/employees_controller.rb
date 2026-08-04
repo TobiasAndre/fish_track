@@ -9,7 +9,7 @@ class EmployeesController < ApplicationController
   def show; end
 
   def new
-    @employee = Employee.new
+    @employee = Employee.new(started_on: Date.current)
   end
 
   def create
@@ -43,6 +43,6 @@ class EmployeesController < ApplicationController
   end
 
   def employee_params
-    params.require(:employee).permit(:name, :role, :salary_cents)
+    params.require(:employee).permit(:name, :role, :salary_cents, :started_on)
   end
 end

@@ -19,6 +19,13 @@ RSpec.describe Employee, type: :model do
     expect(employee.errors[:salary_cents]).to be_present
   end
 
+  it "is invalid without a started_on" do
+    employee = build(:employee, started_on: nil)
+
+    expect(employee).not_to be_valid
+    expect(employee.errors[:started_on]).to be_present
+  end
+
   describe "#payroll_balance" do
     it "nets salary and bonuses against advances and discounts for the given month" do
       employee = create(:employee)

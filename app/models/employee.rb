@@ -3,6 +3,7 @@ class Employee < ApplicationRecord
 
   validates :name, presence: true
   validates :salary_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :started_on, presence: true
 
   def payroll_balance(year:, month:)
     items = payroll_items.where(year: year, month: month)

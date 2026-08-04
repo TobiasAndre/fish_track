@@ -11,6 +11,10 @@ Rails.application.routes.draw do
     to: "simulations#share_pdf",
     as: :shared_simulation_pdf
 
+  get "shared/:tenant_name/loading_events/:id/:share_token",
+    to: "loading_events#share_pdf",
+    as: :shared_loading_event_pdf
+
   # Defines the root path route ("/")
   # 
   namespace :admin do
@@ -48,7 +52,11 @@ Rails.application.routes.draw do
     resources :batch_reports, only: [:index]
     resources :biometry_events, only: %i[index new create]
     resources :mortality_events, only: %i[index new create]
-    resources :loading_events, only: %i[index new edit create update destroy]
+    resources :loading_events, only: %i[index new edit create update destroy] do
+      member do
+        get :print, defaults: { format: :html }
+      end
+    end
     resource :dashboard, only: [:show]
     resources :financial_entries
     resources :employees

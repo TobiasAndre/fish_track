@@ -1,0 +1,147 @@
+<% tenant_name = session[:tenant_name] || params[:tenant_name] %>
+<% company ||= @company || Company.find_by(tenant_name: tenant_name) %>
+<% batch_stocking = @stocking_event.batch_stocking %>
+
+<div style="width: 100%; font-family: Arial, sans-serif; color: #111827;">
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+    <tr>
+      <td style="border: none; vertical-align: top;">
+        <h1 style="font-size: 28px; margin: 0 0 8px 0;">Carregamento</h1>
+
+        <div style="font-size: 14px; color: #4b5563;">
+          Lote: <strong><%= batch_stocking&.display_name %></strong><br>
+
+          <% if @stocking_event.customer.present? %>
+            Cliente: <strong><%= @stocking_event.customer.name %></strong><br>
+          <% end %>
+
+          <% if @stocking_event.integrated.present? %>
+            Integrado: <strong><%= @stocking_event.integrated.name %></strong><br>
+          <% end %>
+
+          Data: <strong><%= @stocking_event.occurred_on.present? ? l(@stocking_event.occurred_on) : "—" %></strong>
+        </div>
+      </td>
+
+      <td style="border: none; text-align: right; vertical-align: top;">
+        <% if company&.logo_url.present? %>
+          <img src="<%= company.logo_url %>"
+               alt="Logomarca"
+               style="max-height: 80px; max-width: 200px;">
+        <% end %>
+      </td>
+    </tr>
+  </table>
+
+  <div style="margin-bottom: 24px;">
+    <div style="width: 31%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box; margin-right: 2%;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Quantidade</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= @stocking_event.quantity.present? ? number_with_delimiter(@stocking_event.quantity, delimiter: ".") : "—" %>
+      </div>
+    </div>
+
+    <div style="width: 31%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box; margin-right: 2%;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso total</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= @stocking_event.total_weight_kg.present? ? "#{number_with_precision(@stocking_event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "—" %>
+      </div>
+    </div>
+
+    <div style="width: 31%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box;">
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso médio</div>
+      <div style="font-size: 18px; font-weight: bold;">
+        <%= @stocking_event.avg_weight_g.present? ? "#{number_with_precision(@stocking_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")} g" : "—" %>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 24px;">
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">
+      Valores
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Preço por kg</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= number_to_currency(@stocking_event.price_per_kg_cents.to_i / 100.0) %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Milheiro</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= number_to_currency(@stocking_event.thousand_value_cents.to_i / 100.0) %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Valor do frete</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= number_to_currency(@stocking_event.freight_cost_cents.to_i / 100.0) %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Valor do carregamento</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= number_to_currency(@stocking_event.loading_cost_cents.to_i / 100.0) %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">% Imposto</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.tax_percentage.present? ? "#{number_with_precision(@stocking_event.tax_percentage, precision: 2, separator: ",", delimiter: ".")}%" : "—" %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Forma de pagamento</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.payment_method&.name || "—" %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Data de pagamento</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.payment_date.present? ? l(@stocking_event.payment_date) : "—" %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-bottom: 24px;">
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">
+      Documentos e destino
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Número da GTA</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.gta_number.presence || "—" %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Número da Nota Fiscal</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.invoice_number.presence || "—" %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Tanque destino</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= @stocking_event.loading_destination.presence || "—" %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @stocking_event.notes.present? %>
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Observações</div>
+      <div style="font-size: 13px; color: #374151;"><%= @stocking_event.notes %></div>
+    </div>
+  <% end %>
+</div>

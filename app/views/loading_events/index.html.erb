@@ -375,4 +375,22 @@
       </p>
     </div>
   <% end %>
+
+  <% if params[:printable_event_id].present? && session[:tenant_name].present? %>
+    <% printed_event = StockingEvent.find_by(id: params[:printable_event_id], event_type: "loading") %>
+    <% if printed_event.present? %>
+      <% printed_event.regenerate_share_token if printed_event.share_token.blank? %>
+      <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+      <% mensagem = "Carregamento #{company&.name}: #{printed_event.customer&.name || printed_event.batch_stocking.display_name}" %>
+      <% pdf_url = shared_loading_event_pdf_url(
+        tenant_name: session[:tenant_name],
+        id: printed_event.id,
+        share_token: printed_event.share_token,
+        format: :pdf
+      ) %>
+      <script>
+        window.open("https://wa.me/?text=<%= j CGI.escape("#{mensagem} #{pdf_url}") %>", "_blank");
+      </script>
+    <% end %>
+  <% end %>
 </div>

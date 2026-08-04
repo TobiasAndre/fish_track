@@ -54,14 +54,71 @@ RSpec.describe "LoadingEvents", type: :request do
         }
       end.to change { batch_stocking.stocking_events.where(event_type: "loading").count }.by(1)
 
-      expect(response).to redirect_to(loading_events_path(batch_stocking_id: batch_stocking.id))
-
       event = batch_stocking.stocking_events.where(event_type: "loading").last
+
+      expect(response).to redirect_to(
+        loading_events_path(batch_stocking_id: batch_stocking.id, printable_event_id: event.id)
+      )
       expect(event.quantity).to eq(200) # ceil((100 * 1000) / 500)
       expect(event.tax_percentage.to_f).to eq(12.5)
       expect(event.loading_destination).to eq("Tanque 3")
       expect(event.gta_number).to eq("123456")
       expect(event.invoice_number).to eq("987654")
+    end
+
+    it "does not attempt to open WhatsApp when the user has no tenant selected in session" do
+      # sign_in (Devise::Test helper) bypasses the real tenant-picker login flow,
+      # so session[:tenant_name] is blank here -- the view must not crash on that.
+      post loading_events_path, params: {
+        stocking_event: {
+          batch_stocking_id: batch_stocking.id,
+          occurred_on: Date.current,
+          customer_id: customer.id,
+          payment_method_id: payment_method.id,
+          total_weight_kg: 100,
+          avg_weight_g: 500
+        }
+      }
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("wa.me")
+    end
+
+    it "auto-opens a WhatsApp link with the shareable PDF url when a tenant is selected" do
+      # Devise::Test::IntegrationHelpers#sign_in bypasses the real tenant-picker
+      # login flow (and its session cookie), so sign out first and authenticate
+      # through the actual controller action to get a working session[:tenant_name].
+      sign_out user
+      company = create(:company, tenant_name: "public")
+      create(:membership, user: user, company: company, role: "owner")
+      post user_session_path, params: { user: { tenant_name: "public", email: user.email, password: "password123" } }
+
+      post loading_events_path, params: {
+        stocking_event: {
+          batch_stocking_id: batch_stocking.id,
+          occurred_on: Date.current,
+          customer_id: customer.id,
+          payment_method_id: payment_method.id,
+          total_weight_kg: 100,
+          avg_weight_g: 500
+        }
+      }
+
+      event = batch_stocking.stocking_events.where(event_type: "loading").last
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("window.open")
+      expect(response.body).to include("https://wa.me/?text=")
+
+      event.reload
+      expect(event.share_token).to be_present
+      shared_url = shared_loading_event_pdf_url(
+        tenant_name: "public", id: event.id, share_token: event.share_token, format: :pdf,
+        host: "www.example.com"
+      )
+      expect(response.body).to include(CGI.escape(shared_url))
     end
 
     it "does not create a loading event without an occurred_on" do
@@ -77,6 +134,37 @@ RSpec.describe "LoadingEvents", type: :request do
       end.not_to change { batch_stocking.stocking_events.where(event_type: "loading").count }
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "GET /loading_events/:id/print" do
+    it "renders a PDF of the loading event" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer)
+
+      get print_loading_event_path(event, format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+  end
+
+  describe "GET /shared/:tenant_name/loading_events/:id/:share_token" do
+    it "renders the PDF publicly, without requiring authentication" do
+      sign_out user
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer)
+
+      get shared_loading_event_pdf_path(tenant_name: "public", id: event.id, share_token: event.share_token, format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+
+    it "is not found with an invalid share_token" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer)
+
+      get shared_loading_event_pdf_path(tenant_name: "public", id: event.id, share_token: "wrong-token", format: :pdf)
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 

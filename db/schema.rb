@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_04_104434) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_04_115425) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -85,6 +85,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_104434) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "salary_cents", default: 0, null: false
+    t.date "started_on", default: -> { "CURRENT_DATE" }, null: false
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
   end
@@ -337,6 +338,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_104434) do
     t.string "loading_destination"
     t.string "gta_number"
     t.string "invoice_number"
+    t.string "share_token"
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
@@ -344,6 +346,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_104434) do
     t.index ["integrated_id"], name: "index_stocking_events_on_integrated_id"
     t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
     t.index ["payment_method_id"], name: "index_stocking_events_on_payment_method_id"
+    t.index ["share_token"], name: "index_stocking_events_on_share_token", unique: true
   end
 
   create_table "suppliers", force: :cascade do |t|

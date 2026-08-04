@@ -4,6 +4,8 @@ class StockingEvent < ApplicationRecord
   belongs_to :integrated, optional: true
   belongs_to :payment_method, optional: true
 
+  has_secure_token :share_token
+
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
   before_validation :calculate_loading_fields
