@@ -1,35 +1,4 @@
 <div class="max-w-5xl mx-auto space-y-4">
-  <div class="flex flex-col gap-3">
-    <div>
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-        Mortalidade
-      </h1>
-    </div>
-
-    <div class="w-full sm:max-w-sm">
-      <%= form_with url: mortality_events_path, method: :get, local: true do %>
-        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-          Selecione o lote
-        </label>
-
-        <%= select_tag :batch_stocking_id,
-          options_from_collection_for_select(
-            @batch_stockings || [],
-            :id,
-            :display_name,
-            @selected_batch_stocking&.id
-          ),
-          prompt: "Selecione um lote",
-          onchange: "this.form.submit()",
-          class: "w-full rounded-lg border px-3 py-2 text-sm
-                  bg-white dark:bg-gray-950
-                  border-gray-300 dark:border-gray-700
-                  text-gray-900 dark:text-gray-100
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
-      <% end %>
-    </div>
-  </div>
-
   <% if @selected_batch_stocking.present? %>
     <div class="flex flex-wrap gap-2">
       <% if @selected_batch_stocking.stocked_on.present? %>
@@ -241,10 +210,123 @@
       <% end %>
     </div>
   <% else %>
-    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 text-center">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Selecione um lote para visualizar o formulário e o histórico.
-      </p>
+
+    <div class="space-y-4">
+      <div>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Mortalidades por lote ativo
+        </h2>
+
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Visão geral dos lançamentos registrados em cada lote ativo.
+        </p>
+      </div>
+
+      <% if @active_batch_stockings.present? %>
+        <% @active_batch_stockings.each do |batch_stocking| %>
+          <% events = batch_stocking.mortality_events %>
+
+          <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    <%= batch_stocking.display_name %>
+                  </h3>
+
+                  <div class="mt-1 flex flex-wrap gap-2">
+                    <% if batch_stocking.stocked_on.present? %>
+                      <span class="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        Alojamento:
+                        <span class="ml-1 font-medium"><%= l(batch_stocking.stocked_on) %></span>
+                      </span>
+                    <% end %>
+
+                    <% if batch_stocking.quantity.present? %>
+                      <span class="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        Qtd:
+                        <span class="ml-1 font-medium"><%= number_with_delimiter(batch_stocking.quantity, delimiter: ".") %></span>
+                      </span>
+                    <% end %>
+
+                    <% if batch_stocking.current_biomass_kg.present? %>
+                      <span class="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        Biomassa:
+                        <span class="ml-1 font-medium">
+                          <%= number_with_precision(batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") %>kg
+                        </span>
+                      </span>
+                    <% end %>
+
+                    <span class="inline-flex items-center rounded-lg bg-indigo-50 px-2 py-1 text-xs text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      <%= events.count %> mortalidade(s)
+                    </span>
+                  </div>
+                </div>
+
+                <%= link_to mortality_events_path(batch_stocking_id: batch_stocking.id),
+                      class: "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700" do %>
+                  Lançar mortalidade
+                <% end %>
+              </div>
+            </div>
+
+            <% if events.any? %>
+              <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+                      <th class="py-2 pl-4 pr-4 font-medium">Data</th>
+                      <th class="py-2 pr-4 font-medium">Quantidade</th>
+                      <th class="py-2 pr-4 font-medium">Peso médio usado</th>
+                      <th class="py-2 pr-4 font-medium">Peso perdido</th>
+                      <th class="py-2 pr-4 font-medium">Observações</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <% events.sort_by { |event| event.occurred_on || Date.new(1900, 1, 1) }.reverse.each do |event| %>
+                      <tr class="border-b border-gray-100 dark:border-gray-800">
+                        <td class="py-2 pl-4 pr-4">
+                          <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")}kg" : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.notes.presence || "—" %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="p-4">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Nenhuma mortalidade registrada para este lote.
+                </p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-center">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Nenhum lote ativo encontrado.
+          </p>
+        </div>
+      <% end %>
     </div>
   <% end %>
 </div>

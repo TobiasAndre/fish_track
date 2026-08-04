@@ -53,12 +53,21 @@ class BiometryEventsController < StockingEventPagesController
     @previous_occurred_on = nil
     @current_avg_weight_g = 0
 
+    @units = Unit.order(:name)
+    @selected_unit_id = params[:unit_id].presence
+    @ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id).order(:name) : Pond.order(:name)
+    @selected_pond_id = params[:pond_id].presence
+
     @active_batch_stockings =
       BatchStocking
         .includes(:batch, :pond, :biometry_events)
-        .joins(:batch)
+        .joins(:batch, :pond)
         .where(batches: { status: "active" })
-        .order("batches.name ASC", "batch_stockings.stocked_on DESC")
+
+    @active_batch_stockings = @active_batch_stockings.where(ponds: { unit_id: @selected_unit_id }) if @selected_unit_id.present?
+    @active_batch_stockings = @active_batch_stockings.where(pond_id: @selected_pond_id) if @selected_pond_id.present?
+
+    @active_batch_stockings = @active_batch_stockings.order("batches.name ASC", "batch_stockings.stocked_on DESC")
 
     return unless @selected_batch_stocking.present?
 
