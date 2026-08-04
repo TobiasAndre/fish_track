@@ -13,7 +13,7 @@ class Order < ApplicationRecord
   validates :occurred_on, presence: true
   validates :total_cents, numericality: { greater_than_or_equal_to: 0 }
 
-  before_validation :calculate_total_cents
+  after_save :recalculate_total_cents!
 
   def canceled?
     status == "canceled"
@@ -29,9 +29,11 @@ class Order < ApplicationRecord
 
   private
 
-  def calculate_total_cents
-    self.total_cents = order_items.reject(&:marked_for_destruction?).sum do |item|
-      item.total_cents.to_i
-    end
+  # Runs after save (rather than before_validation) because the nested
+  # order_items only get their own total_cents computed and persisted
+  # during the autosave step that follows this record's own validation.
+  def recalculate_total_cents!
+    new_total = order_items.reload.sum(:total_cents)
+    update_column(:total_cents, new_total) if new_total != total_cents
   end
 end

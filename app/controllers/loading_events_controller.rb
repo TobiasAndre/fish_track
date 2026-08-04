@@ -19,7 +19,18 @@ class LoadingEventsController < StockingEventPagesController
       :occurred_on,
       :quantity,
       :avg_weight_g,
-      :notes
+      :total_weight_kg,
+      :notes,
+      :customer_id,
+      :integrated_id,
+      :payment_date,
+      :price_per_kg_cents,
+      :thousand_value_cents,
+      :freight_cost_cents,
+      :loading_cost_cents,
+      :payment_method_id,
+      :tax_percentage,
+      :loading_destination
     )
   end
 end

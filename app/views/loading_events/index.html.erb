@@ -204,7 +204,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor do carregamento</label>
             <input type="text" inputmode="numeric" placeholder="R$ 0,00"
@@ -219,6 +219,15 @@
           </div>
 
           <div>
+            <%= f.label :tax_percentage, "% Imposto", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :tax_percentage,
+              inputmode: "decimal",
+              value: number_with_precision((@stocking_event.tax_percentage || 0).to_f, precision: 2, separator: ",", delimiter: "."),
+              data: { action: "input->loading-form#formatDecimalInput" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
             <%= f.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.collection_select :payment_method_id, @payment_methods || [], :id, :name,
               { prompt: "Selecione a forma de pagamento" },
@@ -227,9 +236,17 @@
           </div>
         </div>
 
-        <div>
-          <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-          <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <%= f.label :loading_destination, "Tanque Destino", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :loading_destination,
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+          </div>
         </div>
 
         <div class="flex justify-end pt-1">

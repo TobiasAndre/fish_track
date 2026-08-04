@@ -6,6 +6,11 @@ class PayrollItem < ApplicationRecord
   validates :amount_cents, numericality: { greater_than: 0 }
   validates :year, :month, :occurred_on, :item_type, presence: true
 
+  scope :salary, -> { where(item_type: "salary") }
+  scope :advance, -> { where(item_type: "advance") }
+  scope :bonus, -> { where(item_type: "bonus") }
+  scope :discount, -> { where(item_type: "discount") }
+
   after_create :create_financial_entry!
   after_update :sync_financial_entry!
   after_destroy :remove_financial_entry!

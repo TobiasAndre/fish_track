@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_01_214726) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_04_002759) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -333,6 +333,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_01_214726) do
     t.bigint "integrated_id"
     t.bigint "payment_method_id"
     t.decimal "feed_conversion", precision: 14, scale: 3
+    t.decimal "tax_percentage", precision: 5, scale: 2
+    t.string "loading_destination"
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
