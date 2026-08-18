@@ -44,6 +44,12 @@ RSpec.describe PayrollItem, type: :model do
 
       expect(FinancialEntry.exists?(financial_entry.id)).to be false
     end
+
+    it "labels a bonus's financial entry description accordingly" do
+      item = create(:payroll_item, item_type: "bonus")
+
+      expect(item.financial_entry.description).to start_with("Bônus")
+    end
   end
 
   describe "item_type scopes" do

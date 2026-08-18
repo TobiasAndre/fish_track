@@ -7,7 +7,9 @@ class PayrollItemsController < ApplicationController
     item.occurred_on ||= Date.new(item.year.to_i, item.month.to_i, 1)
 
     item.save!
-    redirect_to payroll_path(year: item.year, month: item.month), notice: "Adiantamento lançado!"
+
+    label = item.item_type == "bonus" ? "Bônus" : "Adiantamento"
+    redirect_to payroll_path(year: item.year, month: item.month), notice: "#{label} lançado!"
   rescue ActiveRecord::RecordInvalid => e
     redirect_to payroll_path(year: payroll_item_params[:year], month: payroll_item_params[:month]),
                 alert: e.record.errors.full_messages.to_sentence

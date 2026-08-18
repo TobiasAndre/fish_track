@@ -62,6 +62,36 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll with bonuses" do
+    it "adds bonus amounts on top of the salary in the balance to pay" do
+      employee = create(:employee, name: "Com Bônus", salary_cents: 300_000, started_on: 2.years.ago.to_date)
+      create(
+        :payroll_item, employee: employee, item_type: "bonus",
+        year: Date.current.year, month: Date.current.month, amount_cents: 50_000
+      )
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("R$  3.500,00")
+    end
+
+    it "subtracts advances after adding bonuses" do
+      employee = create(:employee, name: "Bônus E Adiantamento", salary_cents: 300_000, started_on: 2.years.ago.to_date)
+      create(
+        :payroll_item, employee: employee, item_type: "bonus",
+        year: Date.current.year, month: Date.current.month, amount_cents: 50_000
+      )
+      create(
+        :payroll_item, employee: employee, item_type: "advance",
+        year: Date.current.year, month: Date.current.month, amount_cents: 100_000
+      )
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("R$  2.500,00")
+    end
+  end
+
   describe "PATCH /payroll" do
     it "creates a salary payroll item for each employee with a positive amount" do
       expect do

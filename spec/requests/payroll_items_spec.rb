@@ -23,6 +23,23 @@ RSpec.describe "PayrollItems", type: :request do
       expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
     end
 
+    it "creates a bonus and its linked financial entry" do
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 20_000,
+            item_type: "bonus"
+          }
+        }
+      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+      expect(PayrollItem.last.item_type).to eq("bonus")
+    end
+
     it "redirects back with an alert when the amount is invalid" do
       expect do
         post payroll_items_path, params: {

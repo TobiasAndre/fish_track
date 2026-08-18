@@ -48,6 +48,8 @@ class PayrollItem < ApplicationRecord
     prefix =
       case item_type
       when "advance" then "Adiantamento"
+      when "bonus" then "Bônus"
+      when "discount" then "Desconto"
       when "salary_payment" then "Pagamento salário"
       else "Folha"
       end
