@@ -19,6 +19,10 @@
             Integrado: <strong><%= @stocking_event.integrated.name %></strong><br>
           <% end %>
 
+          <% if @stocking_event.supplier.present? %>
+            Fornecedor: <strong><%= @stocking_event.supplier.name %></strong><br>
+          <% end %>
+
           Data: <strong><%= @stocking_event.occurred_on.present? ? l(@stocking_event.occurred_on) : "—" %></strong>
         </div>
       </td>
@@ -94,6 +98,12 @@
           </td>
         </tr>
         <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; font-weight: bold;">Valor total</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; font-weight: bold;">
+            <%= number_to_currency(@stocking_event.total_cents.to_i / 100.0) %>
+          </td>
+        </tr>
+        <tr>
           <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Forma de pagamento</td>
           <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
             <%= @stocking_event.payment_method&.name || "—" %>
@@ -111,7 +121,7 @@
 
   <div style="margin-bottom: 24px;">
     <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">
-      Documentos e destino
+      Documentos, origem e destino
     </div>
 
     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
@@ -126,6 +136,12 @@
           <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Número da Nota Fiscal</td>
           <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
             <%= @stocking_event.invoice_number.presence || "—" %>
+          </td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb;">Tanque origem</td>
+          <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+            <%= batch_stocking&.pond&.name || "—" %>
           </td>
         </tr>
         <tr>

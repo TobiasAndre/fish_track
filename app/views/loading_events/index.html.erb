@@ -76,7 +76,7 @@
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3">
         <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-          Novo lançamento
+          <%= @stocking_event.persisted? ? "Editar lançamento" : "Novo lançamento" %>
         </h2>
       </div>
 
@@ -92,7 +92,8 @@
       <% end %>
 
       <%= form_with model: @stocking_event,
-        url: loading_events_path,
+        url: @stocking_event.persisted? ? loading_event_path(@stocking_event) : loading_events_path,
+        method: @stocking_event.persisted? ? :patch : :post,
         local: true,
         data: { controller: "loading-form" },
         class: "space-y-4" do |f| %>
@@ -121,8 +122,10 @@
           </div>
 
           <div>
-            <%= f.label :payment_date, "Data de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-            <%= f.date_field :payment_date, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            <%= f.label :supplier_id, "Fornecedor", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.collection_select :supplier_id, @suppliers || [], :id, :name,
+              { prompt: "Selecione um fornecedor" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
           </div>
         </div>
 
@@ -228,11 +231,14 @@
           </div>
 
           <div>
-            <%= f.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-            <%= f.collection_select :payment_method_id, @payment_methods || [], :id, :name,
-              { prompt: "Selecione a forma de pagamento" },
-              required: true,
-              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor total</label>
+            <div class="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold" data-loading-form-target="grandTotal">
+              <%= number_to_currency(@stocking_event.total_cents.to_i / 100.0) %>
+            </div>
+
+            <%= f.hidden_field :total_cents,
+              value: @stocking_event.total_cents.to_i,
+              data: { "loading-form-target": "totalCents" } %>
           </div>
         </div>
 
@@ -260,13 +266,33 @@
           </div>
         </div>
 
-        <div>
-          <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-          <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <%= f.label :payment_date, "Data de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.date_field :payment_date, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.collection_select :payment_method_id, @payment_methods || [], :id, :name,
+              { prompt: "Selecione a forma de pagamento" },
+              required: true,
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+          </div>
         </div>
 
-        <div class="flex justify-end pt-1">
-          <%= f.submit "Salvar carregamento", class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition" %>
+        <div class="flex justify-end gap-2 pt-1">
+          <% if @stocking_event.persisted? %>
+            <%= link_to "Cancelar", loading_events_path(batch_stocking_id: @selected_batch_stocking.id),
+              class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+          <% end %>
+
+          <%= f.submit(@stocking_event.persisted? ? "Atualizar carregamento" : "Salvar carregamento", class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition") %>
         </div>
       <% end %>
     </div>
@@ -290,10 +316,12 @@
                 <th class="py-2 pr-4 font-medium">Data</th>
                 <th class="py-2 pr-4 font-medium">Cliente</th>
                 <th class="py-2 pr-4 font-medium">Integrado</th>
+                <th class="py-2 pr-4 font-medium">Fornecedor</th>
                 <th class="py-2 pr-4 font-medium">Quantidade</th>
                 <th class="py-2 pr-4 font-medium">Peso total</th>
                 <th class="py-2 pr-4 font-medium">Peso médio</th>
                 <th class="py-2 pr-4 font-medium">Preço/kg</th>
+                <th class="py-2 pr-4 font-medium">Total</th>
                 <th class="py-2 pr-4 font-medium">Pagamento</th>
                 <th class="py-2 pr-4 font-medium text-right">Ações</th>
               </tr>
@@ -317,6 +345,10 @@
                   </td>
 
                   <td class="py-2 pr-4">
+                    <%= event.supplier&.name || "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
                     <%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %>
                   </td>
 
@@ -333,11 +365,23 @@
                   </td>
 
                   <td class="py-2 pr-4">
+                    <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0) : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
                     <%= event.payment_method&.name || "—" %>
                   </td>
                   <td class="py-2 pr-4 text-right">
                     <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
-                      
+
+                      <!-- Imprimir -->
+                      <%= link_to print_loading_event_path(event, format: :pdf),
+                        target: "_blank", rel: "noopener",
+                        class: "text-gray-500 hover:text-indigo-600 transition",
+                        title: "Imprimir" do %>
+                        🖨️
+                      <% end %>
+
                       <!-- Editar -->
                       <%= link_to edit_loading_event_path(event),
                         class: "text-gray-500 hover:text-indigo-600 transition",

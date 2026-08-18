@@ -8,6 +8,7 @@ RSpec.describe "LoadingEvents", type: :request do
   let(:batch_stocking) { batch.batch_stockings.first }
   let(:customer) { create(:customer) }
   let(:payment_method) { create(:payment_method) }
+  let(:supplier) { create(:supplier) }
 
   before { sign_in user }
 
@@ -33,6 +34,14 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Novo lançamento")
     end
+
+    it "shows a print action for each event in the history" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking)
+
+      get loading_events_path(batch_stocking_id: batch_stocking.id)
+
+      expect(response.body).to include(print_loading_event_path(event, format: :pdf))
+    end
   end
 
   describe "POST /loading_events" do
@@ -43,6 +52,7 @@ RSpec.describe "LoadingEvents", type: :request do
             batch_stocking_id: batch_stocking.id,
             occurred_on: Date.current,
             customer_id: customer.id,
+            supplier_id: supplier.id,
             payment_method_id: payment_method.id,
             total_weight_kg: 100,
             avg_weight_g: 500,
@@ -64,6 +74,7 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(event.loading_destination).to eq("Tanque 3")
       expect(event.gta_number).to eq("123456")
       expect(event.invoice_number).to eq("987654")
+      expect(event.supplier).to eq(supplier)
     end
 
     it "does not attempt to open WhatsApp when the user has no tenant selected in session" do
@@ -146,6 +157,31 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.content_type).to eq("application/pdf")
     end
+
+    it "shows the origin pond and the destination tank" do
+      event = create(
+        :stocking_event, :loading,
+        batch_stocking: batch_stocking, customer: customer,
+        loading_destination: "Tanque 3"
+      )
+
+      get print_loading_event_path(event)
+
+      expect(response.body).to include(pond.name)
+      expect(response.body).to include("Tanque 3")
+    end
+
+    it "shows the supplier when present" do
+      event = create(
+        :stocking_event, :loading,
+        batch_stocking: batch_stocking, customer: customer, supplier: supplier
+      )
+
+      get print_loading_event_path(event)
+
+      expect(response.body).to include("Fornecedor")
+      expect(response.body).to include(supplier.name)
+    end
   end
 
   describe "GET /shared/:tenant_name/loading_events/:id/:share_token" do
@@ -168,6 +204,26 @@ RSpec.describe "LoadingEvents", type: :request do
     end
   end
 
+  describe "GET /loading_events/:id/edit" do
+    it "renders the form pre-filled with the event data" do
+      event = create(
+        :stocking_event, :loading,
+        batch_stocking: batch_stocking, customer: customer, supplier: supplier,
+        loading_destination: "Tanque 5", gta_number: "111222"
+      )
+
+      get edit_loading_event_path(event)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Editar lançamento")
+      expect(response.body).to include("Tanque 5")
+      expect(response.body).to include("111222")
+      expect(response.body).to include(
+        %(<option selected="selected" value="#{supplier.id}">#{supplier.name}</option>)
+      )
+    end
+  end
+
   describe "PATCH /loading_events/:id" do
     it "updates the loading event" do
       event = create(:stocking_event, :loading, batch_stocking: batch_stocking)
@@ -178,6 +234,16 @@ RSpec.describe "LoadingEvents", type: :request do
 
       expect(response).to redirect_to(loading_events_path(batch_stocking_id: batch_stocking.id))
       expect(event.reload.loading_destination).to eq("Tanque 5")
+    end
+
+    it "updates the supplier" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking)
+
+      patch loading_event_path(event), params: {
+        stocking_event: { supplier_id: supplier.id }
+      }
+
+      expect(event.reload.supplier).to eq(supplier)
     end
   end
 

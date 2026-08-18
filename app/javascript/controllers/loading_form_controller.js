@@ -13,7 +13,9 @@ export default class extends Controller {
     "freightCost",
     "freightCostCents",
     "loadingCost",
-    "loadingCostCents"
+    "loadingCostCents",
+    "grandTotal",
+    "totalCents"
   ]
 
   connect() {
@@ -52,6 +54,30 @@ export default class extends Controller {
 
     this.quantityTarget.value =
       quantity > 0 ? this.formatInteger(quantity) : ""
+
+    this.recalculateTotal(totalWeightKg, quantity)
+  }
+
+  recalculateTotal(totalWeightKg, quantity) {
+    const pricePerKgCents = this.hasPricePerKgCentsTarget ? Number(this.pricePerKgCentsTarget.value || 0) : 0
+    const thousandValueCents = this.hasThousandValueCentsTarget ? Number(this.thousandValueCentsTarget.value || 0) : 0
+    const loadingCostCents = this.hasLoadingCostCentsTarget ? Number(this.loadingCostCentsTarget.value || 0) : 0
+    const freightCostCents = this.hasFreightCostCentsTarget ? Number(this.freightCostCentsTarget.value || 0) : 0
+
+    const fishTotalCents =
+      (totalWeightKg * pricePerKgCents) + (thousandValueCents * (quantity / 1000))
+
+    const grandTotalCents = Math.round(
+      fishTotalCents + loadingCostCents + freightCostCents
+    )
+
+    if (this.hasGrandTotalTarget) {
+      this.grandTotalTarget.textContent = this.formatCurrency(grandTotalCents / 100)
+    }
+
+    if (this.hasTotalCentsTarget) {
+      this.totalCentsTarget.value = grandTotalCents
+    }
   }
 
   maskCurrency(event) {
@@ -61,6 +87,7 @@ export default class extends Controller {
     if (!digits) {
       input.value = ""
       this.syncCurrencyHiddenTarget(input, 0)
+      this.recalculate()
       return
     }
 
@@ -68,6 +95,7 @@ export default class extends Controller {
     input.value = this.formatCurrency(cents / 100)
 
     this.syncCurrencyHiddenTarget(input, cents)
+    this.recalculate()
   }
 
   syncCurrencyHiddenTarget(input, cents) {

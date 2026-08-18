@@ -78,6 +78,7 @@ class StockingEventPagesController < ApplicationController
     @customers = Customer.order(:name)
     @integrateds = Integrated.order(:name)
     @payment_methods = PaymentMethod.order(:name)
+    @suppliers = Supplier.order(:name)
   end
 
   def build_event
@@ -144,6 +145,7 @@ class StockingEventPagesController < ApplicationController
       :notes,
       :customer_id,
       :integrated_id,
+      :supplier_id,
       :payment_date,
       :price_per_kg_cents,
       :thousand_value_cents,

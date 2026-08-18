@@ -3,6 +3,7 @@ class StockingEvent < ApplicationRecord
   belongs_to :customer, optional: true
   belongs_to :integrated, optional: true
   belongs_to :payment_method, optional: true
+  belongs_to :supplier, optional: true
 
   has_secure_token :share_token
 
@@ -45,10 +46,29 @@ class StockingEvent < ApplicationRecord
 
   def calculate_loading_fields
     return unless loading?
+
+    calculate_loading_quantity
+    calculate_total_cents
+  end
+
+  def calculate_loading_quantity
     return if total_weight_kg.blank? || avg_weight_g.blank?
     return if avg_weight_g.to_d <= 0
 
     self.quantity = ((total_weight_kg.to_d * 1000) / avg_weight_g.to_d).ceil
+  end
+
+  def calculate_total_cents
+    fish_total_cents = total_weight_kg.to_d * price_per_kg_cents.to_i
+
+    if quantity.present?
+      fish_total_cents += thousand_value_cents.to_i * (quantity.to_d / 1000)
+    end
+
+    self.total_cents =
+      fish_total_cents.to_i +
+      loading_cost_cents.to_i +
+      freight_cost_cents.to_i
   end
 
   def calculate_biometry_fields

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_04_125019) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_18_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -385,6 +385,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_125019) do
     t.string "gta_number"
     t.string "invoice_number"
     t.string "share_token"
+    t.bigint "total_cents", default: 0, null: false
+    t.bigint "supplier_id"
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
@@ -393,6 +395,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_125019) do
     t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
     t.index ["payment_method_id"], name: "index_stocking_events_on_payment_method_id"
     t.index ["share_token"], name: "index_stocking_events_on_share_token", unique: true
+    t.index ["supplier_id"], name: "index_stocking_events_on_supplier_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -470,4 +473,5 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_04_125019) do
   add_foreign_key "stocking_events", "customers"
   add_foreign_key "stocking_events", "integrateds"
   add_foreign_key "stocking_events", "payment_methods"
+  add_foreign_key "stocking_events", "suppliers"
 end

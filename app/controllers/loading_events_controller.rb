@@ -21,6 +21,31 @@ class LoadingEventsController < StockingEventPagesController
     end
   end
 
+  def edit
+    @stocking_event = StockingEvent.find(params[:id])
+    @selected_batch_stocking = @stocking_event.batch_stocking
+    @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+    @events = filtered_events(@stocking_event.batch_stocking_id)
+
+    render :index
+  end
+
+  def update
+    @stocking_event = StockingEvent.find(params[:id])
+    @stocking_event.assign_attributes(event_params)
+
+    if @stocking_event.save
+      redirect_to loading_events_path(batch_stocking_id: @stocking_event.batch_stocking_id),
+        notice: "Carregamento atualizado com sucesso."
+    else
+      @selected_batch_stocking = @stocking_event.batch_stocking
+      @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+      @events = filtered_events(@stocking_event.batch_stocking_id)
+
+      render :index, status: :unprocessable_content
+    end
+  end
+
   def print
     @stocking_event = StockingEvent.find(params[:id])
 
@@ -93,6 +118,7 @@ class LoadingEventsController < StockingEventPagesController
       :notes,
       :customer_id,
       :integrated_id,
+      :supplier_id,
       :payment_date,
       :price_per_kg_cents,
       :thousand_value_cents,
