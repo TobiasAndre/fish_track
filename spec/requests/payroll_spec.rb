@@ -62,6 +62,19 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll alerts" do
+    it "shows the alert details in a tooltip and links to the employee page" do
+      employee = create(:employee, name: "Com Alerta", started_on: Date.new(2020, 3, 15))
+      create(:employee_vacation, employee: employee, status: "available")
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("alerta(s)")
+      expect(response.body).to include(employee_path(employee))
+      expect(response.body).to include("Férias disponíveis")
+    end
+  end
+
   describe "GET /payroll with bonuses" do
     it "adds bonus amounts on top of the salary in the balance to pay" do
       employee = create(:employee, name: "Com Bônus", salary_cents: 300_000, started_on: 2.years.ago.to_date)
