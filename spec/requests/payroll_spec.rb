@@ -119,6 +119,54 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll for a terminated employee" do
+    it "shows the acerto rescisório card for the competência of the termination" do
+      employee = create(
+        :employee, name: "Desligado", salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get payroll_path, params: { year: 2026, month: 8 }
+
+      expect(response.body).to include("Acerto rescisório")
+      expect(response.body).to include("Saldo de salário")
+      expect(response.body).to include("13º salário proporcional")
+      expect(response.body).to include(termination_report_employee_path(employee))
+    end
+
+    it "does not show the card on competências other than the termination month" do
+      create(
+        :employee, name: "Desligado Antes", salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get payroll_path, params: { year: 2026, month: 9 }
+
+      expect(response.body).not_to include("Acerto rescisório")
+    end
+
+    it "creates a payroll item when the lançar button is submitted" do
+      employee = create(
+        :employee, salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id, year: 2026, month: 8, item_type: "bonus",
+            occurred_on: employee.terminated_on, amount_cents: 200_000,
+            notes: "13º salário proporcional (acerto rescisório)"
+          }
+        }
+      end.to change(PayrollItem, :count).by(1)
+
+      item = PayrollItem.last
+      expect(item.item_type).to eq("bonus")
+      expect(item.amount_cents).to eq(200_000)
+    end
+  end
+
   describe "PATCH /payroll" do
     it "creates a salary payroll item for each employee with a positive amount" do
       expect do

@@ -1,0 +1,92 @@
+<% tenant_name = session[:tenant_name] || params[:tenant_name] %>
+<% company ||= @company || Company.find_by(tenant_name: tenant_name) %>
+
+<div style="width: 100%; font-family: Arial, sans-serif; color: #111827;">
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+    <tr>
+      <td style="border: none; vertical-align: top;">
+        <h1 style="font-size: 28px; margin: 0 0 8px 0;">Acerto rescisório</h1>
+
+        <div style="font-size: 14px; color: #4b5563;">
+          Funcionário: <strong><%= @employee.name %></strong><br>
+
+          <% if @employee.role.present? %>
+            Cargo: <strong><%= @employee.role %></strong><br>
+          <% end %>
+
+          Admissão: <strong><%= l(@employee.started_on) %></strong><br>
+          Desligamento: <strong><%= @employee.terminated_on.present? ? l(@employee.terminated_on) : "—" %></strong><br>
+          Tempo de empresa: <strong><%= @employee.employment_duration_label(reference_date: @settlement.reference_date) %></strong>
+        </div>
+      </td>
+
+      <td style="border: none; text-align: right; vertical-align: top;">
+        <% if company&.logo_url.present? %>
+          <img src="<%= company.logo_url %>"
+               alt="Logomarca"
+               style="max-height: 80px; max-width: 200px;">
+        <% end %>
+      </td>
+    </tr>
+  </table>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <thead>
+      <tr>
+        <th style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; text-align: left;">Verba</th>
+        <th style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; text-align: left;">Referência</th>
+        <th style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; text-align: right;">Valor</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">Saldo de salário</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+          <%= @settlement.days_worked_in_month %> de <%= @settlement.days_in_month %> dias
+        </td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px; text-align: right;">
+          <%= number_to_currency(@settlement.balance_salary_cents / 100.0) %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">13º salário proporcional</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+          <%= @settlement.thirteenth_months %>/12 avos
+        </td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px; text-align: right;">
+          <%= number_to_currency(@settlement.thirteenth_cents / 100.0) %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">Férias proporcionais + 1/3</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px;">
+          <%= @settlement.vacation_months %>/12 avos
+          <% if @settlement.vacation_period_start.present? %>
+            (período iniciado em <%= l(@settlement.vacation_period_start) %>)
+          <% end %>
+        </td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px; text-align: right;">
+          <%= number_to_currency(@settlement.vacation_cents / 100.0) %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; font-weight: bold;" colspan="2">
+          Total do acerto
+        </td>
+        <td style="border: 1px solid #d1d5db; padding: 8px 12px; background: #f9fafb; font-weight: bold; text-align: right;">
+          <%= number_to_currency(@settlement.total_cents / 100.0) %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size: 11px; color: #6b7280; margin-top: 16px;">
+    Cálculo simplificado: saldo de salário proporcional aos dias trabalhados no mês do desligamento,
+    13º salário e férias + 1/3 proporcionais ao tempo trabalhado (avos), sem considerar aviso prévio,
+    férias vencidas, FGTS ou descontos legais.
+  </p>
+</div>

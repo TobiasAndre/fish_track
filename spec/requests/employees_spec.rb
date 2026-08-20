@@ -196,4 +196,33 @@ RSpec.describe "Employees", type: :request do
       expect(response).to redirect_to(employees_path)
     end
   end
+
+  describe "GET /employees/:id/termination_report" do
+    it "shows the termination settlement breakdown" do
+      employee = create(
+        :employee, name: "Demitido", salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get termination_report_employee_path(employee)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Acerto rescisório")
+      expect(response.body).to include("Saldo de salário")
+      expect(response.body).to include("13º salário proporcional")
+      expect(response.body).to include("Férias proporcionais")
+    end
+
+    it "renders a PDF" do
+      employee = create(
+        :employee, salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get termination_report_employee_path(employee, format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+  end
 end

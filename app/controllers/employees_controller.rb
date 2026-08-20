@@ -1,6 +1,6 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_employee, only: [:show, :edit, :update, :destroy]
+  before_action :set_employee, only: [:show, :edit, :update, :destroy, :termination_report]
   before_action :load_units, only: [:new, :create, :edit, :update]
 
   SORTABLE_COLUMNS = {
@@ -65,6 +65,35 @@ class EmployeesController < ApplicationController
   def destroy
     @employee.destroy!
     redirect_to employees_path, notice: "Funcionário removido!"
+  end
+
+  def termination_report
+    @settlement = Employees::TerminationSettlement.new(@employee).call
+    @company = Company.find_by(tenant_name: session[:tenant_name])
+
+    respond_to do |format|
+      format.html
+
+      format.pdf do
+        html = render_to_string(
+          template: "employees/termination_report",
+          layout: "pdf",
+          formats: [:html]
+        )
+
+        pdf = WickedPdf.new.pdf_from_string(
+          html,
+          page_size: "A4",
+          encoding: "UTF-8",
+          margin: { top: 10, bottom: 10, left: 10, right: 10 }
+        )
+
+        send_data pdf,
+                  filename: "acerto-rescisorio-#{@employee.id}.pdf",
+                  type: "application/pdf",
+                  disposition: "inline"
+      end
+    end
   end
 
   private

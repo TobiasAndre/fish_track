@@ -60,6 +60,10 @@ Rails.application.routes.draw do
     resource :dashboard, only: [:show]
     resources :financial_entries
     resources :employees do
+      member do
+        get :termination_report, defaults: { format: :html }
+      end
+
       resources :salary_changes, only: [:create], controller: "employee_salary_changes"
       resources :vacations, only: [:create, :update], controller: "employee_vacations"
     end

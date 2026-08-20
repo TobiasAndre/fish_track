@@ -6,9 +6,18 @@
       <h1 class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @employee.name %></h1>
     </div>
 
-    <%= link_to "Editar cadastro", edit_employee_path(@employee),
-      class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-              hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+    <div class="flex gap-2">
+      <% if @employee.terminated? && @employee.terminated_on.present? %>
+        <%= link_to "Acerto rescisório", termination_report_employee_path(@employee),
+          target: "_blank", rel: "noopener",
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                  hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+      <% end %>
+
+      <%= link_to "Editar cadastro", edit_employee_path(@employee),
+        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+    </div>
   </div>
 
   <% if @alerts.any? %>
