@@ -105,6 +105,20 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll with discounts" do
+    it "subtracts discount amounts from the balance to pay" do
+      employee = create(:employee, name: "Com Desconto", salary_cents: 300_000, started_on: 2.years.ago.to_date)
+      create(
+        :payroll_item, employee: employee, item_type: "discount",
+        year: Date.current.year, month: Date.current.month, amount_cents: 50_000
+      )
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("R$  2.500,00")
+    end
+  end
+
   describe "PATCH /payroll" do
     it "creates a salary payroll item for each employee with a positive amount" do
       expect do

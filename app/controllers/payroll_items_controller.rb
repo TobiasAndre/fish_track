@@ -1,6 +1,8 @@
 class PayrollItemsController < ApplicationController
   before_action :authenticate_user!
-  
+
+  ITEM_TYPE_LABELS = { "advance" => "Adiantamento", "bonus" => "Bônus", "discount" => "Desconto" }.freeze
+
   def create
     item = PayrollItem.new(payroll_item_params)
     item.item_type ||= "advance"
@@ -8,7 +10,7 @@ class PayrollItemsController < ApplicationController
 
     item.save!
 
-    label = item.item_type == "bonus" ? "Bônus" : "Adiantamento"
+    label = ITEM_TYPE_LABELS.fetch(item.item_type, "Lançamento")
     redirect_to payroll_path(year: item.year, month: item.month), notice: "#{label} lançado!"
   rescue ActiveRecord::RecordInvalid => e
     redirect_to payroll_path(year: payroll_item_params[:year], month: payroll_item_params[:month]),
@@ -28,6 +30,6 @@ class PayrollItemsController < ApplicationController
   private
 
   def payroll_item_params
-    params.require(:payroll_item).permit(:employee_id, :year, :month, :amount_cents, :notes, :item_type)
+    params.require(:payroll_item).permit(:employee_id, :year, :month, :amount_cents, :notes, :item_type, :occurred_on)
   end
 end

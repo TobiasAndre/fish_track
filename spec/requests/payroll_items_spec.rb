@@ -40,6 +40,53 @@ RSpec.describe "PayrollItems", type: :request do
       expect(PayrollItem.last.item_type).to eq("bonus")
     end
 
+    it "creates a discount and its linked financial entry" do
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 15_000,
+            item_type: "discount"
+          }
+        }
+      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+      expect(PayrollItem.last.item_type).to eq("discount")
+    end
+
+    it "uses the given occurred_on instead of defaulting to the first of the month" do
+      post payroll_items_path, params: {
+        payroll_item: {
+          employee_id: employee.id,
+          year: 2026,
+          month: 6,
+          amount_cents: 50_000,
+          item_type: "advance",
+          occurred_on: "2026-06-15"
+        }
+      }
+
+      expect(PayrollItem.last.occurred_on).to eq(Date.new(2026, 6, 15))
+    end
+
+    it "defaults occurred_on to the first of the competence month when left blank" do
+      post payroll_items_path, params: {
+        payroll_item: {
+          employee_id: employee.id,
+          year: 2026,
+          month: 6,
+          amount_cents: 50_000,
+          item_type: "advance",
+          occurred_on: ""
+        }
+      }
+
+      expect(PayrollItem.last.occurred_on).to eq(Date.new(2026, 6, 1))
+    end
+
     it "redirects back with an alert when the amount is invalid" do
       expect do
         post payroll_items_path, params: {
