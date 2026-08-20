@@ -2,9 +2,17 @@ class SuppliersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_supplier, only: [:show, :edit, :update, :destroy]
 
+  SORTABLE_COLUMNS = {
+    "name" => "name",
+    "email" => "email"
+  }.freeze
+
   def index
+    @sort_column = SORTABLE_COLUMNS.key?(params[:sort]) ? params[:sort] : "name"
+    @sort_direction = params[:direction] == "desc" ? "desc" : "asc"
+
     @suppliers = Supplier
-      .order(:name)
+      .order(Arel.sql("#{SORTABLE_COLUMNS[@sort_column]} #{@sort_direction}"))
       .page(params[:page])
       .per(10)
   end

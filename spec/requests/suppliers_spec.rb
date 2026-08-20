@@ -22,6 +22,32 @@ RSpec.describe "Suppliers", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(supplier.name)
     end
+
+    it "sorts by name ascending by default" do
+      z = create(:supplier, name: "Zulu")
+      a = create(:supplier, name: "Alfa")
+
+      get suppliers_path
+
+      expect(response.body.index(a.name)).to be < response.body.index(z.name)
+    end
+
+    it "sorts by the given column and direction" do
+      b = create(:supplier, name: "Fornecedor B", email: "bravo@example.com")
+      a = create(:supplier, name: "Fornecedor A", email: "alfa@example.com")
+
+      get suppliers_path, params: { sort: "email", direction: "desc" }
+
+      expect(response.body.index(b.name)).to be < response.body.index(a.name)
+    end
+
+    it "ignores an unknown sort column instead of raising" do
+      create(:supplier, name: "Qualquer")
+
+      get suppliers_path, params: { sort: "not_a_real_column" }
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe "POST /suppliers" do

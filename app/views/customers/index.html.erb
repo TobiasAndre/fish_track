@@ -16,8 +16,12 @@
     <table class="w-full text-sm">
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
         <tr>
-          <th class="text-left px-4 py-3 font-medium">Nome</th>
-          <th class="text-left px-4 py-3 font-medium">Email</th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Nome", "name", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Email", "email", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
           <th class="text-left px-4 py-3 font-medium">CPF/CNPJ</th>
           <th class="text-right px-4 py-3 font-medium">Ações</th>
         </tr>

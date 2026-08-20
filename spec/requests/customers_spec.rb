@@ -22,6 +22,32 @@ RSpec.describe "Customers", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(customer.name)
     end
+
+    it "sorts by name ascending by default" do
+      z = create(:customer, name: "Zulu")
+      a = create(:customer, name: "Alfa")
+
+      get customers_path
+
+      expect(response.body.index(a.name)).to be < response.body.index(z.name)
+    end
+
+    it "sorts by the given column and direction" do
+      b = create(:customer, name: "Cliente B", email: "bravo@example.com")
+      a = create(:customer, name: "Cliente A", email: "alfa@example.com")
+
+      get customers_path, params: { sort: "email", direction: "desc" }
+
+      expect(response.body.index(b.name)).to be < response.body.index(a.name)
+    end
+
+    it "ignores an unknown sort column instead of raising" do
+      create(:customer, name: "Qualquer")
+
+      get customers_path, params: { sort: "not_a_real_column" }
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe "POST /customers" do

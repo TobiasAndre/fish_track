@@ -2,8 +2,15 @@ class CustomersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_customer, only: [:show, :edit, :update, :destroy]
 
+  SORTABLE_COLUMNS = {
+    "name" => "name",
+    "email" => "email"
+  }.freeze
+
   def index
-    @customers = Customer.order(:name)
+    @sort_column = SORTABLE_COLUMNS.key?(params[:sort]) ? params[:sort] : "name"
+    @sort_direction = params[:direction] == "desc" ? "desc" : "asc"
+    @customers = Customer.order(Arel.sql("#{SORTABLE_COLUMNS[@sort_column]} #{@sort_direction}"))
   end
 
   def show; end

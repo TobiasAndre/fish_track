@@ -22,7 +22,9 @@ module ApplicationHelper
 
     icon_classes = is_active ? "text-gray-600 dark:text-gray-300" : "text-gray-300 dark:text-gray-600"
 
-    link_to url_for(params.permit(:q, :status, :department, :unit_id).merge(sort: column, direction: next_direction)),
+    query_params = params.except(:controller, :action, :sort, :direction).permit!
+
+    link_to url_for(query_params.merge(sort: column, direction: next_direction)),
       class: "inline-flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition" do
       safe_join([label, content_tag(:span, icon, class: "text-[10px] #{icon_classes}")])
     end
