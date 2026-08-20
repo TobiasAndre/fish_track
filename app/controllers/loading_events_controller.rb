@@ -3,6 +3,7 @@ class LoadingEventsController < StockingEventPagesController
   skip_before_action :load_selected_batch_stocking, only: %i[print share_pdf]
   skip_before_action :load_current_avg_weight, only: %i[print share_pdf]
   skip_before_action :load_loading_form_collections, only: %i[print share_pdf]
+  before_action :load_active_batch_stockings, only: [:index]
 
   def create
     @stocking_event = build_event_from_params
@@ -16,6 +17,7 @@ class LoadingEventsController < StockingEventPagesController
       @selected_batch_stocking = @stocking_event.batch_stocking
       @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
       @events = filtered_events(@stocking_event.batch_stocking_id)
+      load_active_batch_stockings
 
       render :index, status: :unprocessable_content
     end
@@ -41,6 +43,7 @@ class LoadingEventsController < StockingEventPagesController
       @selected_batch_stocking = @stocking_event.batch_stocking
       @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
       @events = filtered_events(@stocking_event.batch_stocking_id)
+      load_active_batch_stockings
 
       render :index, status: :unprocessable_content
     end
@@ -130,5 +133,23 @@ class LoadingEventsController < StockingEventPagesController
       :gta_number,
       :invoice_number
     )
+  end
+
+  def load_active_batch_stockings
+    @units = Unit.order(:name)
+    @selected_unit_id = params[:unit_id].presence
+    @ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id).order(:name) : Pond.order(:name)
+    @selected_pond_id = params[:pond_id].presence
+
+    @active_batch_stockings =
+      BatchStocking
+        .includes(:batch, :pond, :loading_events)
+        .joins(:batch, :pond)
+        .where(batches: { status: "active" })
+
+    @active_batch_stockings = @active_batch_stockings.where(ponds: { unit_id: @selected_unit_id }) if @selected_unit_id.present?
+    @active_batch_stockings = @active_batch_stockings.where(pond_id: @selected_pond_id) if @selected_pond_id.present?
+
+    @active_batch_stockings = @active_batch_stockings.order("batches.name ASC", "batch_stockings.stocked_on DESC")
   end
 end

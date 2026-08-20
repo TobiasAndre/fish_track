@@ -21,11 +21,52 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response).to have_http_status(:redirect)
     end
 
-    it "shows a placeholder when no batch is selected" do
+    it "lists active batch stockings with a launch action when no batch is selected" do
+      batch_stocking
+
       get loading_events_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Selecione um lote")
+      expect(response.body).to include("Carregamentos por lote ativo")
+      expect(response.body).to include(batch_stocking.display_name)
+      expect(response.body).to include("Lançar carregamento")
+      expect(response.body).to include(loading_events_path(batch_stocking_id: batch_stocking.id))
+    end
+
+    it "does not list batch stockings from closed batches" do
+      batch_stocking
+      closed_batch = create(:batch, pond: pond, status: "closed")
+      closed_batch_stocking = closed_batch.batch_stockings.first
+
+      get loading_events_path
+
+      expect(response.body).to include(batch_stocking.display_name)
+      expect(response.body).not_to include(closed_batch_stocking.display_name)
+    end
+
+    it "filters the batch stocking list by unit" do
+      batch_stocking
+      other_unit = create(:unit)
+      other_pond = create(:pond, unit: other_unit)
+      other_batch = create(:batch, pond: other_pond)
+      other_batch_stocking = other_batch.batch_stockings.first
+
+      get loading_events_path, params: { unit_id: unit.id }
+
+      expect(response.body).to include(batch_stocking.display_name)
+      expect(response.body).not_to include(other_batch_stocking.display_name)
+    end
+
+    it "filters the batch stocking list by pond" do
+      batch_stocking
+      other_pond = create(:pond, unit: unit)
+      other_batch = create(:batch, pond: other_pond)
+      other_batch_stocking = other_batch.batch_stockings.first
+
+      get loading_events_path, params: { pond_id: pond.id }
+
+      expect(response.body).to include(batch_stocking.display_name)
+      expect(response.body).not_to include(other_batch_stocking.display_name)
     end
 
     it "shows the form and history for the selected batch stocking" do
