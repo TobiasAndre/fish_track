@@ -1,4 +1,6 @@
 class Employee < ApplicationRecord
+  belongs_to :unit, optional: true
+
   has_many :payroll_items, dependent: :destroy
 
   has_many :salary_changes,

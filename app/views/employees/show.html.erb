@@ -43,6 +43,11 @@
       </div>
 
       <div>
+        <dt class="text-gray-500 dark:text-gray-400">Unidade</dt>
+        <dd class="mt-0.5 font-medium text-gray-900 dark:text-gray-100"><%= @employee.unit&.name || "—" %></dd>
+      </div>
+
+      <div>
         <dt class="text-gray-500 dark:text-gray-400">Status</dt>
         <dd class="mt-0.5 font-medium text-gray-900 dark:text-gray-100"><%= @employee.human_status %></dd>
       </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_18_130000) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_20_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -130,10 +130,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_18_130000) do
     t.string "status", default: "active", null: false
     t.date "terminated_on"
     t.text "notes"
+    t.bigint "unit_id"
     t.index ["department"], name: "index_employees_on_department"
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
     t.index ["status"], name: "index_employees_on_status"
+    t.index ["unit_id"], name: "index_employees_on_unit_id"
   end
 
   create_table "feeding_strategy_items", force: :cascade do |t|
@@ -449,6 +451,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_18_130000) do
   add_foreign_key "batches", "products"
   add_foreign_key "employee_salary_changes", "employees"
   add_foreign_key "employee_vacations", "employees"
+  add_foreign_key "employees", "units"
   add_foreign_key "feeding_strategy_items", "feeding_tables"
   add_foreign_key "feeding_strategy_items", "feeding_temperature_ranges"
   add_foreign_key "feeding_strategy_items", "feeding_weight_ranges"

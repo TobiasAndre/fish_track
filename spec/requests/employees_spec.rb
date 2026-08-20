@@ -53,6 +53,18 @@ RSpec.describe "Employees", type: :request do
       expect(response.body).to include(sales.name)
       expect(response.body).not_to include(ops.name)
     end
+
+    it "filters by unit" do
+      unit_a = create(:unit, name: "Unidade A")
+      unit_b = create(:unit, name: "Unidade B")
+      in_a = create(:employee, name: "Da Unidade A", unit: unit_a)
+      in_b = create(:employee, name: "Da Unidade B", unit: unit_b)
+
+      get employees_path, params: { unit_id: unit_a.id }
+
+      expect(response.body).to include(in_a.name)
+      expect(response.body).not_to include(in_b.name)
+    end
   end
 
   describe "GET /employees/:id" do
@@ -79,6 +91,16 @@ RSpec.describe "Employees", type: :request do
 
       expect(response).to redirect_to(employees_path)
       expect(Employee.last.started_on).to eq(Date.new(2026, 1, 15))
+    end
+
+    it "creates an employee with a unit" do
+      unit = create(:unit)
+
+      post employees_path, params: {
+        employee: { name: "Funcionário Unidade", salary_cents: 300_000, started_on: Date.current, unit_id: unit.id }
+      }
+
+      expect(Employee.last.unit).to eq(unit)
     end
 
     it "does not create an employee without a name" do
@@ -116,6 +138,15 @@ RSpec.describe "Employees", type: :request do
 
       expect(response).to redirect_to(employees_path)
       expect(employee.reload.name).to eq("New name")
+    end
+
+    it "updates the employee's unit" do
+      unit = create(:unit)
+      employee = create(:employee)
+
+      patch employee_path(employee), params: { employee: { unit_id: unit.id } }
+
+      expect(employee.reload.unit).to eq(unit)
     end
 
     it "ignores salary_cents -- current salary can only change through a tracked salary change" do

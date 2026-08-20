@@ -1,14 +1,17 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_employee, only: [:show, :edit, :update, :destroy]
+  before_action :load_units, only: [:new, :create, :edit, :update]
 
   def index
-    @employees = Employee.order(:name)
+    @employees = Employee.includes(:unit).order(:name)
     @employees = @employees.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
     @employees = @employees.where(status: params[:status]) if params[:status].present?
     @employees = @employees.where(department: params[:department]) if params[:department].present?
+    @employees = @employees.where(unit_id: params[:unit_id]) if params[:unit_id].present?
 
     @departments = Employee.where.not(department: [nil, ""]).distinct.order(:department).pluck(:department)
+    @units = Unit.order(:name)
   end
 
   def show
@@ -56,10 +59,14 @@ class EmployeesController < ApplicationController
     @employee = Employee.find(params[:id])
   end
 
+  def load_units
+    @units = Unit.order(:name)
+  end
+
   def employee_params
     params.require(:employee).permit(
       :name, :role, :salary_cents, :started_on,
-      :department, :status, :terminated_on, :notes
+      :department, :status, :terminated_on, :notes, :unit_id
     )
   end
 end
