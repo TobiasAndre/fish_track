@@ -3,12 +3,26 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: [:show, :edit, :update, :destroy]
   before_action :load_units, only: [:new, :create, :edit, :update]
 
+  SORTABLE_COLUMNS = {
+    "name" => "employees.name",
+    "role" => "employees.role",
+    "department" => "employees.department",
+    "unit" => "units.name",
+    "status" => "employees.status",
+    "started_on" => "employees.started_on",
+    "salary_cents" => "employees.salary_cents"
+  }.freeze
+
   def index
-    @employees = Employee.includes(:unit).order(:name)
-    @employees = @employees.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    @employees = Employee.eager_load(:unit)
+    @employees = @employees.where("employees.name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
     @employees = @employees.where(status: params[:status]) if params[:status].present?
     @employees = @employees.where(department: params[:department]) if params[:department].present?
     @employees = @employees.where(unit_id: params[:unit_id]) if params[:unit_id].present?
+
+    @sort_column = SORTABLE_COLUMNS.key?(params[:sort]) ? params[:sort] : "name"
+    @sort_direction = params[:direction] == "desc" ? "desc" : "asc"
+    @employees = @employees.order(Arel.sql("#{SORTABLE_COLUMNS[@sort_column]} #{@sort_direction}"))
 
     @departments = Employee.where.not(department: [nil, ""]).distinct.order(:department).pluck(:department)
     @units = Unit.order(:name)

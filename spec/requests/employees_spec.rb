@@ -65,6 +65,32 @@ RSpec.describe "Employees", type: :request do
       expect(response.body).to include(in_a.name)
       expect(response.body).not_to include(in_b.name)
     end
+
+    it "sorts by name ascending by default" do
+      z = create(:employee, name: "Zulu")
+      a = create(:employee, name: "Alfa")
+
+      get employees_path
+
+      expect(response.body.index(a.name)).to be < response.body.index(z.name)
+    end
+
+    it "sorts by the given column and direction" do
+      cheap = create(:employee, name: "Barato", salary_cents: 100_000)
+      expensive = create(:employee, name: "Caro", salary_cents: 900_000)
+
+      get employees_path, params: { sort: "salary_cents", direction: "desc" }
+
+      expect(response.body.index(expensive.name)).to be < response.body.index(cheap.name)
+    end
+
+    it "ignores an unknown sort column instead of raising" do
+      create(:employee, name: "Qualquer")
+
+      get employees_path, params: { sort: "not_a_real_column" }
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe "GET /employees/:id" do

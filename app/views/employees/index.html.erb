@@ -81,14 +81,28 @@
     <table class="text-sm">
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
         <tr>
-          <th class="text-left px-4 py-3 font-medium">Nome</th>
-          <th class="text-left px-4 py-3 font-medium">Cargo</th>
-          <th class="text-left px-4 py-3 font-medium">Departamento</th>
-          <th class="text-left px-4 py-3 font-medium">Unidade</th>
-          <th class="text-left px-4 py-3 font-medium">Status</th>
-          <th class="text-left px-4 py-3 font-medium">Data de contratação</th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Nome", "name", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Cargo", "role", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Departamento", "department", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Unidade", "unit", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Status", "status", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
+          <th class="text-left px-4 py-3 font-medium">
+            <%= sortable_column_header "Data de contratação", "started_on", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
           <th class="text-left px-4 py-3 font-medium">Tempo de empresa</th>
-          <th class="text-right px-4 py-3 font-medium">Salário atual</th>
+          <th class="text-right px-4 py-3 font-medium">
+            <%= sortable_column_header "Salário atual", "salary_cents", current_sort: @sort_column, current_direction: @sort_direction %>
+          </th>
           <th class="text-center px-4 py-3 font-medium">Alertas</th>
           <th class="text-right px-4 py-3 font-medium">Ações</th>
         </tr>
