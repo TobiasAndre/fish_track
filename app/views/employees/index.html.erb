@@ -123,19 +123,29 @@
             </td>
 
             <td class="px-4 py-3">
-              <div class="flex justify-end gap-2">
-                <%= link_to "Lançamentos", employee_path(e),
-                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
-                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+              <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                <!-- Lançamentos -->
+                <%= link_to employee_path(e),
+                  class: "text-gray-500 hover:text-indigo-600 transition",
+                  title: "Lançamentos" do %>
+                  📋
+                <% end %>
 
-                <%= link_to "Editar", edit_employee_path(e),
-                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
-                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <!-- Editar -->
+                <%= link_to edit_employee_path(e),
+                  class: "text-gray-500 hover:text-indigo-600 transition",
+                  title: "Editar" do %>
+                  ✏️
+                <% end %>
 
-                <%= button_to "Excluir", employee_path(e),
+                <!-- Excluir -->
+                <%= button_to employee_path(e),
                   method: :delete,
                   data: { turbo_confirm: "Excluir #{e.name}?" },
-                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                  class: "bg-transparent p-0 text-gray-500 hover:text-red-600 transition",
+                  title: "Excluir" do %>
+                  🗑️
+                <% end %>
               </div>
             </td>
           </tr>
