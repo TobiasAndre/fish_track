@@ -3,7 +3,8 @@ class DashboardController < ApplicationController
 
   def show
     if session[:tenant_name].blank? || Apartment::Tenant.current == "public"
-      redirect_to new_user_session_path, alert: "Selecione uma empresa para continuar."
+      redirect_to user_signed_in? ? select_company_path : new_user_session_path,
+        alert: "Selecione uma empresa para continuar."
       return
     end
 

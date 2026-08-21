@@ -56,7 +56,7 @@
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3">
         <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-          Novo lançamento
+          <%= @stocking_event.persisted? ? "Editar biometria" : "Novo lançamento" %>
         </h2>
       </div>
 
@@ -72,7 +72,8 @@
       <% end %>
 
       <%= form_with model: @stocking_event,
-        url: biometry_events_path,
+        url: @stocking_event.persisted? ? biometry_event_path(@stocking_event) : biometry_events_path,
+        method: @stocking_event.persisted? ? :patch : :post,
         local: true,
         data: { controller: "biometry-form" },
         class: "space-y-4" do |f| %>
@@ -251,9 +252,14 @@
                     resize-none" %>
         </div>
 
-        <div class="flex justify-end pt-1">
-          <%= f.submit "Salvar",
-            class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition" %>
+        <div class="flex justify-end gap-2 pt-1">
+          <% if @stocking_event.persisted? %>
+            <%= link_to "Cancelar", biometry_events_path(batch_stocking_id: @selected_batch_stocking.id),
+              class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+          <% end %>
+
+          <%= f.submit(@stocking_event.persisted? ? "Atualizar biometria" : "Salvar",
+            class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition") %>
         </div>
       <% end %>
     </div>
@@ -283,6 +289,7 @@
                 <th class="py-2 pr-4 font-medium">GPD</th>
                 <th class="py-2 pr-4 font-medium">Ração</th>
                 <th class="py-2 pr-4 font-medium">Conv.</th>
+                <th class="py-2 pr-4 font-medium text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -317,6 +324,22 @@
                   </td>
                   <td class="py-2 pr-4">
                     <%= event.feed_conversion.present? ? number_with_precision(event.feed_conversion, precision: 3, separator: ",", delimiter: ".") : "—" %>
+                  </td>
+                  <td class="py-2 pr-4 text-right">
+                    <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <%= link_to edit_biometry_event_path(event),
+                        class: "text-gray-500 hover:text-indigo-600 transition",
+                        title: "Editar" do %>
+                        ✏️
+                      <% end %>
+
+                      <%= link_to biometry_event_path(event),
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        class: "text-gray-500 hover:text-red-600 transition",
+                        title: "Excluir" do %>
+                        🗑️
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -444,6 +467,7 @@
                       <th class="py-2 pr-4 font-medium">GPD</th>
                       <th class="py-2 pr-4 font-medium">Ração</th>
                       <th class="py-2 pr-4 font-medium">Conv.</th>
+                      <th class="py-2 pr-4 font-medium text-right">Ações</th>
                     </tr>
                   </thead>
 
@@ -488,6 +512,22 @@
 
                         <td class="py-2 pr-4">
                           <%= event.feed_conversion.present? ? number_with_precision(event.feed_conversion, precision: 3, separator: ",", delimiter: ".") : "—" %>
+                        </td>
+                        <td class="py-2 pr-4 text-right">
+                          <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                            <%= link_to edit_biometry_event_path(event),
+                              class: "text-gray-500 hover:text-indigo-600 transition",
+                              title: "Editar" do %>
+                              ✏️
+                            <% end %>
+
+                            <%= link_to biometry_event_path(event),
+                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                              class: "text-gray-500 hover:text-red-600 transition",
+                              title: "Excluir" do %>
+                              🗑️
+                            <% end %>
+                          </div>
                         </td>
                       </tr>
                     <% end %>

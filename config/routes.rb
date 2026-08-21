@@ -15,6 +15,9 @@ Rails.application.routes.draw do
     to: "loading_events#share_pdf",
     as: :shared_loading_event_pdf
 
+  get "select_company", to: "tenant_selections#new", as: :select_company
+  post "select_company", to: "tenant_selections#create"
+
   # Defines the root path route ("/")
   # 
   namespace :admin do
@@ -51,7 +54,7 @@ Rails.application.routes.draw do
 
     resources :batch_reports, only: [:index]
     resources :loading_reports, only: [:index]
-    resources :biometry_events, only: %i[index new create]
+    resources :biometry_events, only: %i[index new create edit update destroy]
     resources :mortality_events, only: %i[index new create]
     resources :loading_events, only: %i[index new edit create update destroy] do
       member do

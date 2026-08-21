@@ -39,12 +39,19 @@ class Users::SessionsController < Devise::SessionsController
       session[:tenant_name] = tenant_name
     end
 
+    remember_tenant(tenant_name)
+
     redirect_to after_sign_in_path_for(resource)
   rescue ActiveRecord::RecordNotFound
     render :new, status: :unprocessable_content
   rescue Apartment::TenantNotFound
     flash.now[:alert] = "Tenant inválido."
     render :new, status: :unprocessable_content
+  end
+
+  def destroy
+    forget_remembered_tenant
+    super
   end
 
   private

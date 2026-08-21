@@ -16,6 +16,38 @@ class BiometryEventsController < StockingEventPagesController
     end
   end
 
+  def edit
+    @stocking_event = StockingEvent.find(params[:id])
+    @selected_batch_stocking = @stocking_event.batch_stocking
+    @events = filtered_events(@selected_batch_stocking&.id)
+    load_previous_biometry_data
+
+    render :index
+  end
+
+  def update
+    @stocking_event = StockingEvent.find(params[:id])
+    @stocking_event.assign_attributes(event_params)
+
+    if @stocking_event.save
+      redirect_to redirect_path_for(@stocking_event.batch_stocking_id),
+        notice: "Biometria atualizada com sucesso."
+    else
+      @selected_batch_stocking = @stocking_event.batch_stocking
+      @events = filtered_events(@selected_batch_stocking&.id)
+      load_previous_biometry_data
+
+      render :index, status: :unprocessable_content
+    end
+  end
+
+  def destroy
+    @stocking_event = StockingEvent.find(params[:id])
+    batch_stocking_id = @stocking_event.batch_stocking_id
+    @stocking_event.destroy
+    redirect_to redirect_path_for(batch_stocking_id), notice: "Biometria removida com sucesso."
+  end
+
   private
 
   def event_type
@@ -73,6 +105,7 @@ class BiometryEventsController < StockingEventPagesController
 
     last_biometry = StockingEvent
       .where(event_type: event_type, batch_stocking_id: @selected_batch_stocking.id)
+      .where.not(id: @stocking_event&.id)
       .order(occurred_on: :desc, created_at: :desc)
       .first
 

@@ -1,0 +1,48 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+  <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/40 p-8 border border-gray-100 dark:border-gray-800">
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 text-center mb-2">
+      Selecione a empresa
+    </h2>
+
+    <p class="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
+      Você está logado como <strong><%= current_user.email %></strong>.
+    </p>
+
+    <% if flash[:alert].present? %>
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <%= form_with url: select_company_path, method: :post, local: true, class: "space-y-5" do %>
+      <div>
+        <%= label_tag :tenant_name, "Empresa",
+          class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+
+        <%= select_tag :tenant_name,
+          options_from_collection_for_select(@companies, :tenant_name, :name),
+          include_blank: "Selecione...",
+          required: true,
+          class: "w-full rounded-lg border px-3 py-2 text-sm
+                  bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                  dark:focus:ring-indigo-400 dark:focus:border-indigo-400" %>
+      </div>
+
+      <div>
+        <%= submit_tag "Continuar",
+          class: "w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400
+                  text-white font-medium py-2.5 rounded-lg transition duration-200
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                  dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900 cursor-pointer" %>
+      </div>
+    <% end %>
+
+    <div class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+      <%= button_to "Sair", destroy_user_session_path, method: :delete,
+        class: "text-indigo-600 dark:text-indigo-400 hover:underline bg-transparent border-0 p-0 cursor-pointer" %>
+    </div>
+  </div>
+</div>
