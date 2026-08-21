@@ -16,7 +16,8 @@
 
           Admissão: <strong><%= l(@employee.started_on) %></strong><br>
           Desligamento: <strong><%= @employee.terminated_on.present? ? l(@employee.terminated_on) : "—" %></strong><br>
-          Tempo de empresa: <strong><%= @employee.employment_duration_label(reference_date: @settlement.reference_date) %></strong>
+          Tempo de empresa: <strong><%= @employee.employment_duration_label(reference_date: @settlement.reference_date) %></strong><br>
+          Salário base: <strong><%= number_to_currency(@settlement.salary_cents / 100.0) %></strong>
         </div>
       </td>
 
