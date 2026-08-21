@@ -3,7 +3,7 @@ class LoadingReportsController < ApplicationController
 
   def index
     @batches = Batch.order(:name)
-    @ponds = Pond.order(:name)
+    @ponds = Pond.includes(:unit).joins(:unit).order("units.name ASC, ponds.name ASC")
     @integrateds = Integrated.order(:name)
 
     @events = StockingEvent

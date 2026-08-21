@@ -140,6 +140,7 @@ class LoadingEventsController < StockingEventPagesController
     @selected_unit_id = params[:unit_id].presence
     @ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id).order(:name) : Pond.order(:name)
     @selected_pond_id = params[:pond_id].presence
+    @selected_pond_id = nil if @selected_pond_id.present? && !@ponds.exists?(id: @selected_pond_id)
 
     @active_batch_stockings =
       BatchStocking
