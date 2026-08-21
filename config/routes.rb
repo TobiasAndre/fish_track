@@ -50,6 +50,7 @@ Rails.application.routes.draw do
     end
 
     resources :batch_reports, only: [:index]
+    resources :loading_reports, only: [:index]
     resources :biometry_events, only: %i[index new create]
     resources :mortality_events, only: %i[index new create]
     resources :loading_events, only: %i[index new edit create update destroy] do

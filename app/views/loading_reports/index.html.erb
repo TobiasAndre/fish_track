@@ -1,0 +1,186 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      Relatorio de Carregamentos
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Consulte os carregamentos lançados, filtrando por período, produtor, lote e tanque.
+    </p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <%= form_with url: loading_reports_path, method: :get, local: true do %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <%= label_tag :start_date, "Data inicial", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= date_field_tag :start_date, params[:start_date],
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :end_date, "Data final", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= date_field_tag :end_date, params[:end_date],
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :integrated_id, "Produtor (Integrado)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :integrated_id,
+              options_from_collection_for_select(@integrateds, :id, :name, params[:integrated_id]),
+              include_blank: "Todos",
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :batch_id, "Lote", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :batch_id,
+              options_from_collection_for_select(@batches, :id, :name, params[:batch_id]),
+              include_blank: "Todos",
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :pond_id, "Tanque", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :pond_id,
+              options_from_collection_for_select(@ponds, :id, :name, params[:pond_id]),
+              include_blank: "Todos",
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 mt-6">
+        <%= submit_tag "Filtrar",
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer" %>
+
+        <%= link_to "Limpar filtros",
+              loading_reports_path,
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700" %>
+
+        <%= link_to "Gerar PDF",
+              loading_reports_path(
+                format: :pdf,
+                start_date: params[:start_date],
+                end_date: params[:end_date],
+                integrated_id: params[:integrated_id],
+                batch_id: params[:batch_id],
+                pond_id: params[:pond_id]
+              ),
+              target: "_blank",
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Quantidade total</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %>
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Peso total</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <%= number_with_precision(@total_weight_kg.to_f, precision: 3, separator: ",", delimiter: ".") %> kg
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Valor total</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <%= number_to_currency(@total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Carregamentos</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= @events.size %> carregamento(s) encontrado(s)</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Lote</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Cliente</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Produtor</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Fornecedor</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Quantidade</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Peso total</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Total</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Pagamento</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Observações</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
+          <% @events.each do |event| %>
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.batch_stocking&.batch&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.batch_stocking&.pond&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.customer&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.integrated&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.supplier&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.payment_method&.name || "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                <%= event.notes.presence || "—" %>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @events.empty? %>
+            <tr>
+              <td colspan="11" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                Nenhum carregamento encontrado para os filtros selecionados.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

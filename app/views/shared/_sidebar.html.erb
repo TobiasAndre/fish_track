@@ -189,6 +189,7 @@
       </p>
 
       <%= link_to "Relatório de Lote", batch_reports_path %>
+      <%= link_to "Relatório de Carregamentos", loading_reports_path %>
 
       <% if system_admin? %>
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
@@ -359,6 +360,10 @@
 
     <%= link_to batch_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_reports' ? selected_menu : unselected_menu}" do %>
       <span>📦</span><span data-sidebar-target="label">Lotes</span>
+    <% end %>
+
+    <%= link_to loading_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading_reports' ? selected_menu : unselected_menu}" do %>
+      <span>🚚</span><span data-sidebar-target="label">Carregamentos</span>
     <% end %>
 
     <% if system_admin? %>

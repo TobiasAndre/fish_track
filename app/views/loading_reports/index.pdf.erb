@@ -1,0 +1,182 @@
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #111;
+    background: #fff;
+  }
+
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+
+  th {
+    background: #f0f0f0;
+    border: 1px solid #bbb;
+    padding: 6px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    vertical-align: top;
+  }
+
+  .master-table td {
+    font-weight: bold;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .empty {
+    text-align: center;
+    color: #777;
+    padding: 18px;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #666;
+  }
+</style>
+
+<div class="header">
+  <h1 class="title">Relatorio de Carregamentos</h1>
+
+  <div class="subtitle">
+    Gerado em <%= l(Date.current) %>
+  </div>
+</div>
+
+<div class="section-title">Filtros utilizados</div>
+
+<table>
+  <tbody>
+    <tr>
+      <th scope="row">Data inicial</th>
+      <td><%= params[:start_date].presence || "-" %></td>
+
+      <th scope="row">Data final</th>
+      <td><%= params[:end_date].presence || "-" %></td>
+
+      <th scope="row">Produtor</th>
+      <td><%= @integrateds.find_by(id: params[:integrated_id])&.name || "Todos" %></td>
+    </tr>
+
+    <tr>
+      <th scope="row">Lote</th>
+      <td><%= @batches.find_by(id: params[:batch_id])&.name || "Todos" %></td>
+
+      <th scope="row">Tanque</th>
+      <td><%= @ponds.find_by(id: params[:pond_id])&.name || "Todos" %></td>
+
+      <th scope="row"></th>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Resumo</div>
+
+<table class="master-table">
+  <thead>
+    <tr>
+      <th>Quantidade total</th>
+      <th>Peso total</th>
+      <th>Valor total</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td class="text-right"><%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %></td>
+      <td class="text-right"><%= number_with_precision(@total_weight_kg.to_f, precision: 3, separator: ",", delimiter: ".") %> kg</td>
+      <td class="text-right"><%= number_to_currency(@total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Carregamentos</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Lote</th>
+      <th>Tanque</th>
+      <th>Cliente</th>
+      <th>Produtor</th>
+      <th>Fornecedor</th>
+      <th>Quantidade</th>
+      <th>Peso total</th>
+      <th>Total</th>
+      <th>Pagamento</th>
+      <th>Observações</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if @events.any? %>
+      <% @events.each do |event| %>
+        <tr>
+          <td><%= event.occurred_on.present? ? l(event.occurred_on) : "-" %></td>
+          <td><%= event.batch_stocking&.batch&.name || "-" %></td>
+          <td><%= event.batch_stocking&.pond&.name || "-" %></td>
+          <td><%= event.customer&.name || "-" %></td>
+          <td><%= event.integrated&.name || "-" %></td>
+          <td><%= event.supplier&.name || "-" %></td>
+          <td class="text-right"><%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "-" %></td>
+          <td class="text-right"><%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
+          <td><%= event.payment_method&.name || "-" %></td>
+          <td><%= event.notes.presence || "-" %></td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr>
+        <td colspan="11" class="empty">
+          Nenhum carregamento encontrado para os filtros selecionados.
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="footer">
+  Relatório gerado automaticamente pelo Fish Track.
+</div>
