@@ -2,7 +2,9 @@ class ApplicationController < ActionController::Base
   helper_method :system_admin?
   before_action :configure_permitted_parameters, if: :devise_controller?
   around_action :switch_tenant
+  before_action :set_current_request_details
   helper_method :current_profile
+  helper_method :current_company
 
   protected
 
@@ -59,6 +61,20 @@ class ApplicationController < ActionController::Base
 
   def system_admin?
     user_signed_in? && current_user.email == "admin@fishtrack.com"
+  end
+
+  def current_company
+    return nil if session[:tenant_name].blank?
+
+    @current_company ||= Company.find_by(tenant_name: session[:tenant_name])
+  end
+
+  def set_current_request_details
+    return unless user_signed_in?
+
+    Current.user = current_user
+    Current.company = current_company
+    Current.ip_address = request.remote_ip
   end
 
   def current_profile

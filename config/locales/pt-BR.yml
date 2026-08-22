@@ -1,4 +1,10 @@
 pt-BR:
+  activity_logs:
+    actions:
+      create: "Criação"
+      update: "Atualização"
+      destroy: "Exclusão"
+
   date:
     formats:
       default: "%d/%m/%Y"

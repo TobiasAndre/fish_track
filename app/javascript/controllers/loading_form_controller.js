@@ -14,6 +14,7 @@ export default class extends Controller {
     "freightCostCents",
     "loadingCost",
     "loadingCostCents",
+    "taxPercentage",
     "grandTotal",
     "totalCents"
   ]
@@ -64,12 +65,15 @@ export default class extends Controller {
     const loadingCostCents = this.hasLoadingCostCentsTarget ? Number(this.loadingCostCentsTarget.value || 0) : 0
     const freightCostCents = this.hasFreightCostCentsTarget ? Number(this.freightCostCentsTarget.value || 0) : 0
 
+    const taxPercentage = this.hasTaxPercentageTarget ? this.parseLocalizedNumber(this.taxPercentageTarget.value) : 0
+
     const fishTotalCents =
       (totalWeightKg * pricePerKgCents) + (thousandValueCents * (quantity / 1000))
 
-    const grandTotalCents = Math.round(
-      fishTotalCents + loadingCostCents + freightCostCents
-    )
+    const subtotalCents = fishTotalCents + loadingCostCents + freightCostCents
+    const taxCents = subtotalCents * (taxPercentage / 100)
+
+    const grandTotalCents = Math.round(subtotalCents + taxCents)
 
     if (this.hasGrandTotalTarget) {
       this.grandTotalTarget.textContent = this.formatCurrency(grandTotalCents / 100)
@@ -93,9 +97,25 @@ export default class extends Controller {
 
     const cents = Number(digits)
     input.value = this.formatCurrency(cents / 100)
+    this.moveCursorToEnd(input)
 
     this.syncCurrencyHiddenTarget(input, cents)
     this.recalculate()
+  }
+
+  // Currency fields accumulate digits from the full displayed text on every
+  // keystroke. If the cursor is left in the middle of a pre-filled value
+  // (common when editing an existing record), typing there inserts a digit
+  // mid-string and inflates the parsed amount by 10x or more. Forcing the
+  // cursor to the end on focus and after every reformat keeps typing
+  // append-only, so it always matches what's displayed.
+  focusCurrencyEnd(event) {
+    this.moveCursorToEnd(event.currentTarget)
+  }
+
+  moveCursorToEnd(input) {
+    const length = input.value.length
+    input.setSelectionRange(length, length)
   }
 
   syncCurrencyHiddenTarget(input, cents) {
@@ -135,10 +155,16 @@ export default class extends Controller {
   parseLocalizedNumber(value) {
     if (value == null || value === "") return 0
 
-    const normalized = String(value)
-      .trim()
-      .replace(/\./g, "")
-      .replace(",", ".")
+    const stringValue = String(value).trim()
+    if (!stringValue) return 0
+
+    // Only treat "." as a thousands separator when a "," is also present
+    // (pt-BR format, e.g. "1.234,56"). Otherwise this is a plain decimal
+    // string (e.g. "1000.0", as rendered straight from a BigDecimal), so the
+    // "." must be kept as the decimal point instead of stripped.
+    const normalized = stringValue.includes(",")
+      ? stringValue.replace(/\./g, "").replace(",", ".")
+      : stringValue
 
     const parsed = parseFloat(normalized)
 

@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     resources :company_settings, only: %i[show edit update]
     resources :memberships
     resources :tenants, only: [:new, :create]
+    resources :activity_logs, only: [:index]
   end
 
   authenticate :user do

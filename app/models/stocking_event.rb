@@ -17,6 +17,9 @@ class StockingEvent < ApplicationRecord
   after_commit :update_batch_avg_weight, on: %i[create update]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
 
+  before_destroy :capture_activity_snapshot
+  after_commit :log_activity, on: %i[create update destroy]
+
   with_options if: :biometrics? do
     validates :volume, presence: true, numericality: { greater_than: 0 }
     validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }
@@ -44,6 +47,37 @@ class StockingEvent < ApplicationRecord
 
   private
 
+  def capture_activity_snapshot
+    @activity_snapshot = activity_description
+  end
+
+  def log_activity
+    return unless Current.user
+
+    ActivityLog.record!(
+      user: Current.user,
+      action: activity_action,
+      resource_type: "StockingEvent",
+      resource_id: id,
+      event_type: event_type,
+      description: @activity_snapshot || activity_description
+    )
+  end
+
+  def activity_action
+    return "destroy" if destroyed?
+
+    previously_new_record? ? "create" : "update"
+  end
+
+  def activity_description
+    label = I18n.t("enums.stocking_event.event_type.#{event_type}", default: event_type.to_s)
+    batch_label = batch_stocking&.display_name || "Lote ##{batch_stocking_id}"
+    date_label = occurred_on.present? ? I18n.l(occurred_on) : "sem data"
+
+    "#{label} - #{batch_label} - #{date_label}"
+  end
+
   def calculate_loading_fields
     return unless loading?
 
@@ -65,10 +99,14 @@ class StockingEvent < ApplicationRecord
       fish_total_cents += thousand_value_cents.to_i * (quantity.to_d / 1000)
     end
 
-    self.total_cents =
-      fish_total_cents.to_i +
+    subtotal_cents =
+      fish_total_cents +
       loading_cost_cents.to_i +
       freight_cost_cents.to_i
+
+    tax_cents = subtotal_cents * (tax_percentage.to_d / 100)
+
+    self.total_cents = (subtotal_cents + tax_cents).round
   end
 
   def calculate_biometry_fields
@@ -187,6 +225,7 @@ class StockingEvent < ApplicationRecord
     normalize_decimal_field(:gpd)
     normalize_decimal_field(:feed_kg)
     normalize_decimal_field(:feed_conversion)
+    normalize_decimal_field(:tax_percentage)
   end
 
   def normalize_integer_field(field)

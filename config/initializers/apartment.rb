@@ -18,7 +18,7 @@ Apartment.configure do |config|
   # A typical example would be a Customer or Tenant model that stores each Tenant's information.
   #
   # config.excluded_models = %w{ Tenant }
-  config.excluded_models = %w[User Company Membership]
+  config.excluded_models = %w[User Company Membership ActivityLog]
 
   # In order to migrate all of your Tenants you need to provide a list of Tenant names to Apartment.
   # You can make this dynamic by providing a Proc object to be called on migrations.

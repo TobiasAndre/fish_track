@@ -1,0 +1,136 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Logs de atividade</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Ações registradas pelos usuários nas páginas de lançamento (biometria, carregamento, mortalidade e demais eventos).
+    </p>
+  </div>
+
+  <%= form_with url: admin_activity_logs_path, method: :get, local: true,
+        class: "flex flex-wrap items-end gap-2" do %>
+    <div class="w-48">
+      <%= label_tag :company_id, "Empresa", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :company_id,
+        options_from_collection_for_select(@companies, :id, :name, params[:company_id]),
+        prompt: "Todas",
+        onchange: "this.form.submit()",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="w-48">
+      <%= label_tag :user_id, "Usuário", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :user_id,
+        options_from_collection_for_select(@users, :id, ->(u) { u.name.presence || u.email }, params[:user_id]),
+        prompt: "Todos",
+        onchange: "this.form.submit()",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="w-40">
+      <%= label_tag :action_type, "Ação", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :action_type,
+        options_for_select(
+          [["Criação", "create"], ["Atualização", "update"], ["Exclusão", "destroy"]],
+          params[:action_type]
+        ),
+        prompt: "Todas",
+        onchange: "this.form.submit()",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="w-40">
+      <%= label_tag :event_type, "Tipo", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= select_tag :event_type,
+        options_for_select(
+          [
+            ["Biometria", "biometrics"],
+            ["Carregamento", "loading"],
+            ["Mortalidade", "mortality"],
+            ["Alimentação", "feeding"]
+          ],
+          params[:event_type]
+        ),
+        prompt: "Todos",
+        onchange: "this.form.submit()",
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <% if params[:company_id].present? || params[:user_id].present? || params[:action_type].present? || params[:event_type].present? %>
+      <%= link_to "Limpar filtros", admin_activity_logs_path,
+            class: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2" %>
+    <% end %>
+  <% end %>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-950">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Data/Hora</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Usuário</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Empresa</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Ação</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Descrição</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">IP</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          <% @logs.each do |log| %>
+            <tr>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                <%= log.created_at.strftime("%d/%m/%Y %H:%M") %>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                <%= log.user&.name.presence || log.user&.email || "—" %>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                <%= log.company&.name || "—" %>
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <% badge_class = { "create" => "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+                                    "update" => "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+                                    "destroy" => "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" }[log.action] %>
+                <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium <%= badge_class %>">
+                  <%= log.human_action %>
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <%= log.description %>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                <%= log.ip_address || "—" %>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @logs.empty? %>
+            <tr>
+              <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                Nenhum registro encontrado.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%= paginate @logs %>
+</div>
