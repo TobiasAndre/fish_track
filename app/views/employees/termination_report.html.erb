@@ -1,7 +1,7 @@
 <% tenant_name = session[:tenant_name] || params[:tenant_name] %>
 <% company ||= @company || Company.find_by(tenant_name: tenant_name) %>
 
-<div style="width: 100%; font-family: Arial, sans-serif; color: #111827;">
+<div style="width: 100%; font-family: Arial, sans-serif; color: #111827; background: #ffffff; padding: 24px;">
   <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
     <tr>
       <td style="border: none; vertical-align: top;">
