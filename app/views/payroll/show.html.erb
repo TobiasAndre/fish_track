@@ -40,7 +40,8 @@
       <% total_adv_cents = advances.sum(&:amount_cents) %>
       <% total_bonus_cents = bonuses.sum(&:amount_cents) %>
       <% total_discount_cents = discounts.sum(&:amount_cents) %>
-      <% salary_cents = emp.salary_on(@competence_date).to_i %>
+      <% terminated_this_month = emp.terminated? && emp.terminated_on.present? && emp.terminated_on.year == @year && emp.terminated_on.month == @month %>
+      <% salary_cents = terminated_this_month ? 0 : emp.salary_on(@competence_date).to_i %>
       <% remaining_cents = [salary_cents + total_bonus_cents - total_adv_cents - total_discount_cents, 0].max %>
       <% emp_alerts = EmployeeAlerts.new(emp, reference_date: @competence_date).call %>
       <% available_vacations = emp.vacations.where(status: "available") %>
@@ -96,7 +97,7 @@
           </div>
         </div>
 
-        <% if emp.terminated? && emp.terminated_on.present? && emp.terminated_on.year == @year && emp.terminated_on.month == @month %>
+        <% if terminated_this_month %>
           <% settlement = Employees::TerminationSettlement.new(emp).call %>
 
           <div class="mx-4 mt-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4">
