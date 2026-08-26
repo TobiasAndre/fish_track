@@ -8,6 +8,7 @@ class PayrollItem < ApplicationRecord
 
   scope :salary, -> { where(item_type: "salary") }
   scope :advance, -> { where(item_type: "advance") }
+  scope :thirteenth_advance, -> { where(item_type: "thirteenth_advance") }
   scope :bonus, -> { where(item_type: "bonus") }
   scope :discount, -> { where(item_type: "discount") }
 
@@ -48,12 +49,14 @@ class PayrollItem < ApplicationRecord
     prefix =
       case item_type
       when "advance" then "Adiantamento"
+      when "thirteenth_advance" then "Adiantamento 13º"
       when "bonus" then "Bônus"
       when "discount" then "Desconto"
       when "salary_payment" then "Pagamento salário"
       else "Folha"
       end
 
-    "#{prefix} - #{employee.name} (#{month}/#{year})"
+    base = "#{prefix} - #{employee.name} (#{month}/#{year})"
+    installment_number && installments_count ? "#{base} — parcela #{installment_number}/#{installments_count}" : base
   end
 end

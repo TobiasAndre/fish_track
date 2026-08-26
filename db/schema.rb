@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_24_110001) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_26_210143) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -322,6 +322,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_24_110001) do
     t.datetime "updated_at", null: false
     t.string "item_type", default: "salary", null: false
     t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
+    t.integer "installment_number"
+    t.integer "installments_count"
     t.index ["employee_id"], name: "index_payroll_items_on_employee_id"
     t.index ["occurred_on"], name: "index_payroll_items_on_occurred_on"
     t.index ["year", "month"], name: "index_payroll_items_on_year_and_month"
