@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_24_110001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -155,6 +155,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
     t.index ["unit_id"], name: "index_employees_on_unit_id"
   end
 
+  create_table "feeding_brands", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower(btrim((name)::text))", name: "index_feeding_brands_on_normalized_name", unique: true
+  end
+
   create_table "feeding_strategy_items", force: :cascade do |t|
     t.bigint "feeding_table_id", null: false
     t.bigint "feeding_weight_range_id", null: false
@@ -183,6 +190,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "feeding_types", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "feeding_brand_id", null: false
+    t.index "feeding_brand_id, lower(btrim((name)::text))", name: "index_feeding_types_on_brand_and_normalized_name", unique: true
+    t.index ["feeding_brand_id"], name: "index_feeding_types_on_feeding_brand_id"
+  end
+
   create_table "feeding_weight_ranges", force: :cascade do |t|
     t.decimal "weight_from", precision: 10, scale: 2, null: false
     t.decimal "weight_to", precision: 10, scale: 2, null: false
@@ -202,9 +218,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "payroll_item_id"
+    t.bigint "silo_stock_entry_id"
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
     t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
+    t.index ["silo_stock_entry_id"], name: "index_financial_entries_on_silo_stock_entry_id", unique: true
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
   end
@@ -341,6 +359,32 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
   end
 
+  create_table "silo_stock_entries", force: :cascade do |t|
+    t.bigint "silo_id", null: false
+    t.bigint "feeding_type_id", null: false
+    t.bigint "feeding_brand_id", null: false
+    t.date "occurred_on", null: false
+    t.decimal "quantity_kg", precision: 10, scale: 3, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.integer "price_per_kg_cents", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["feeding_brand_id"], name: "index_silo_stock_entries_on_feeding_brand_id"
+    t.index ["feeding_type_id"], name: "index_silo_stock_entries_on_feeding_type_id"
+    t.index ["occurred_on"], name: "index_silo_stock_entries_on_occurred_on"
+    t.index ["silo_id"], name: "index_silo_stock_entries_on_silo_id"
+  end
+
+  create_table "silos", force: :cascade do |t|
+    t.bigint "unit_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "unit_id, lower(btrim((name)::text))", name: "index_silos_on_unit_and_normalized_name", unique: true
+    t.index ["unit_id"], name: "index_silos_on_unit_id"
+  end
+
   create_table "simulation_products", force: :cascade do |t|
     t.bigint "simulation_id", null: false
     t.bigint "product_id", null: false
@@ -406,10 +450,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
     t.string "share_token"
     t.bigint "total_cents", default: 0, null: false
     t.bigint "supplier_id"
+    t.bigint "feeding_type_id"
+    t.bigint "feeding_brand_id"
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
     t.index ["event_type"], name: "index_stocking_events_on_event_type"
+    t.index ["feeding_brand_id"], name: "index_stocking_events_on_feeding_brand_id"
+    t.index ["feeding_type_id"], name: "index_stocking_events_on_feeding_type_id"
     t.index ["integrated_id"], name: "index_stocking_events_on_integrated_id"
     t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
     t.index ["payment_method_id"], name: "index_stocking_events_on_payment_method_id"
@@ -474,8 +522,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
   add_foreign_key "feeding_strategy_items", "feeding_tables"
   add_foreign_key "feeding_strategy_items", "feeding_temperature_ranges"
   add_foreign_key "feeding_strategy_items", "feeding_weight_ranges"
+  add_foreign_key "feeding_types", "feeding_brands"
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
+  add_foreign_key "financial_entries", "silo_stock_entries"
   add_foreign_key "financial_entries", "units"
   add_foreign_key "integrateds", "customers"
   add_foreign_key "memberships", "companies"
@@ -487,12 +537,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_21_195440) do
   add_foreign_key "orders", "payment_terms"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
+  add_foreign_key "silo_stock_entries", "feeding_brands"
+  add_foreign_key "silo_stock_entries", "feeding_types"
+  add_foreign_key "silo_stock_entries", "silos"
+  add_foreign_key "silos", "units"
   add_foreign_key "simulation_products", "products"
   add_foreign_key "simulation_products", "simulations"
   add_foreign_key "simulations", "customers"
   add_foreign_key "simulations", "integrateds"
   add_foreign_key "stocking_events", "batch_stockings"
   add_foreign_key "stocking_events", "customers"
+  add_foreign_key "stocking_events", "feeding_brands"
+  add_foreign_key "stocking_events", "feeding_types"
   add_foreign_key "stocking_events", "integrateds"
   add_foreign_key "stocking_events", "payment_methods"
   add_foreign_key "stocking_events", "suppliers"

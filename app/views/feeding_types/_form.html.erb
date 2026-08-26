@@ -1,0 +1,39 @@
+<%= form_with model: @feeding_type, class: "mt-6 space-y-4" do |f| %>
+  <%= render "shared/form_errors", resource: @feeding_type %>
+
+  <% if @feeding_brands.empty? %>
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+      Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, class: "underline font-medium" %> antes de criar um tipo.
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :feeding_brand_id, "Marca", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.collection_select :feeding_brand_id, @feeding_brands, :id, :name,
+      { prompt: "Selecione a marca" },
+      required: true,
+      class: "w-full rounded-lg border px-3 py-2 text-sm
+              bg-white dark:bg-gray-950
+              border-gray-300 dark:border-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div>
+    <%= f.label :name, "Nome do tipo", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+    <%= f.text_field :name, class: "w-full rounded-lg border px-3 py-2 text-sm
+                                    bg-white dark:bg-gray-950
+                                    border-gray-300 dark:border-gray-700
+                                    text-gray-900 dark:text-gray-100
+                                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="flex gap-2">
+    <%= f.submit "Salvar", class: "flex-1 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400
+                                  text-white font-medium py-2.5 rounded-lg transition" %>
+
+    <%= link_to "Cancelar", feeding_types_path,
+      class: "px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700
+              hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+  </div>
+<% end %>

@@ -1,0 +1,267 @@
+<div class="max-w-6xl mx-auto space-y-4">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Estoque de Ração nos Silos</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+      Registre a entrada (compra/recebimento) de ração nos silos. O valor lançado aqui gera a despesa correspondente no Financeiro.
+    </p>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+    <div class="mb-3">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+        <%= @silo_stock_entry.persisted? ? "Editar lançamento" : "Nova entrada de estoque" %>
+      </h2>
+    </div>
+
+    <% if @silo_stock_entry.errors.any? %>
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p class="font-medium mb-1">Não foi possível salvar:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <% @silo_stock_entry.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @silos.empty? %>
+      <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        Cadastre um <%= link_to "silo", new_silo_path, class: "underline font-medium" %> antes de lançar.
+      </div>
+    <% elsif @feeding_types.empty? %>
+      <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, class: "underline font-medium" %>
+        e um <%= link_to "tipo de ração", new_feeding_type_path, class: "underline font-medium" %> antes de lançar.
+      </div>
+    <% end %>
+
+    <%= form_with model: @silo_stock_entry,
+      url: @silo_stock_entry.persisted? ? silo_stock_entry_path(@silo_stock_entry) : silo_stock_entries_path,
+      method: @silo_stock_entry.persisted? ? :patch : :post,
+      local: true,
+      data: { controller: "feeding-form" },
+      class: "space-y-4" do |f| %>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.date_field :occurred_on, required: true, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= f.label :silo_id, "Silo", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <% grouped_silos = @silos.group_by { |s| s.unit.name }.sort.map { |unit_name, silos| [unit_name, silos.map { |s| [s.name, s.id] }] } %>
+          <%= f.select :silo_id, grouped_options_for_select(grouped_silos, @silo_stock_entry.silo_id),
+            { prompt: "Selecione o silo" },
+            required: true,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= f.label :feeding_type_id, "Tipo de ração (marca)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <% grouped_feeding_types = @feeding_types.group_by { |t| t.feeding_brand.name }.sort.map { |brand_name, types| [brand_name, types.map { |t| [t.name, t.id] }] } %>
+          <%= f.select :feeding_type_id, grouped_options_for_select(grouped_feeding_types, @silo_stock_entry.feeding_type_id),
+            { prompt: "Selecione o tipo" },
+            required: true,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <%= f.label :quantity_kg, "Quantidade (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_field :quantity_kg,
+            required: true,
+            inputmode: "decimal",
+            value: number_with_precision((@silo_stock_entry.quantity_kg || 0).to_f, precision: 3, separator: ",", delimiter: "."),
+            data: {
+              "feeding-form-target": "quantity",
+              action: "input->feeding-form#formatDecimalInput"
+            },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor total</label>
+          <input type="text" inputmode="numeric" placeholder="R$ 0,00"
+            value="<%= @silo_stock_entry.total_cents.to_i > 0 ? number_to_currency(@silo_stock_entry.total_cents.to_i / 100.0) : "" %>"
+            data-action="input->feeding-form#maskCurrency focus->feeding-form#focusCurrencyEnd click->feeding-form#focusCurrencyEnd"
+            data-feeding-form-target="totalValue"
+            required
+            class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+          <%= f.hidden_field :total_cents,
+            value: @silo_stock_entry.total_cents.to_i,
+            data: { "feeding-form-target": "totalCents" } %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preço por kg</label>
+          <div class="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold" data-feeding-form-target="pricePerKg">
+            <%= number_to_currency(@silo_stock_entry.price_per_kg_cents.to_i / 100.0) %>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.text_area :notes,
+          rows: 1,
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-1">
+        <% if @silo_stock_entry.persisted? %>
+          <%= link_to "Cancelar", silo_stock_entries_path,
+            class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+        <% end %>
+
+        <%= f.submit(@silo_stock_entry.persisted? ? "Atualizar lançamento" : "Salvar entrada", class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition") %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @current_stock.present? %>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Estoque atual (soma das entradas)</h2>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+              <th class="py-2 pr-4 font-medium">Unidade</th>
+              <th class="py-2 pr-4 font-medium">Silo</th>
+              <th class="py-2 pr-4 font-medium">Tipo</th>
+              <th class="py-2 pr-4 font-medium">Marca</th>
+              <th class="py-2 pr-4 font-medium">Quantidade</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% @silos.each do |silo| %>
+              <% @feeding_types.each do |feeding_type| %>
+                <% total_kg = @current_stock[[silo.id, feeding_type.id]] %>
+                <% next if total_kg.blank? || total_kg.to_d <= 0 %>
+
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                  <td class="py-2 pr-4"><%= silo.unit.name %></td>
+                  <td class="py-2 pr-4"><%= silo.name %></td>
+                  <td class="py-2 pr-4"><%= feeding_type.name %></td>
+                  <td class="py-2 pr-4"><%= feeding_type.feeding_brand.name %></td>
+                  <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+    <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Histórico</h2>
+
+      <%= form_with url: silo_stock_entries_path, method: :get, local: true,
+            class: "flex flex-wrap items-end gap-2" do %>
+        <div class="w-36">
+          <%= label_tag :silo_id, "Silo", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+          <%= select_tag :silo_id,
+            options_from_collection_for_select(@silos, :id, :name, @q_silo_id),
+            prompt: "Todos",
+            onchange: "this.form.submit()",
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div class="w-40">
+          <%= label_tag :feeding_type_id, "Tipo", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+          <%= select_tag :feeding_type_id,
+            options_from_collection_for_select(@feeding_types, :id, :name, @q_feeding_type_id),
+            prompt: "Todos",
+            onchange: "this.form.submit()",
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div class="w-36">
+          <%= label_tag :from, "De", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+          <%= date_field_tag :from, @q_from,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div class="w-36">
+          <%= label_tag :to, "Até", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+          <%= date_field_tag :to, @q_to,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <button type="submit" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+          Filtrar
+        </button>
+
+        <% if @q_silo_id.present? || @q_feeding_type_id.present? || @q_from.present? || @q_to.present? %>
+          <%= link_to "Limpar filtros", silo_stock_entries_path,
+                class: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2" %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% if @entries.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+              <th class="py-2 pr-4 font-medium">Data</th>
+              <th class="py-2 pr-4 font-medium">Unidade</th>
+              <th class="py-2 pr-4 font-medium">Silo</th>
+              <th class="py-2 pr-4 font-medium">Tipo</th>
+              <th class="py-2 pr-4 font-medium">Marca</th>
+              <th class="py-2 pr-4 font-medium">Quantidade</th>
+              <th class="py-2 pr-4 font-medium">Preço/kg</th>
+              <th class="py-2 pr-4 font-medium">Total</th>
+              <th class="py-2 pr-4 font-medium text-right">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% @entries.each do |entry| %>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-4"><%= entry.occurred_on.present? ? l(entry.occurred_on) : "—" %></td>
+                <td class="py-2 pr-4"><%= entry.silo.unit.name %></td>
+                <td class="py-2 pr-4"><%= entry.silo.name %></td>
+                <td class="py-2 pr-4"><%= entry.feeding_type.name %></td>
+                <td class="py-2 pr-4"><%= entry.feeding_brand.name %></td>
+                <td class="py-2 pr-4"><%= number_with_precision(entry.quantity_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+                <td class="py-2 pr-4"><%= entry.price_per_kg_cents.to_i.positive? ? number_to_currency(entry.price_per_kg_cents.to_i / 100.0) : "—" %></td>
+                <td class="py-2 pr-4"><%= entry.total_cents.to_i.positive? ? number_to_currency(entry.total_cents.to_i / 100.0) : "—" %></td>
+                <td class="py-2 pr-4 text-right">
+                  <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                    <%= link_to edit_silo_stock_entry_path(entry),
+                      class: "text-gray-500 hover:text-indigo-600 transition",
+                      title: "Editar" do %>
+                      ✏️
+                    <% end %>
+
+                    <%= link_to silo_stock_entry_path(entry),
+                      data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                      class: "text-gray-500 hover:text-red-600 transition",
+                      title: "Excluir" do %>
+                      🗑️
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 flex justify-center">
+        <%= paginate @entries %>
+      </div>
+    <% else %>
+      <div class="text-center py-6">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Nenhuma entrada de estoque registrada.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

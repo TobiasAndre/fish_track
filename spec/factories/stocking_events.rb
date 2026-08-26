@@ -22,5 +22,12 @@ FactoryBot.define do
       total_weight_kg { 100 }
       avg_weight_g { 500 }
     end
+
+    trait :feeding do
+      event_type { "feeding" }
+      association :feeding_type, strategy: :create
+      feed_kg { 50 }
+      total_cents { 25_000 }
+    end
   end
 end

@@ -130,6 +130,123 @@ RSpec.describe StockingEvent, type: :model do
     end
   end
 
+  describe "feeding validations" do
+    it "requires a feeding_type, feeding_brand and a positive feed_kg" do
+      event = build(:stocking_event, :feeding, feeding_type: nil, feeding_brand: nil, feed_kg: 0)
+
+      expect(event).not_to be_valid
+      expect(event.errors[:feeding_type_id]).to be_present
+      expect(event.errors[:feeding_brand_id]).to be_present
+      expect(event.errors[:feed_kg]).to be_present
+    end
+
+    it "does not apply those validations to a mortality event" do
+      event = build(:stocking_event, :mortality, quantity: 10)
+
+      expect(event).to be_valid
+    end
+
+    it "rejects a negative total_cents" do
+      event = build(:stocking_event, :feeding, total_cents: -1)
+
+      expect(event).not_to be_valid
+      expect(event.errors[:total_cents]).to be_present
+    end
+
+    it "accepts a zero total_cents (e.g. donated ration)" do
+      event = build(:stocking_event, :feeding, total_cents: 0)
+
+      expect(event).to be_valid
+    end
+
+    it "is invalid when the batch is closed" do
+      batch_stocking = create(:batch_stocking)
+      batch_stocking.batch.update!(status: "closed")
+
+      event = build(:stocking_event, :feeding, batch_stocking: batch_stocking)
+
+      expect(event).not_to be_valid
+      expect(event.errors[:batch_stocking]).to be_present
+    end
+  end
+
+  describe "#sync_feeding_brand_from_type" do
+    it "derives feeding_brand from the selected feeding_type's brand" do
+      brand = create(:feeding_brand, name: "Guabi")
+      type = create(:feeding_type, name: "Extrusada 32%", feeding_brand: brand)
+
+      event = create(:stocking_event, :feeding, feeding_type: type)
+
+      expect(event.feeding_brand).to eq(brand)
+    end
+
+    it "ignores a manually assigned feeding_brand that does not match the feeding_type's brand" do
+      correct_brand = create(:feeding_brand, name: "Guabi")
+      other_brand = create(:feeding_brand, name: "Purina")
+      type = create(:feeding_type, feeding_brand: correct_brand)
+
+      event = create(:stocking_event, :feeding, feeding_type: type, feeding_brand: other_brand)
+
+      expect(event.feeding_brand).to eq(correct_brand)
+    end
+
+    it "updates feeding_brand when the feeding_type is changed" do
+      brand_a = create(:feeding_brand, name: "Guabi")
+      brand_b = create(:feeding_brand, name: "Purina")
+      type_a = create(:feeding_type, feeding_brand: brand_a)
+      type_b = create(:feeding_type, feeding_brand: brand_b)
+
+      event = create(:stocking_event, :feeding, feeding_type: type_a)
+      expect(event.feeding_brand).to eq(brand_a)
+
+      event.update!(feeding_type: type_b)
+      expect(event.feeding_brand).to eq(brand_b)
+    end
+  end
+
+  describe "#calculate_feeding_fields" do
+    it "derives price_per_kg_cents from total_cents and feed_kg" do
+      event = build(:stocking_event, :feeding, feed_kg: 50, total_cents: 25_000)
+
+      event.valid?
+
+      expect(event.price_per_kg_cents).to eq(500) # R$ 250,00 / 50kg = R$ 5,00/kg
+    end
+
+    it "recalculates price_per_kg_cents whenever feed_kg or total_cents change" do
+      event = create(:stocking_event, :feeding, feed_kg: 50, total_cents: 25_000)
+      expect(event.price_per_kg_cents).to eq(500)
+
+      event.update!(feed_kg: 100)
+      expect(event.price_per_kg_cents).to eq(250)
+
+      event.update!(total_cents: 40_000)
+      expect(event.price_per_kg_cents).to eq(400)
+    end
+
+    it "zeroes price_per_kg_cents when feed_kg is blank" do
+      event = build(:stocking_event, :feeding, feed_kg: nil)
+
+      event.valid?
+
+      expect(event.price_per_kg_cents).to eq(0)
+    end
+  end
+
+  describe "financial entries" do
+    it "does not create a financial entry when a feeding event is created" do
+      expect do
+        create(:stocking_event, :feeding, feed_kg: 50, total_cents: 25_000)
+      end.not_to change(FinancialEntry, :count)
+    end
+
+    it "does not respond to #financial_entry (the expense now lives on the silo stock entry)" do
+      event = create(:stocking_event, :feeding, feed_kg: 50, total_cents: 25_000)
+
+      expect(event).not_to respond_to(:financial_entry)
+    end
+  end
+
   describe ".recent_first" do
     it "orders events by occurred_on and created_at descending" do
       batch_stocking = create(:batch_stocking)

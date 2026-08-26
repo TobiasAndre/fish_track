@@ -4,15 +4,20 @@ class StockingEvent < ApplicationRecord
   belongs_to :integrated, optional: true
   belongs_to :payment_method, optional: true
   belongs_to :supplier, optional: true
+  belongs_to :feeding_type, optional: true
+  belongs_to :feeding_brand, optional: true
 
   has_secure_token :share_token
 
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
   before_validation :calculate_loading_fields
+  before_validation :sync_feeding_brand_from_type
+  before_validation :calculate_feeding_fields
   validates :occurred_on, presence: true
   validates :event_type, presence: true
   validates :batch_stocking_id, presence: true
+  validate :batch_must_be_active_for_feeding, if: :feeding?
 
   after_commit :update_batch_avg_weight, on: %i[create update]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
@@ -28,6 +33,13 @@ class StockingEvent < ApplicationRecord
     validates :biomass, presence: true, numericality: { greater_than: 0 }
     validates :weight_gain_kg, presence: true
     validates :gpd, presence: true
+  end
+
+  with_options if: :feeding? do
+    validates :feeding_type_id, presence: true
+    validates :feeding_brand_id, presence: true
+    validates :feed_kg, presence: true, numericality: { greater_than: 0 }
+    validates :total_cents, numericality: { greater_than_or_equal_to: 0 }
   end
 
   EVENT_TYPES = %w[biometrics mortality feeding loading].freeze
@@ -212,6 +224,35 @@ class StockingEvent < ApplicationRecord
 
   def loading?
     event_type == "loading"
+  end
+
+  def feeding?
+    event_type == "feeding"
+  end
+
+  def sync_feeding_brand_from_type
+    return unless feeding?
+
+    self.feeding_brand = feeding_type&.feeding_brand
+  end
+
+  def calculate_feeding_fields
+    return unless feeding?
+
+    self.price_per_kg_cents = 0
+
+    return if feed_kg.blank? || feed_kg.to_d <= 0
+
+    self.price_per_kg_cents = (total_cents.to_i / feed_kg.to_d).round
+  end
+
+  def batch_must_be_active_for_feeding
+    return if batch_stocking.blank?
+
+    batch = batch_stocking.batch
+    return if batch.blank?
+
+    errors.add(:batch_stocking, "deve pertencer a um lote ativo") unless batch.active_status?
   end
 
   def normalize_numeric_fields

@@ -1,0 +1,370 @@
+<div class="max-w-5xl mx-auto space-y-4">
+  <% if @selected_batch_stocking.present? %>
+    <div>
+      <%= link_to feeding_events_path,
+            class: "inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" do %>
+        &larr; Voltar
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <% if @selected_batch_stocking.stocked_on.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Alojamento:
+          <span class="ml-1 font-medium"><%= l(@selected_batch_stocking.stocked_on) %></span>
+        </span>
+      <% end %>
+
+      <% if @selected_batch_stocking.quantity.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Qtd. alojada:
+          <span class="ml-1 font-medium">
+            <%= number_with_delimiter(@selected_batch_stocking.quantity, delimiter: ".") %>
+          </span>
+        </span>
+      <% end %>
+
+      <% if @selected_batch_stocking.current_biomass_kg.present? %>
+        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          Biomassa atual:
+          <span class="ml-1 font-medium">
+            <%= number_with_precision(@selected_batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") %>kg
+          </span>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="mb-3">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          <%= @stocking_event.persisted? ? "Editar lançamento" : "Novo lançamento de ração" %>
+        </h2>
+      </div>
+
+      <% if @stocking_event.errors.any? %>
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <p class="font-medium mb-1">Não foi possível salvar:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <% @stocking_event.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @feeding_types.empty? %>
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, class: "underline font-medium" %>
+          e um <%= link_to "tipo de ração", new_feeding_type_path, class: "underline font-medium" %> antes de lançar.
+        </div>
+      <% end %>
+
+      <%= form_with model: @stocking_event,
+        url: @stocking_event.persisted? ? feeding_event_path(@stocking_event) : feeding_events_path,
+        method: @stocking_event.persisted? ? :patch : :post,
+        local: true,
+        data: { controller: "feeding-form" },
+        class: "space-y-4" do |f| %>
+
+        <%= f.hidden_field :batch_stocking_id, value: @selected_batch_stocking.id %>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.date_field :occurred_on, required: true, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <%= f.label :feeding_type_id, "Tipo de ração (marca)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <% grouped_feeding_types = @feeding_types.group_by { |t| t.feeding_brand.name }.sort.map { |brand_name, types| [brand_name, types.map { |t| [t.name, t.id] }] } %>
+            <%= f.select :feeding_type_id, grouped_options_for_select(grouped_feeding_types, @stocking_event.feeding_type_id),
+              { prompt: "Selecione o tipo" },
+              required: true,
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <%= f.label :feed_kg, "Quantidade (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.text_field :feed_kg,
+              required: true,
+              inputmode: "decimal",
+              value: number_with_precision((@stocking_event.feed_kg || 0).to_f, precision: 3, separator: ",", delimiter: "."),
+              data: {
+                "feeding-form-target": "quantity",
+                action: "input->feeding-form#formatDecimalInput"
+              },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor total</label>
+            <input type="text" inputmode="numeric" placeholder="R$ 0,00"
+              value="<%= @stocking_event.total_cents.to_i > 0 ? number_to_currency(@stocking_event.total_cents.to_i / 100.0) : "" %>"
+              data-action="input->feeding-form#maskCurrency focus->feeding-form#focusCurrencyEnd click->feeding-form#focusCurrencyEnd"
+              data-feeding-form-target="totalValue"
+              required
+              class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+            <%= f.hidden_field :total_cents,
+              value: @stocking_event.total_cents.to_i,
+              data: { "feeding-form-target": "totalCents" } %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preço por kg</label>
+            <div class="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold" data-feeding-form-target="pricePerKg">
+              <%= number_to_currency(@stocking_event.price_per_kg_cents.to_i / 100.0) %>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_area :notes,
+            rows: 1,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <% if @stocking_event.persisted? %>
+            <%= link_to "Cancelar", feeding_events_path(batch_stocking_id: @selected_batch_stocking.id),
+              class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+          <% end %>
+
+          <%= f.submit(@stocking_event.persisted? ? "Atualizar ração" : "Salvar ração", class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition") %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Histórico
+        </h2>
+
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          <%= @events.count %> registro(s)
+        </span>
+      </div>
+
+      <% if @events.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+                <th class="py-2 pr-4 font-medium">Data</th>
+                <th class="py-2 pr-4 font-medium">Tipo</th>
+                <th class="py-2 pr-4 font-medium">Marca</th>
+                <th class="py-2 pr-4 font-medium">Quantidade</th>
+                <th class="py-2 pr-4 font-medium">Preço/kg</th>
+                <th class="py-2 pr-4 font-medium">Total</th>
+                <th class="py-2 pr-4 font-medium">Observações</th>
+                <th class="py-2 pr-4 font-medium text-right">Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% @events.each do |event| %>
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                  <td class="py-2 pr-4">
+                    <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.feeding_type&.name || "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.feeding_brand&.name || "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.feed_kg.present? ? "#{number_with_precision(event.feed_kg, precision: 3, separator: ",", delimiter: ".")}kg" : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.price_per_kg_cents.to_i.positive? ? number_to_currency(event.price_per_kg_cents.to_i / 100.0) : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0) : "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4">
+                    <%= event.notes.presence || "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4 text-right">
+                    <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <%= link_to edit_feeding_event_path(event),
+                        class: "text-gray-500 hover:text-indigo-600 transition",
+                        title: "Editar" do %>
+                        ✏️
+                      <% end %>
+
+                      <%= link_to feeding_event_path(event),
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        class: "text-gray-500 hover:text-red-600 transition",
+                        title: "Excluir" do %>
+                        🗑️
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Nenhuma ração registrada para este lote.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+
+    <div class="space-y-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+            Ração por lote ativo
+          </h2>
+
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Visão geral dos lançamentos de ração registrados em cada lote ativo.
+          </p>
+        </div>
+
+        <%= form_with url: feeding_events_path, method: :get, local: true,
+              class: "flex flex-wrap items-end gap-2" do %>
+          <div class="w-40">
+            <%= label_tag :unit_id, "Unidade", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+
+            <%= select_tag :unit_id,
+              options_from_collection_for_select(@units, :id, :name, @selected_unit_id),
+              prompt: "Todas",
+              onchange: "document.getElementById('pond_id').value = ''; this.form.submit();",
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <div class="w-40">
+            <%= label_tag :pond_id, "Tanque", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+
+            <%= select_tag :pond_id,
+              options_from_collection_for_select(@ponds, :id, :name, @selected_pond_id),
+              prompt: "Todos",
+              onchange: "this.form.submit()",
+              class: "w-full rounded-lg border px-3 py-2 text-sm
+                      bg-white dark:bg-gray-950
+                      border-gray-300 dark:border-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+
+          <% if @selected_unit_id.present? || @selected_pond_id.present? %>
+            <%= link_to "Limpar filtros", feeding_events_path,
+                  class: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2" %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if @active_batch_stockings.present? %>
+        <% @active_batch_stockings.each do |batch_stocking| %>
+          <% events = batch_stocking.feeding_events %>
+
+          <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    <%= batch_stocking.display_name %>
+                  </h3>
+
+                  <div class="mt-1 flex flex-wrap gap-2">
+                    <% if batch_stocking.stocked_on.present? %>
+                      <span class="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        Alojamento:
+                        <span class="ml-1 font-medium"><%= l(batch_stocking.stocked_on) %></span>
+                      </span>
+                    <% end %>
+
+                    <span class="inline-flex items-center rounded-lg bg-indigo-50 px-2 py-1 text-xs text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      <%= events.count %> lançamento(s) de ração
+                    </span>
+                  </div>
+                </div>
+
+                <%= link_to feeding_events_path(batch_stocking_id: batch_stocking.id),
+                      class: "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700" do %>
+                  Lançar ração
+                <% end %>
+              </div>
+            </div>
+
+            <% if events.any? %>
+              <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+                      <th class="py-2 pl-4 pr-4 font-medium">Data</th>
+                      <th class="py-2 pr-4 font-medium">Tipo</th>
+                      <th class="py-2 pr-4 font-medium">Marca</th>
+                      <th class="py-2 pr-4 font-medium">Quantidade</th>
+                      <th class="py-2 pr-4 font-medium">Total</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <% events.first(5).each do |event| %>
+                      <tr class="border-b border-gray-100 dark:border-gray-800">
+                        <td class="py-2 pl-4 pr-4">
+                          <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.feeding_type&.name || "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.feeding_brand&.name || "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.feed_kg.present? ? "#{number_with_precision(event.feed_kg, precision: 3, separator: ",", delimiter: ".")}kg" : "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4">
+                          <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0) : "—" %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="p-4">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Nenhuma ração registrada para este lote.
+                </p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-center">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Nenhum lote ativo encontrado.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

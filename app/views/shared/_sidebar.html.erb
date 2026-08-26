@@ -5,6 +5,7 @@
   cadastro_controllers = %w[
     units
     ponds
+    silos
     suppliers
     customers
     products
@@ -12,6 +13,8 @@
     payment_methods
     employees
     feeding_tables
+    feeding_brands
+    feeding_types
   ]
 
   lancamento_controllers = %w[
@@ -20,6 +23,7 @@
     financial_entries
     orders
     simulations
+    feeding_events
   ]
 
   admin_controllers = %w[
@@ -115,6 +119,10 @@
             <span>💧</span><span class="text-sm font-medium">Tanques</span>
           <% end %>
 
+          <%= link_to silos_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silos' ? selected_menu : unselected_menu}" do %>
+            <span>🛢️</span><span class="text-sm font-medium">Silos</span>
+          <% end %>
+
           <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
             <span>🏭</span><span class="text-sm font-medium">Fornecedores</span>
           <% end %>
@@ -142,6 +150,14 @@
           <%= link_to feeding_tables_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_tables' ? selected_menu : unselected_menu}" do %>
             <span>🐟</span><span class="text-sm font-medium">Regras de Arraçoamento</span>
           <% end %>
+
+          <%= link_to feeding_brands_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_brands' ? selected_menu : unselected_menu}" do %>
+            <span>🏷️</span><span class="text-sm font-medium">Marcas de Ração</span>
+          <% end %>
+
+          <%= link_to feeding_types_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_types' ? selected_menu : unselected_menu}" do %>
+            <span>🌾</span><span class="text-sm font-medium">Tipos de Ração</span>
+          <% end %>
         </div>
       </details>
 
@@ -160,6 +176,10 @@
 
       <%= link_to mortality_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'mortality_events' ? selected_menu : unselected_menu}" do %>
         <span>☠️</span><span class="text-sm font-medium">Mortalidade</span>
+      <% end %>
+
+      <%= link_to silo_stock_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_entries' ? selected_menu : unselected_menu}" do %>
+        <span>🛢️</span><span class="text-sm font-medium">Estoque de Ração</span>
       <% end %>
 
       <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
@@ -288,6 +308,10 @@
           <span>💧</span><span data-sidebar-target="label">Tanques</span>
         <% end %>
 
+        <%= link_to silos_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silos' ? selected_menu : unselected_menu}" do %>
+          <span>🛢️</span><span data-sidebar-target="label">Silos</span>
+        <% end %>
+
         <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
           <span>🏭</span><span data-sidebar-target="label">Fornecedores</span>
         <% end %>
@@ -315,6 +339,14 @@
         <%= link_to feeding_tables_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_tables' ? selected_menu : unselected_menu}" do %>
           <span>🐟</span><span data-sidebar-target="label">Regras de Arraçoamento</span>
         <% end %>
+
+        <%= link_to feeding_brands_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_brands' ? selected_menu : unselected_menu}" do %>
+          <span>🏷️</span><span data-sidebar-target="label">Marcas de Ração</span>
+        <% end %>
+
+        <%= link_to feeding_types_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_types' ? selected_menu : unselected_menu}" do %>
+          <span>🌾</span><span data-sidebar-target="label">Tipos de Ração</span>
+        <% end %>
       </div>
     </details>
 
@@ -334,6 +366,10 @@
 
     <%= link_to mortality_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>☠️</span><span data-sidebar-target="label" class="text-sm font-medium">Mortalidade</span>
+    <% end %>
+
+    <%= link_to silo_stock_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_entries' ? selected_menu : unselected_menu}" do %>
+      <span>🛢️</span><span data-sidebar-target="label">Estoque de Ração</span>
     <% end %>
 
     <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>

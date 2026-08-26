@@ -28,12 +28,12 @@ RSpec.describe "FinancialEntries", type: :request do
 
     it "filters by entry_type" do
       create(:financial_entry, entry_type: "income", description: "Venda")
-      create(:financial_entry, entry_type: "expense", description: "Ração")
+      create(:financial_entry, entry_type: "expense", description: "Combustível")
 
       get financial_entries_path, params: { entry_type: "income" }
 
       expect(response.body).to include("Venda")
-      expect(response.body).not_to include("Ração")
+      expect(response.body).not_to include("Combustível")
     end
   end
 

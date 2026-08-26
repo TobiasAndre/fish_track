@@ -1,0 +1,55 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Tipos de ração</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Cadastre os tipos de ração usados nos lançamentos.
+      </p>
+    </div>
+
+    <%= link_to "Novo tipo", new_feeding_type_path,
+      class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+              dark:bg-indigo-500 dark:hover:bg-indigo-400
+              text-white text-sm font-medium transition" %>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Marca</th>
+          <th class="text-left px-4 py-3 font-medium">Nome</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        <% @feeding_types.each do |feeding_type| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-900 dark:text-gray-100"><%= feeding_type.feeding_brand.name %></td>
+            <td class="px-4 py-3 text-gray-900 dark:text-gray-100"><%= feeding_type.name %></td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-2">
+                <%= link_to "Editar", edit_feeding_type_path(feeding_type),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+
+                <%= button_to "Excluir", feeding_type_path(feeding_type),
+                  method: :delete,
+                  data: { turbo_confirm: "Excluir tipo de ração #{feeding_type.name}?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @feeding_types.empty? %>
+          <tr>
+            <td colspan="3" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              Nenhum tipo de ração cadastrado.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

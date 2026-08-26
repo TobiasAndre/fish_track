@@ -36,6 +36,7 @@ Rails.application.routes.draw do
     resources :payment_terms
     resources :payment_methods
     resources :ponds
+    resources :silos
     resources :orders do
       member do
         patch :cancel
@@ -57,6 +58,8 @@ Rails.application.routes.draw do
     resources :loading_reports, only: [:index]
     resources :biometry_events, only: %i[index new create edit update destroy]
     resources :mortality_events, only: %i[index new create]
+    resources :feeding_events, only: %i[index new create edit update destroy]
+    resources :silo_stock_entries, only: %i[index create edit update destroy]
     resources :loading_events, only: %i[index new edit create update destroy] do
       member do
         get :print, defaults: { format: :html }
@@ -86,6 +89,9 @@ Rails.application.routes.draw do
       end
       resources :feeding_strategy_items, only: %i[create destroy]
     end
+
+    resources :feeding_types, except: [:show]
+    resources :feeding_brands, except: [:show]
 
     root "dashboard#show"
   end
