@@ -104,6 +104,27 @@
                       🗑️ Excluir
                     <% end %>
 
+                    <%= link_to print_feeding_table_path(table, format: :pdf),
+                          target: "_blank",
+                          class: "rounded-lg px-3 py-2 text-sm text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" do %>
+                      Gerar PDF
+                    <% end %>
+
+                    <% if session[:tenant_name].present? %>
+                      <% table.regenerate_share_token if table.share_token.blank? %>
+                      <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+                      <% mensagem = "Tabela de arraçoamento #{company&.name}: #{table.name}" %>
+                      <% url = shared_feeding_table_pdf_url(
+                        tenant_name: session[:tenant_name],
+                        id: table.id,
+                        share_token: table.share_token,
+                        format: :pdf
+                      ) %>
+                      <%= whatsapp_share_link_to(message: mensagem, url: url) do %>
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                      <% end %>
+                    <% end %>
+
                     <%= link_to print_feeding_table_path(table),
                           target: "_blank",
                           class: "rounded-lg px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" do %>

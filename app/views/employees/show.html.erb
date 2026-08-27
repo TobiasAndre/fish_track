@@ -8,6 +8,21 @@
 
     <div class="flex gap-2">
       <% if @employee.terminated? && @employee.terminated_on.present? %>
+        <% if session[:tenant_name].present? %>
+          <% @employee.regenerate_share_token if @employee.share_token.blank? %>
+          <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+          <% mensagem = "Acerto rescisório #{company&.name}: #{@employee.name}" %>
+          <% url = shared_employee_termination_report_pdf_url(
+            tenant_name: session[:tenant_name],
+            id: @employee.id,
+            share_token: @employee.share_token,
+            format: :pdf
+          ) %>
+          <%= whatsapp_share_link_to(message: mensagem, url: url) do %>
+            <i class="fa-brands fa-whatsapp text-xl"></i>
+          <% end %>
+        <% end %>
+
         <%= link_to "Acerto rescisório", termination_report_employee_path(@employee),
           target: "_blank", rel: "noopener",
           class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700

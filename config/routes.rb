@@ -15,6 +15,22 @@ Rails.application.routes.draw do
     to: "loading_events#share_pdf",
     as: :shared_loading_event_pdf
 
+  get "shared/:tenant_name/batch_reports/:id/:share_token",
+    to: "batch_reports#share_pdf",
+    as: :shared_batch_report_pdf
+
+  get "shared/:tenant_name/loading_reports/:id/:share_token",
+    to: "loading_reports#share_pdf",
+    as: :shared_loading_report_pdf
+
+  get "shared/:tenant_name/employees/:id/:share_token",
+    to: "employees#share_termination_report",
+    as: :shared_employee_termination_report_pdf
+
+  get "shared/:tenant_name/feeding_tables/:id/:share_token",
+    to: "feeding_tables#share_pdf",
+    as: :shared_feeding_table_pdf
+
   get "select_company", to: "tenant_selections#new", as: :select_company
   post "select_company", to: "tenant_selections#create"
 
@@ -54,8 +70,12 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :batch_reports, only: [:index]
-    resources :loading_reports, only: [:index]
+    resources :batch_reports, only: [:index] do
+      collection { post :create_share }
+    end
+    resources :loading_reports, only: [:index] do
+      collection { post :create_share }
+    end
     resources :biometry_events, only: %i[index new create edit update destroy]
     resources :mortality_events, only: %i[index new create]
     resources :feeding_events, only: %i[index new create edit update destroy]

@@ -1,5 +1,6 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: :share_termination_report
   before_action :set_employee, only: [:show, :edit, :update, :destroy, :termination_report]
   before_action :load_units, only: [:new, :create, :edit, :update]
 
@@ -92,6 +93,36 @@ class EmployeesController < ApplicationController
                   filename: "acerto-rescisorio-#{@employee.id}.pdf",
                   type: "application/pdf",
                   disposition: "inline"
+      end
+    end
+  end
+
+  def share_termination_report
+    Apartment::Tenant.switch(params[:tenant_name]) do
+      @employee = Employee.find_by!(id: params[:id], share_token: params[:share_token])
+      @settlement = Employees::TerminationSettlement.new(@employee).call
+      @company = Company.find_by(tenant_name: params[:tenant_name])
+
+      respond_to do |format|
+        format.pdf do
+          html = render_to_string(
+            template: "employees/termination_report",
+            layout: "pdf",
+            formats: [:html]
+          )
+
+          pdf = WickedPdf.new.pdf_from_string(
+            html,
+            page_size: "A4",
+            encoding: "UTF-8",
+            margin: { top: 10, bottom: 10, left: 10, right: 10 }
+          )
+
+          send_data pdf,
+                    filename: "acerto-rescisorio-#{@employee.id}.pdf",
+                    type: "application/pdf",
+                    disposition: "inline"
+        end
       end
     end
   end

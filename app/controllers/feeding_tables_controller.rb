@@ -48,27 +48,59 @@ class FeedingTablesController < ApplicationController
 
   def print
     @feeding_table = FeedingTable.find(params[:id])
+    load_print_data(@feeding_table)
 
-    @weight_ranges =
-      FeedingWeightRange.order(:weight_from)
+    respond_to do |format|
+      format.html { render layout: false }
+      format.pdf do
+        html = render_to_string(
+          template: "feeding_tables/print",
+          layout: "pdf",
+          formats: [:html]
+        )
 
-    @temperature_ranges =
-      FeedingTemperatureRange.order(:temperature_from)
+        pdf = WickedPdf.new.pdf_from_string(
+          html,
+          page_size: "A4",
+          encoding: "UTF-8",
+          margin: { top: 10, bottom: 10, left: 10, right: 10 }
+        )
 
-    @strategy_matrix =
-      @feeding_table
-        .feeding_strategy_items
-        .index_by do |item|
-          [
-            item.feeding_weight_range_id,
-            item.feeding_temperature_range_id
-          ]
+        send_data pdf,
+                  filename: "arracoamento-#{@feeding_table.id}.pdf",
+                  type: "application/pdf",
+                  disposition: "inline"
+      end
+    end
+  end
+
+  def share_pdf
+    Apartment::Tenant.switch(params[:tenant_name]) do
+      @feeding_table = FeedingTable.find_by!(id: params[:id], share_token: params[:share_token])
+      load_print_data(@feeding_table)
+
+      respond_to do |format|
+        format.pdf do
+          render pdf: "arracoamento-#{@feeding_table.id}",
+                template: "feeding_tables/print",
+                layout: "pdf",
+                formats: [:html],
+                encoding: "UTF-8",
+                page_size: "A4"
         end
-
-    render layout: false
+      end
+    end
   end
 
   private
+
+  def load_print_data(feeding_table)
+    @weight_ranges = FeedingWeightRange.order(:weight_from)
+    @temperature_ranges = FeedingTemperatureRange.order(:temperature_from)
+    @strategy_matrix = feeding_table.feeding_strategy_items.index_by do |item|
+      [item.feeding_weight_range_id, item.feeding_temperature_range_id]
+    end
+  end
 
   def set_feeding_table
     @feeding_table = FeedingTable.find(params[:id])

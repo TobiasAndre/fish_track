@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_26_210143) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_27_002825) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -148,9 +148,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_26_210143) do
     t.date "terminated_on"
     t.text "notes"
     t.bigint "unit_id"
+    t.string "share_token"
     t.index ["department"], name: "index_employees_on_department"
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
+    t.index ["share_token"], name: "index_employees_on_share_token", unique: true
     t.index ["status"], name: "index_employees_on_status"
     t.index ["unit_id"], name: "index_employees_on_unit_id"
   end
@@ -180,7 +182,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_26_210143) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "share_token"
     t.index ["name"], name: "index_feeding_tables_on_name", unique: true
+    t.index ["share_token"], name: "index_feeding_tables_on_share_token", unique: true
   end
 
   create_table "feeding_temperature_ranges", force: :cascade do |t|
@@ -359,6 +363,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_26_210143) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
+  end
+
+  create_table "report_shares", force: :cascade do |t|
+    t.string "report_type", null: false
+    t.jsonb "filters", default: {}, null: false
+    t.string "share_token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["report_type"], name: "index_report_shares_on_report_type"
+    t.index ["share_token"], name: "index_report_shares_on_share_token", unique: true
   end
 
   create_table "silo_stock_entries", force: :cascade do |t|

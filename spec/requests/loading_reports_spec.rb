@@ -128,4 +128,42 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.content_type).to eq("application/pdf")
     end
   end
+
+  describe "POST /loading_reports/create_share" do
+    it "creates a ReportShare with the current filters and redirects back with report_share_id" do
+      expect do
+        post create_share_loading_reports_path, params: { batch_id: batch.id }
+      end.to change(ReportShare, :count).by(1)
+
+      report_share = ReportShare.last
+      expect(report_share.report_type).to eq("loading_report")
+      expect(report_share.filters).to eq("batch_id" => batch.id.to_s)
+      expect(response).to redirect_to(loading_reports_path(batch_id: batch.id, report_share_id: report_share.id))
+    end
+  end
+
+  describe "GET /shared/:tenant_name/loading_reports/:id/:share_token" do
+    it "renders the PDF publicly, without requiring authentication" do
+      sign_out user
+      create(:stocking_event, :loading, batch_stocking: batch_stocking)
+      report_share = create(:report_share, report_type: "loading_report", filters: {})
+
+      get shared_loading_report_pdf_path(
+        tenant_name: "public", id: report_share.id, share_token: report_share.share_token, format: :pdf
+      )
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+
+    it "is not found with an invalid share_token" do
+      report_share = create(:report_share, report_type: "loading_report")
+
+      get shared_loading_report_pdf_path(
+        tenant_name: "public", id: report_share.id, share_token: "wrong-token", format: :pdf
+      )
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

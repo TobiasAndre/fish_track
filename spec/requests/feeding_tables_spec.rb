@@ -74,4 +74,35 @@ RSpec.describe "FeedingTables", type: :request do
       expect(response).to redirect_to(feeding_tables_path)
     end
   end
+
+  describe "GET /feeding_tables/:id/print.pdf" do
+    it "returns a PDF" do
+      table = create(:feeding_table)
+
+      get print_feeding_table_path(table, format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+  end
+
+  describe "GET /shared/:tenant_name/feeding_tables/:id/:share_token" do
+    it "renders the PDF publicly, without requiring authentication" do
+      sign_out user
+      table = create(:feeding_table)
+
+      get shared_feeding_table_pdf_path(tenant_name: "public", id: table.id, share_token: table.share_token, format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+
+    it "is not found with an invalid share_token" do
+      table = create(:feeding_table)
+
+      get shared_feeding_table_pdf_path(tenant_name: "public", id: table.id, share_token: "wrong-token", format: :pdf)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

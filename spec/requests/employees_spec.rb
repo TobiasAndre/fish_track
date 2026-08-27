@@ -225,4 +225,34 @@ RSpec.describe "Employees", type: :request do
       expect(response.content_type).to eq("application/pdf")
     end
   end
+
+  describe "GET /shared/:tenant_name/employees/:id/:share_token" do
+    it "renders the PDF publicly, without requiring authentication" do
+      sign_out user
+      employee = create(
+        :employee, salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get shared_employee_termination_report_pdf_path(
+        tenant_name: "public", id: employee.id, share_token: employee.share_token, format: :pdf
+      )
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+
+    it "is not found with an invalid share_token" do
+      employee = create(
+        :employee, salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get shared_employee_termination_report_pdf_path(
+        tenant_name: "public", id: employee.id, share_token: "wrong-token", format: :pdf
+      )
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end
