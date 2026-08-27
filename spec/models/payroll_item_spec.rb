@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe PayrollItem, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:payroll_item) }
+  end
+
   it "is valid with an employee, year, month, occurred_on, item_type and a positive amount" do
     expect(build(:payroll_item)).to be_valid
   end

@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Employee, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:employee) }
+  end
+
   it "is valid with a name and a non-negative salary" do
     expect(build(:employee)).to be_valid
   end

@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Order, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:order) }
+  end
+
   it "is valid with a customer, a status and an occurred_on" do
     expect(build(:order)).to be_valid
   end

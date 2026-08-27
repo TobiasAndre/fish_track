@@ -1,4 +1,6 @@
 class PayrollItem < ApplicationRecord
+  include Loggable
+
   belongs_to :employee
 
   has_one :financial_entry, dependent: :destroy
@@ -17,6 +19,10 @@ class PayrollItem < ApplicationRecord
   after_destroy :remove_financial_entry!
 
   private
+
+  def activity_description
+    financial_description
+  end
 
   def create_financial_entry!
     FinancialEntry.create!(

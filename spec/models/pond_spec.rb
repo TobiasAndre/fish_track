@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Pond, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:pond) }
+  end
+
   it "is valid with a unit and a name" do
     expect(build(:pond)).to be_valid
   end

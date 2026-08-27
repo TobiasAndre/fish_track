@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe FeedingTable, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:feeding_table) }
+  end
+
   it "is valid with a name" do
     expect(build(:feeding_table)).to be_valid
   end

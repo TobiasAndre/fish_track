@@ -1,4 +1,6 @@
 class Employee < ApplicationRecord
+  include Loggable
+
   has_secure_token :share_token
 
   belongs_to :unit, optional: true
@@ -83,6 +85,10 @@ class Employee < ApplicationRecord
   end
 
   private
+
+  def activity_description
+    "#{name} (#{human_status})"
+  end
 
   def terminated_on_not_before_started_on
     return if terminated_on.blank? || started_on.blank?

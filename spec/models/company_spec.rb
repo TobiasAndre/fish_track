@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Company, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:company) }
+  end
+
   it "is valid with a name and a well-formed tenant_name" do
     expect(build(:company)).to be_valid
   end

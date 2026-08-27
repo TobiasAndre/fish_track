@@ -1,4 +1,6 @@
 class Batch < ApplicationRecord
+  include Loggable
+
   has_many :batch_stockings, dependent: :destroy
   has_many :ponds, through: :batch_stockings
   has_many :stocking_events, through: :batch_stockings
@@ -47,6 +49,10 @@ class Batch < ApplicationRecord
   end
 
   private
+
+  def activity_description
+    "Lote #{name}"
+  end
 
   def sync_batch_totals_from_stockings
     valid_stockings = batch_stockings.reject(&:marked_for_destruction?)

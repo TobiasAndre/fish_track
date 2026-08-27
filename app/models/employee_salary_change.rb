@@ -1,4 +1,6 @@
 class EmployeeSalaryChange < ApplicationRecord
+  include Loggable
+
   belongs_to :employee
 
   # users live in the public schema, not the tenant schema this record lives
@@ -18,5 +20,11 @@ class EmployeeSalaryChange < ApplicationRecord
 
   def human_change_type
     I18n.t("enums.employee_salary_change.change_type.#{change_type}", default: change_type.to_s)
+  end
+
+  private
+
+  def activity_description
+    "Alteração salarial - #{employee.name} - #{I18n.l(effective_on)}"
   end
 end

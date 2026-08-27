@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Product, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:product) }
+  end
+
   it "is valid with a name and a unit from the allowed list" do
     expect(build(:product)).to be_valid
   end

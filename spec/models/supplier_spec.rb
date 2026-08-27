@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Supplier, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:supplier) }
+  end
+
   it "is valid with a name" do
     expect(build(:supplier)).to be_valid
   end

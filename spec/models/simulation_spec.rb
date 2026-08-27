@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Simulation, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:simulation) }
+  end
+
   it "is valid with a customer, simulated_on, quantity, avg_weight_kg and pricing fields" do
     expect(build(:simulation)).to be_valid
   end

@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Silo, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:silo) }
+  end
+
   it "is valid with a unit and a name" do
     expect(build(:silo)).to be_valid
   end

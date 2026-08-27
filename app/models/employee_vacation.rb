@@ -1,4 +1,6 @@
 class EmployeeVacation < ApplicationRecord
+  include Loggable
+
   belongs_to :employee
 
   STATUSES = %w[accruing available scheduled taken partially_taken cancelled].freeze
@@ -23,6 +25,10 @@ class EmployeeVacation < ApplicationRecord
   end
 
   private
+
+  def activity_description
+    "Férias - #{employee.name} - #{human_status}"
+  end
 
   def accrual_period_is_chronological
     return if accrual_started_on.blank? || accrual_ended_on.blank?

@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe SiloStockEntry, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:silo_stock_entry) }
+  end
+
   it "is valid with a silo, a feeding_type, a date and a positive quantity" do
     expect(build(:silo_stock_entry)).to be_valid
   end

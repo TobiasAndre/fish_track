@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe PaymentTerm, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:payment_term) }
+  end
+
   it "is valid with a name" do
     expect(build(:payment_term)).to be_valid
   end

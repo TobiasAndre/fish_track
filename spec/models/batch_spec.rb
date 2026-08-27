@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Batch, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:batch) }
+  end
+
   it "is valid with a name, started_on, status, stage and a batch stocking" do
     expect(build(:batch)).to be_valid
   end

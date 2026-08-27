@@ -1,4 +1,6 @@
 class Order < ApplicationRecord
+  include Loggable
+
   belongs_to :customer
   belongs_to :payment_method, optional: true
   belongs_to :payment_term, optional: true
@@ -28,6 +30,10 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def activity_description
+    "Pedido ##{id} - #{customer&.name} (#{status})"
+  end
 
   # Runs after save (rather than before_validation) because the nested
   # order_items only get their own total_cents computed and persisted

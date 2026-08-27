@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe FeedingStrategyItem, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:feeding_strategy_item) }
+  end
+
   it "is valid with a table, a weight range, a temperature range and a feeding percentage" do
     expect(build(:feeding_strategy_item)).to be_valid
   end

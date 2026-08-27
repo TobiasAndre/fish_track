@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Integrated, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:integrated) }
+  end
+
   it "is valid with a customer and a name" do
     expect(build(:integrated)).to be_valid
   end

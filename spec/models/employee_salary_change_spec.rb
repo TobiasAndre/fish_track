@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe EmployeeSalaryChange, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:employee_salary_change) }
+  end
+
   it "is valid with an employee, salary_cents, effective_on and change_type" do
     expect(build(:employee_salary_change)).to be_valid
   end

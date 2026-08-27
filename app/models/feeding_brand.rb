@@ -1,4 +1,6 @@
 class FeedingBrand < ApplicationRecord
+  include Loggable
+
   has_many :feeding_types, dependent: :restrict_with_error
   has_many :stocking_events, dependent: :restrict_with_error
   has_many :silo_stock_entries, dependent: :restrict_with_error
@@ -9,6 +11,10 @@ class FeedingBrand < ApplicationRecord
   validate :name_must_be_unique_ignoring_case_and_spaces
 
   private
+
+  def activity_description
+    "Marca de ração #{name}"
+  end
 
   def normalize_name
     self.name = name.strip.squeeze(" ") if name.present?

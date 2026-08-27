@@ -1,4 +1,6 @@
 class Simulation < ApplicationRecord
+  include Loggable
+
   belongs_to :customer
   belongs_to :integrated, optional: true
   has_secure_token :share_token
@@ -21,6 +23,10 @@ class Simulation < ApplicationRecord
   validates :loading_count, numericality: { greater_than: 0, only_integer: true }
 
   private
+
+  def activity_description
+    "Orçamento - #{customer&.name} - #{I18n.l(simulated_on)}"
+  end
 
   def normalize_numeric_fields
     raw_quantity = read_attribute_before_type_cast("quantity")

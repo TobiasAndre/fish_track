@@ -1,6 +1,19 @@
 require "rails_helper"
 
 RSpec.describe StockingEvent, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:stocking_event) }
+  end
+
+  it "logs the event_type on the ActivityLog entry" do
+    Current.user = create(:user)
+    event = build(:stocking_event, :loading)
+
+    event.save!
+
+    expect(ActivityLog.last.event_type).to eq("loading")
+  end
+
   it "is valid with a batch_stocking, occurred_on and event_type" do
     expect(build(:stocking_event)).to be_valid
   end

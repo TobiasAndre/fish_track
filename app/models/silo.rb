@@ -1,4 +1,6 @@
 class Silo < ApplicationRecord
+  include Loggable
+
   belongs_to :unit
 
   has_many :stock_entries, class_name: "SiloStockEntry", dependent: :restrict_with_error
@@ -9,6 +11,10 @@ class Silo < ApplicationRecord
   validate :name_must_be_unique_ignoring_case_and_spaces_within_unit
 
   private
+
+  def activity_description
+    "Silo #{name} (#{unit&.name})"
+  end
 
   def normalize_name
     self.name = name.strip.squeeze(" ") if name.present?

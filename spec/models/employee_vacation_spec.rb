@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe EmployeeVacation, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:employee_vacation) }
+  end
+
   it "is valid with an accrual period and a default status" do
     expect(build(:employee_vacation)).to be_valid
   end

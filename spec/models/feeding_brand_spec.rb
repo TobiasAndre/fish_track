@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe FeedingBrand, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:feeding_brand) }
+  end
+
   it "is valid with a name" do
     expect(build(:feeding_brand)).to be_valid
   end

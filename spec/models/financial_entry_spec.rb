@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe FinancialEntry, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:financial_entry) }
+  end
+
   it "is valid with entry_type, stage, occurred_on, a positive amount and a description" do
     expect(build(:financial_entry)).to be_valid
   end

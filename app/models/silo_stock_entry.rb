@@ -1,4 +1,6 @@
 class SiloStockEntry < ApplicationRecord
+  include Loggable
+
   belongs_to :silo
   belongs_to :feeding_type
   belongs_to :feeding_brand
@@ -18,6 +20,10 @@ class SiloStockEntry < ApplicationRecord
   scope :recent_first, -> { order(occurred_on: :desc, created_at: :desc) }
 
   private
+
+  def activity_description
+    financial_description
+  end
 
   def sync_feeding_brand_from_type
     self.feeding_brand = feeding_type&.feeding_brand

@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe User, type: :model do
+  it_behaves_like "a loggable model" do
+    let(:loggable_record) { build(:user) }
+  end
+
   it "is valid with an email and a password" do
     expect(build(:user)).to be_valid
   end

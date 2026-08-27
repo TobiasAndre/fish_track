@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include Loggable
+
   attr_accessor :tenant_name
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -7,4 +9,10 @@ class User < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
+
+  private
+
+  def activity_description
+    "Usuário #{name} (#{email})"
+  end
 end

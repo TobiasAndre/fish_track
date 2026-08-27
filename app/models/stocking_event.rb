@@ -1,4 +1,6 @@
 class StockingEvent < ApplicationRecord
+  include Loggable
+
   belongs_to :batch_stocking
   belongs_to :customer, optional: true
   belongs_to :integrated, optional: true
@@ -21,9 +23,6 @@ class StockingEvent < ApplicationRecord
 
   after_commit :update_batch_avg_weight, on: %i[create update]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
-
-  before_destroy :capture_activity_snapshot
-  after_commit :log_activity, on: %i[create update destroy]
 
   with_options if: :biometrics? do
     validates :volume, presence: true, numericality: { greater_than: 0 }
@@ -59,27 +58,8 @@ class StockingEvent < ApplicationRecord
 
   private
 
-  def capture_activity_snapshot
-    @activity_snapshot = activity_description
-  end
-
-  def log_activity
-    return unless Current.user
-
-    ActivityLog.record!(
-      user: Current.user,
-      action: activity_action,
-      resource_type: "StockingEvent",
-      resource_id: id,
-      event_type: event_type,
-      description: @activity_snapshot || activity_description
-    )
-  end
-
-  def activity_action
-    return "destroy" if destroyed?
-
-    previously_new_record? ? "create" : "update"
+  def activity_event_type
+    event_type
   end
 
   def activity_description
