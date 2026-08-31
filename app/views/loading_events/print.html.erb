@@ -48,14 +48,14 @@
     <div style="width: 31%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box; margin-right: 2%;">
       <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso total</div>
       <div style="font-size: 18px; font-weight: bold;">
-        <%= @stocking_event.total_weight_kg.present? ? "#{number_with_precision(@stocking_event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "—" %>
+        <%= @stocking_event.total_weight_kg.present? ? "#{number_with_precision(@stocking_event.total_weight_kg, precision: 1, separator: ",", delimiter: ".")} kg" : "—" %>
       </div>
     </div>
 
     <div style="width: 31%; display: inline-block; vertical-align: top; border: 1px solid #d1d5db; border-radius: 12px; padding: 16px; box-sizing: border-box;">
       <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Peso médio</div>
       <div style="font-size: 18px; font-weight: bold;">
-        <%= @stocking_event.avg_weight_g.present? ? "#{number_with_precision(@stocking_event.avg_weight_g, precision: 2, separator: ",", delimiter: ".")} g" : "—" %>
+        <%= @stocking_event.avg_weight_g.present? ? "#{number_with_precision(@stocking_event.avg_weight_g, precision: 1, separator: ",", delimiter: ".")} g" : "—" %>
       </div>
     </div>
   </div>

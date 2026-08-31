@@ -353,6 +353,16 @@
                   <td class="py-2 pr-4 text-right">
                     <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
 
+                      <!-- Enviar por WhatsApp -->
+                      <% if (whatsapp_url = loading_event_whatsapp_url(event)) %>
+                        <%= link_to whatsapp_url,
+                          target: "_blank", rel: "noopener",
+                          class: "text-gray-500 hover:text-green-600 transition",
+                          title: "Enviar por WhatsApp" do %>
+                          <i class="fa-brands fa-whatsapp text-xl"></i>
+                        <% end %>
+                      <% end %>
+
                       <!-- Imprimir -->
                       <%= link_to print_loading_event_path(event, format: :pdf),
                         target: "_blank", rel: "noopener",
@@ -535,6 +545,16 @@
 
                         <td class="py-2 pr-4 text-right">
                           <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                            <!-- Enviar por WhatsApp -->
+                            <% if (whatsapp_url = loading_event_whatsapp_url(event)) %>
+                              <%= link_to whatsapp_url,
+                                target: "_blank", rel: "noopener",
+                                class: "text-gray-500 hover:text-green-600 transition",
+                                title: "Enviar por WhatsApp" do %>
+                                <i class="fa-brands fa-whatsapp text-xl"></i>
+                              <% end %>
+                            <% end %>
+
                             <!-- Imprimir -->
                             <%= link_to print_loading_event_path(event, format: :pdf),
                               target: "_blank", rel: "noopener",
