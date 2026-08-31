@@ -24,11 +24,7 @@
       </div>
     <% end %>
 
-    <% if @silos.empty? %>
-      <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        Cadastre um <%= link_to "silo", new_silo_path, class: "underline font-medium" %> antes de lançar.
-      </div>
-    <% elsif @feeding_types.empty? %>
+    <% if @feeding_types.empty? %>
       <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
         Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, class: "underline font-medium" %>
         e um <%= link_to "tipo de ração", new_feeding_type_path, class: "underline font-medium" %> antes de lançar.
@@ -42,18 +38,24 @@
       data: { controller: "feeding-form" },
       class: "space-y-4" do |f| %>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
           <%= f.date_field :occurred_on, required: true, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
         <div>
-          <%= f.label :silo_id, "Silo", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.label :silo_id, "Silo (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
           <% grouped_silos = @silos.group_by { |s| s.unit.name }.sort.map { |unit_name, silos| [unit_name, silos.map { |s| [s.name, s.id] }] } %>
           <%= f.select :silo_id, grouped_options_for_select(grouped_silos, @silo_stock_entry.silo_id),
-            { prompt: "Selecione o silo" },
-            required: true,
+            { include_blank: "Sem silo" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= f.label :batch_id, "Lote (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.select :batch_id, options_from_collection_for_select(@batches, :id, :name, @silo_stock_entry.batch_id),
+            { include_blank: "Sem lote" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
@@ -213,6 +215,7 @@
               <th class="py-2 pr-4 font-medium">Data</th>
               <th class="py-2 pr-4 font-medium">Unidade</th>
               <th class="py-2 pr-4 font-medium">Silo</th>
+              <th class="py-2 pr-4 font-medium">Lote</th>
               <th class="py-2 pr-4 font-medium">Tipo</th>
               <th class="py-2 pr-4 font-medium">Marca</th>
               <th class="py-2 pr-4 font-medium">Quantidade</th>
@@ -226,8 +229,9 @@
             <% @entries.each do |entry| %>
               <tr class="border-b border-gray-100 dark:border-gray-800">
                 <td class="py-2 pr-4"><%= entry.occurred_on.present? ? l(entry.occurred_on) : "—" %></td>
-                <td class="py-2 pr-4"><%= entry.silo.unit.name %></td>
-                <td class="py-2 pr-4"><%= entry.silo.name %></td>
+                <td class="py-2 pr-4"><%= entry.silo&.unit&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= entry.silo&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= entry.batch&.name || "—" %></td>
                 <td class="py-2 pr-4"><%= entry.feeding_type.name %></td>
                 <td class="py-2 pr-4"><%= entry.feeding_brand.name %></td>
                 <td class="py-2 pr-4"><%= number_with_precision(entry.quantity_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>

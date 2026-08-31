@@ -9,11 +9,23 @@ RSpec.describe SiloStockEntry, type: :model do
     expect(build(:silo_stock_entry)).to be_valid
   end
 
-  it "is invalid without a silo" do
-    entry = build(:silo_stock_entry, silo: nil)
+  it "is valid without a silo (silo is optional)" do
+    expect(build(:silo_stock_entry, silo: nil)).to be_valid
+  end
+
+  it "is invalid when the referenced silo does not exist" do
+    entry = build(:silo_stock_entry)
+    entry.silo_id = 999_999
 
     expect(entry).not_to be_valid
     expect(entry.errors[:silo]).to be_present
+  end
+
+  it "can be linked to an existing batch" do
+    batch = create(:batch)
+    entry = create(:silo_stock_entry, batch: batch)
+
+    expect(entry.reload.batch).to eq(batch)
   end
 
   it "is invalid without a feeding_type" do
@@ -115,6 +127,19 @@ RSpec.describe SiloStockEntry, type: :model do
       entry.destroy
 
       expect(FinancialEntry.exists?(financial_entry.id)).to be false
+    end
+
+    it "attributes the financial entry to the linked batch (and its stage/unit)" do
+      unit = create(:unit)
+      pond = create(:pond, unit: unit)
+      batch = create(:batch, pond: pond, stage: "growout")
+      entry = create(:silo_stock_entry, silo: nil, batch: batch, quantity_kg: 50, total_cents: 25_000)
+
+      financial_entry = entry.reload.financial_entry
+      expect(financial_entry).to be_present
+      expect(financial_entry.batch_id).to eq(batch.id)
+      expect(financial_entry.stage).to eq("growout")
+      expect(financial_entry.unit_id).to eq(unit.id)
     end
 
     it "labels the financial entry with the feeding type, brand and silo" do

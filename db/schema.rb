@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_27_002825) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_31_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -376,7 +376,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_27_002825) do
   end
 
   create_table "silo_stock_entries", force: :cascade do |t|
-    t.bigint "silo_id", null: false
+    t.bigint "silo_id"
     t.bigint "feeding_type_id", null: false
     t.bigint "feeding_brand_id", null: false
     t.date "occurred_on", null: false
@@ -386,6 +386,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_27_002825) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "batch_id"
+    t.index ["batch_id"], name: "index_silo_stock_entries_on_batch_id"
     t.index ["feeding_brand_id"], name: "index_silo_stock_entries_on_feeding_brand_id"
     t.index ["feeding_type_id"], name: "index_silo_stock_entries_on_feeding_type_id"
     t.index ["occurred_on"], name: "index_silo_stock_entries_on_occurred_on"
@@ -553,6 +555,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_27_002825) do
   add_foreign_key "orders", "payment_terms"
   add_foreign_key "payroll_items", "employees"
   add_foreign_key "ponds", "units"
+  add_foreign_key "silo_stock_entries", "batches"
   add_foreign_key "silo_stock_entries", "feeding_brands"
   add_foreign_key "silo_stock_entries", "feeding_types"
   add_foreign_key "silo_stock_entries", "silos"

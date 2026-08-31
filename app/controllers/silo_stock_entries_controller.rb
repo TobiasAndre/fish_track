@@ -47,6 +47,7 @@ class SiloStockEntriesController < ApplicationController
   def load_form_collections
     @silos = Silo.includes(:unit).order("units.name", "silos.name")
     @feeding_types = FeedingType.includes(:feeding_brand).order(:name)
+    @batches = Batch.order(:status, started_on: :desc)
   end
 
   def load_entries
@@ -58,8 +59,8 @@ class SiloStockEntriesController < ApplicationController
     @q_from = params[:from].presence
     @q_to = params[:to].presence
 
-    scope = SiloStockEntry.includes(silo: :unit, feeding_type: :feeding_brand)
-      .joins(:silo)
+    scope = SiloStockEntry.includes(:batch, silo: :unit, feeding_type: :feeding_brand)
+      .left_joins(:silo)
       .recent_first
 
     scope = scope.where(silos: { unit_id: @q_unit_id }) if @q_unit_id.present?
@@ -76,6 +77,7 @@ class SiloStockEntriesController < ApplicationController
   def entry_params
     params.require(:silo_stock_entry).permit(
       :silo_id,
+      :batch_id,
       :feeding_type_id,
       :occurred_on,
       :quantity_kg,

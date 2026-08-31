@@ -140,7 +140,7 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "does not create an entry without a silo or feeding type" do
+    it "does not create an entry without a feeding type" do
       expect do
         post silo_stock_entries_path, params: {
           silo_stock_entry: {
@@ -152,6 +152,29 @@ RSpec.describe "SiloStockEntries", type: :request do
       end.not_to change(SiloStockEntry, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "creates an entry without a silo, linked to an existing batch" do
+      batch = create(:batch)
+
+      expect do
+        post silo_stock_entries_path, params: {
+          silo_stock_entry: {
+            feeding_type_id: feeding_type.id,
+            batch_id: batch.id,
+            occurred_on: Date.current,
+            quantity_kg: "500",
+            total_cents: 250_000
+          }
+        }
+      end.to change(SiloStockEntry, :count).by(1)
+
+      expect(response).to redirect_to(silo_stock_entries_path)
+
+      entry = SiloStockEntry.last
+      expect(entry.silo).to be_nil
+      expect(entry.batch).to eq(batch)
+      expect(entry.financial_entry.batch_id).to eq(batch.id)
     end
 
     it "does not create an entry referencing a nonexistent silo" do

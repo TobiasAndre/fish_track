@@ -1,9 +1,10 @@
 class SiloStockEntry < ApplicationRecord
   include Loggable
 
-  belongs_to :silo
+  belongs_to :silo, optional: true
   belongs_to :feeding_type
   belongs_to :feeding_brand
+  belongs_to :batch, optional: true
 
   has_one :financial_entry, dependent: :destroy
 
@@ -13,6 +14,9 @@ class SiloStockEntry < ApplicationRecord
   validates :occurred_on, presence: true
   validates :quantity_kg, presence: true, numericality: { greater_than: 0 }
   validates :total_cents, numericality: { greater_than_or_equal_to: 0 }
+  # silo e lote são opcionais, mas quando informados precisam existir
+  validates :silo, presence: true, if: -> { silo_id.present? }
+  validates :batch, presence: true, if: -> { batch_id.present? }
 
   after_commit :sync_financial_entry!, on: %i[create update]
   after_commit :remove_financial_entry!, on: :destroy
@@ -50,11 +54,12 @@ class SiloStockEntry < ApplicationRecord
     entry = FinancialEntry.find_or_initialize_by(silo_stock_entry_id: id)
     entry.assign_attributes(
       entry_type: "expense",
-      stage: "general",
+      stage: batch&.stage || "general",
       occurred_on: occurred_on,
       amount_cents: total_cents.to_i,
       description: financial_description,
-      unit_id: silo&.unit_id
+      unit_id: silo&.unit_id || batch&.unit&.id,
+      batch_id: batch_id
     )
     entry.save!
   end
@@ -66,6 +71,6 @@ class SiloStockEntry < ApplicationRecord
   def financial_description
     feed_label = [feeding_type&.name, feeding_brand&.name].compact.join(" ")
 
-    ["Ração (estoque)", feed_label.presence, silo&.name].compact.join(" - ")
+    ["Ração (estoque)", feed_label.presence, silo&.name, batch&.name].compact.join(" - ")
   end
 end
