@@ -48,6 +48,8 @@ class SiloStockEntriesController < ApplicationController
     @silos = Silo.includes(:unit).order("units.name", "silos.name")
     @feeding_types = FeedingType.includes(:feeding_brand).order(:name)
     @batches = Batch.order(:status, started_on: :desc)
+    @payment_methods = PaymentMethod.where(active: true).order(:name)
+    @payment_terms = PaymentTerm.where(active: true).order(:name)
   end
 
   def load_entries
@@ -59,7 +61,7 @@ class SiloStockEntriesController < ApplicationController
     @q_from = params[:from].presence
     @q_to = params[:to].presence
 
-    scope = SiloStockEntry.includes(:batch, silo: :unit, feeding_type: :feeding_brand)
+    scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, silo: :unit, feeding_type: :feeding_brand)
       .left_joins(:silo)
       .recent_first
 
@@ -79,6 +81,9 @@ class SiloStockEntriesController < ApplicationController
       :silo_id,
       :batch_id,
       :feeding_type_id,
+      :payment_method_id,
+      :payment_term_id,
+      :due_on,
       :occurred_on,
       :quantity_kg,
       :total_cents,

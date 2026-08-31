@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_31_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_31_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -387,10 +387,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_31_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "batch_id"
+    t.bigint "payment_method_id"
+    t.bigint "payment_term_id"
+    t.date "due_on"
     t.index ["batch_id"], name: "index_silo_stock_entries_on_batch_id"
     t.index ["feeding_brand_id"], name: "index_silo_stock_entries_on_feeding_brand_id"
     t.index ["feeding_type_id"], name: "index_silo_stock_entries_on_feeding_type_id"
     t.index ["occurred_on"], name: "index_silo_stock_entries_on_occurred_on"
+    t.index ["payment_method_id"], name: "index_silo_stock_entries_on_payment_method_id"
+    t.index ["payment_term_id"], name: "index_silo_stock_entries_on_payment_term_id"
     t.index ["silo_id"], name: "index_silo_stock_entries_on_silo_id"
   end
 
@@ -558,6 +563,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_31_000001) do
   add_foreign_key "silo_stock_entries", "batches"
   add_foreign_key "silo_stock_entries", "feeding_brands"
   add_foreign_key "silo_stock_entries", "feeding_types"
+  add_foreign_key "silo_stock_entries", "payment_methods"
+  add_foreign_key "silo_stock_entries", "payment_terms"
   add_foreign_key "silo_stock_entries", "silos"
   add_foreign_key "silos", "units"
   add_foreign_key "simulation_products", "products"

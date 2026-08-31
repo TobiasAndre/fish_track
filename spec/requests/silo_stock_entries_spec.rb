@@ -154,6 +154,29 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    it "stores the payment method, term and due date when informed" do
+      payment_method = create(:payment_method)
+      payment_term = create(:payment_term)
+
+      post silo_stock_entries_path, params: {
+        silo_stock_entry: {
+          silo_id: silo.id,
+          feeding_type_id: feeding_type.id,
+          payment_method_id: payment_method.id,
+          payment_term_id: payment_term.id,
+          due_on: "2026-09-30",
+          occurred_on: Date.current,
+          quantity_kg: "500",
+          total_cents: 250_000
+        }
+      }
+
+      entry = SiloStockEntry.last
+      expect(entry.payment_method).to eq(payment_method)
+      expect(entry.payment_term).to eq(payment_term)
+      expect(entry.due_on).to eq(Date.new(2026, 9, 30))
+    end
+
     it "creates an entry without a silo, linked to an existing batch" do
       batch = create(:batch)
 

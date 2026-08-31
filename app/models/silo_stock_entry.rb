@@ -5,6 +5,8 @@ class SiloStockEntry < ApplicationRecord
   belongs_to :feeding_type
   belongs_to :feeding_brand
   belongs_to :batch, optional: true
+  belongs_to :payment_method, optional: true
+  belongs_to :payment_term, optional: true
 
   has_one :financial_entry, dependent: :destroy
 

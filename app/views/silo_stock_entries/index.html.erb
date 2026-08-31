@@ -105,6 +105,27 @@
         </div>
       </div>
 
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <%= f.label :payment_method_id, "Forma de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.collection_select :payment_method_id, @payment_methods, :id, :name,
+            { include_blank: "Não informada" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= f.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.collection_select :payment_term_id, @payment_terms, :id, :name,
+            { include_blank: "Não informada" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= f.label :due_on, "Data de vencimento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.date_field :due_on, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+
       <div>
         <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
         <%= f.text_area :notes,
@@ -221,6 +242,8 @@
               <th class="py-2 pr-4 font-medium">Quantidade</th>
               <th class="py-2 pr-4 font-medium">Preço/kg</th>
               <th class="py-2 pr-4 font-medium">Total</th>
+              <th class="py-2 pr-4 font-medium">Pagamento</th>
+              <th class="py-2 pr-4 font-medium">Vencimento</th>
               <th class="py-2 pr-4 font-medium text-right">Ações</th>
             </tr>
           </thead>
@@ -237,6 +260,8 @@
                 <td class="py-2 pr-4"><%= number_with_precision(entry.quantity_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
                 <td class="py-2 pr-4"><%= entry.price_per_kg_cents.to_i.positive? ? number_to_currency(entry.price_per_kg_cents.to_i / 100.0) : "—" %></td>
                 <td class="py-2 pr-4"><%= entry.total_cents.to_i.positive? ? number_to_currency(entry.total_cents.to_i / 100.0) : "—" %></td>
+                <td class="py-2 pr-4"><%= [entry.payment_method&.name, entry.payment_term&.name].compact.join(" · ").presence || "—" %></td>
+                <td class="py-2 pr-4"><%= entry.due_on.present? ? l(entry.due_on) : "—" %></td>
                 <td class="py-2 pr-4 text-right">
                   <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
                     <%= link_to edit_silo_stock_entry_path(entry),
