@@ -27,10 +27,11 @@ RSpec.describe "PaymentTerms", type: :request do
   describe "POST /payment_terms" do
     it "creates a payment term with valid params" do
       expect do
-        post payment_terms_path, params: { payment_term: { name: "30 dias", active: true } }
+        post payment_terms_path, params: { payment_term: { name: "30 dias", days: 30, active: true } }
       end.to change(PaymentTerm, :count).by(1)
 
       expect(response).to redirect_to(payment_terms_path)
+      expect(PaymentTerm.last.days).to eq(30)
     end
 
     it "does not create a payment term without a name" do

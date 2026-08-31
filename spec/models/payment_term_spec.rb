@@ -30,4 +30,19 @@ RSpec.describe PaymentTerm, type: :model do
     expect(payment_term).not_to be_valid
     expect(payment_term.errors[:active]).to be_present
   end
+
+  it "accepts a blank number of days (à vista)" do
+    expect(build(:payment_term, days: nil)).to be_valid
+  end
+
+  it "accepts a non-negative integer number of days" do
+    expect(build(:payment_term, days: 30)).to be_valid
+  end
+
+  it "is invalid with a negative number of days" do
+    payment_term = build(:payment_term, days: -1)
+
+    expect(payment_term).not_to be_valid
+    expect(payment_term.errors[:days]).to be_present
+  end
 end

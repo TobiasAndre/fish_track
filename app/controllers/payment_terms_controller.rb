@@ -42,6 +42,6 @@ class PaymentTermsController < ApplicationController
   end
 
   def payment_term_params
-    params.require(:payment_term).permit(:name, :description, :active)
+    params.require(:payment_term).permit(:name, :description, :days, :active)
   end
 end
