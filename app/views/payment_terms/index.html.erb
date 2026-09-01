@@ -17,7 +17,7 @@
         <thead class="bg-gray-50 dark:bg-gray-950">
           <tr>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Nome</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Dias</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Parcelamento</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Ações</th>
           </tr>
@@ -27,7 +27,7 @@
           <% @payment_terms.each do |payment_term| %>
             <tr>
               <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100"><%= payment_term.name %></td>
-              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100"><%= payment_term.days.present? ? "#{payment_term.days} dia#{'s' unless payment_term.days == 1}" : "À vista" %></td>
+              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100"><%= payment_term.installments_summary %></td>
               <td class="px-4 py-3 text-sm">
                 <% if payment_term.active? %>
                   <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">Ativa</span>

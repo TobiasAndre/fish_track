@@ -41,7 +41,9 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-          <%= f.date_field :occurred_on, required: true, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          <%= f.date_field :occurred_on, required: true,
+            data: { "feeding-form-target": "occurredOn", action: "change->feeding-form#applyDueDate" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
         <div>
@@ -115,14 +117,24 @@
 
         <div>
           <%= f.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-          <%= f.collection_select :payment_term_id, @payment_terms, :id, :name,
+          <%= f.select :payment_term_id,
+            options_for_select(
+              @payment_terms.map { |term| [term.name, term.id, { "data-first-offset": term.installment_offsets.first.to_i }] },
+              @silo_stock_entry.payment_term_id
+            ),
             { include_blank: "Não informada" },
-            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            { data: { "feeding-form-target": "paymentTerm", action: "change->feeding-form#applyDueDate" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" } %>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Define as parcelas e os vencimentos no Financeiro, a partir da data do lançamento.</p>
         </div>
 
         <div>
           <%= f.label :due_on, "Data de vencimento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-          <%= f.date_field :due_on, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          <%= f.date_field :due_on,
+            data: { "feeding-form-target": "dueOn" },
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-feeding-form-target="dueHintManual">Usada apenas quando nenhuma condição de pagamento é selecionada.</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-feeding-form-target="dueHintAuto" hidden>Calculada automaticamente pela condição de pagamento (1ª parcela).</p>
         </div>
       </div>
 
@@ -261,7 +273,16 @@
                 <td class="py-2 pr-4"><%= entry.price_per_kg_cents.to_i.positive? ? number_to_currency(entry.price_per_kg_cents.to_i / 100.0) : "—" %></td>
                 <td class="py-2 pr-4"><%= entry.total_cents.to_i.positive? ? number_to_currency(entry.total_cents.to_i / 100.0) : "—" %></td>
                 <td class="py-2 pr-4"><%= [entry.payment_method&.name, entry.payment_term&.name].compact.join(" · ").presence || "—" %></td>
-                <td class="py-2 pr-4"><%= entry.due_on.present? ? l(entry.due_on) : "—" %></td>
+                <td class="py-2 pr-4">
+                  <% dates = entry.due_dates %>
+                  <% if dates.size > 1 %>
+                    <%= "#{dates.size}×: #{l(dates.first)} – #{l(dates.last)}" %>
+                  <% elsif dates.size == 1 %>
+                    <%= l(dates.first) %>
+                  <% else %>
+                    <%= entry.due_on.present? ? l(entry.due_on) : "—" %>
+                  <% end %>
+                </td>
                 <td class="py-2 pr-4 text-right">
                   <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
                     <%= link_to edit_silo_stock_entry_path(entry),

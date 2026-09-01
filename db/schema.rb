@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_31_000004) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_31_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -226,7 +226,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_31_000004) do
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
     t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
-    t.index ["silo_stock_entry_id"], name: "index_financial_entries_on_silo_stock_entry_id", unique: true
+    t.index ["silo_stock_entry_id"], name: "index_financial_entries_on_silo_stock_entry_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
   end
@@ -313,6 +313,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_31_000004) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "days"
+    t.integer "installments_count", default: 1, null: false
+    t.integer "interval_days", default: 0, null: false
+    t.jsonb "day_offsets", default: [], null: false
     t.index ["active"], name: "index_payment_terms_on_active"
     t.index ["name"], name: "index_payment_terms_on_name", unique: true
   end

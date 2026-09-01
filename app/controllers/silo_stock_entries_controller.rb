@@ -61,7 +61,7 @@ class SiloStockEntriesController < ApplicationController
     @q_from = params[:from].presence
     @q_to = params[:to].presence
 
-    scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, silo: :unit, feeding_type: :feeding_brand)
+    scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, :financial_entries, silo: :unit, feeding_type: :feeding_brand)
       .left_joins(:silo)
       .recent_first
 

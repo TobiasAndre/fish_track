@@ -164,5 +164,79 @@ RSpec.describe SiloStockEntry, type: :model do
       expect(first.financial_entry.id).not_to eq(second.financial_entry.id)
       expect(FinancialEntry.where(silo_stock_entry_id: [first.id, second.id]).count).to eq(2)
     end
+
+    it "uses the due_on as the single financial entry's date when there is no payment term" do
+      entry = create(:silo_stock_entry, occurred_on: Date.new(2026, 1, 10), due_on: Date.new(2026, 2, 10), total_cents: 30_000)
+
+      expect(entry.financial_entries.count).to eq(1)
+      expect(entry.financial_entry.occurred_on).to eq(Date.new(2026, 2, 10))
+    end
+  end
+
+  describe "installment plans from the payment term" do
+    let(:term) { create(:payment_term, name: "3x 30/60/90", days: 30, installments_count: 3, interval_days: 30) }
+
+    it "generates one financial entry per installment, splitting the total" do
+      entry = create(:silo_stock_entry,
+        payment_term: term, occurred_on: Date.new(2026, 1, 1),
+        quantity_kg: 100, total_cents: 30_000)
+
+      entries = entry.financial_entries.order(:occurred_on)
+      expect(entries.count).to eq(3)
+      expect(entries.map(&:amount_cents)).to eq([10_000, 10_000, 10_000])
+      expect(entries.map(&:occurred_on)).to eq(
+        [Date.new(2026, 1, 1) + 30, Date.new(2026, 1, 1) + 60, Date.new(2026, 1, 1) + 90]
+      )
+      expect(entries.first.description).to end_with("(1/3)")
+      expect(entries.last.description).to end_with("(3/3)")
+    end
+
+    it "puts the rounding remainder on the last installment" do
+      entry = create(:silo_stock_entry, payment_term: term, quantity_kg: 100, total_cents: 10_000)
+
+      expect(entry.financial_entries.order(:occurred_on).map(&:amount_cents)).to eq([3_333, 3_333, 3_334])
+    end
+
+    it "regenerates the installments when the entry is edited" do
+      entry = create(:silo_stock_entry, payment_term: term, quantity_kg: 100, total_cents: 30_000)
+
+      expect { entry.update!(total_cents: 60_000) }.not_to change { entry.reload.financial_entries.count }
+      expect(entry.financial_entries.order(:occurred_on).map(&:amount_cents)).to eq([20_000, 20_000, 20_000])
+    end
+
+    it "removes all installments when the entry is destroyed" do
+      entry = create(:silo_stock_entry, payment_term: term, quantity_kg: 100, total_cents: 30_000)
+
+      expect { entry.destroy }.to change(FinancialEntry, :count).by(-3)
+    end
+
+    it "does not add the parcel suffix for a single-installment term" do
+      one_shot = create(:payment_term, name: "30 dias", days: 30, installments_count: 1)
+      entry = create(:silo_stock_entry, payment_term: one_shot, feeding_type: create(:feeding_type, name: "Extrusada 32%"))
+
+      expect(entry.financial_entry.description).not_to match(%r{\(\d+/\d+\)})
+    end
+
+    it "auto-fills due_on with the first installment date" do
+      entry = create(:silo_stock_entry,
+        payment_term: term, occurred_on: Date.new(2026, 1, 1),
+        quantity_kg: 100, total_cents: 30_000)
+
+      expect(entry.due_on).to eq(Date.new(2026, 1, 1) + 30)
+    end
+
+    it "recomputes due_on when the entry date changes" do
+      entry = create(:silo_stock_entry, payment_term: term, occurred_on: Date.new(2026, 1, 1), quantity_kg: 100, total_cents: 30_000)
+
+      entry.update!(occurred_on: Date.new(2026, 2, 1))
+
+      expect(entry.reload.due_on).to eq(Date.new(2026, 2, 1) + 30)
+    end
+  end
+
+  it "keeps a manually set due_on when there is no payment term" do
+    entry = create(:silo_stock_entry, payment_term: nil, occurred_on: Date.new(2026, 1, 1), due_on: Date.new(2026, 2, 15))
+
+    expect(entry.due_on).to eq(Date.new(2026, 2, 15))
   end
 end

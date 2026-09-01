@@ -154,9 +154,9 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "stores the payment method, term and due date when informed" do
+    it "stores the payment method and term, computing due_on from the term" do
       payment_method = create(:payment_method)
-      payment_term = create(:payment_term)
+      payment_term = create(:payment_term, days: 30)
 
       post silo_stock_entries_path, params: {
         silo_stock_entry: {
@@ -164,8 +164,8 @@ RSpec.describe "SiloStockEntries", type: :request do
           feeding_type_id: feeding_type.id,
           payment_method_id: payment_method.id,
           payment_term_id: payment_term.id,
-          due_on: "2026-09-30",
-          occurred_on: Date.current,
+          due_on: "2026-09-30", # ignorado: com condição, o vencimento vem dela
+          occurred_on: "2026-01-10",
           quantity_kg: "500",
           total_cents: 250_000
         }
@@ -174,7 +174,43 @@ RSpec.describe "SiloStockEntries", type: :request do
       entry = SiloStockEntry.last
       expect(entry.payment_method).to eq(payment_method)
       expect(entry.payment_term).to eq(payment_term)
-      expect(entry.due_on).to eq(Date.new(2026, 9, 30))
+      expect(entry.due_on).to eq(Date.new(2026, 1, 10) + 30)
+    end
+
+    it "keeps the informed due_on when no payment term is selected" do
+      post silo_stock_entries_path, params: {
+        silo_stock_entry: {
+          silo_id: silo.id,
+          feeding_type_id: feeding_type.id,
+          due_on: "2026-09-30",
+          occurred_on: "2026-01-10",
+          quantity_kg: "500",
+          total_cents: 250_000
+        }
+      }
+
+      expect(SiloStockEntry.last.due_on).to eq(Date.new(2026, 9, 30))
+    end
+
+    it "generates the installment schedule from the selected payment term" do
+      term = create(:payment_term, name: "3x", days: 30, installments_count: 3, interval_days: 30)
+
+      post silo_stock_entries_path, params: {
+        silo_stock_entry: {
+          silo_id: silo.id,
+          feeding_type_id: feeding_type.id,
+          payment_term_id: term.id,
+          occurred_on: "2026-01-01",
+          quantity_kg: "500",
+          total_cents: 300_000
+        }
+      }
+
+      entry = SiloStockEntry.last
+      expect(entry.financial_entries.count).to eq(3)
+      expect(entry.financial_entries.sum(:amount_cents)).to eq(300_000)
+      expect(entry.financial_entries.order(:occurred_on).last.occurred_on).to eq(Date.new(2026, 1, 1) + 90)
+      expect(entry.due_on).to eq(Date.new(2026, 1, 1) + 30)
     end
 
     it "creates an entry without a silo, linked to an existing batch" do

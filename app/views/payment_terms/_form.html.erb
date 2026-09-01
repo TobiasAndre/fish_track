@@ -19,17 +19,55 @@
       </div>
     </div>
 
-    <div>
-      <%= form.label :days, "Número de dias", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
-      <div class="mt-1">
-        <%= form.text_field :days,
-          inputmode: "numeric",
-          placeholder: "Ex.: 30",
-          data: { controller: "digits", action: "input->digits#strip" },
-          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    <fieldset class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">Parcelamento</legend>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <%= form.label :days, "1ª parcela (dias)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :days,
+              inputmode: "numeric",
+              placeholder: "Ex.: 30",
+              data: { controller: "digits", action: "input->digits#strip" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Dias a partir da data do lançamento. Em branco / 0 = à vista.</p>
+        </div>
+
+        <div>
+          <%= form.label :installments_count, "Nº de parcelas", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :installments_count,
+              inputmode: "numeric",
+              placeholder: "1",
+              data: { controller: "digits", action: "input->digits#strip" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :interval_days, "Intervalo entre parcelas (dias)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+          <div class="mt-1">
+            <%= form.text_field :interval_days,
+              inputmode: "numeric",
+              placeholder: "Ex.: 30",
+              data: { controller: "digits", action: "input->digits#strip" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+        </div>
       </div>
-      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Prazo em dias a partir da data do lançamento. Deixe em branco para pagamento à vista.</p>
-    </div>
+
+      <div>
+        <%= form.label :day_offsets_list, "Vencimentos personalizados (dias)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <div class="mt-1">
+          <%= form.text_field :day_offsets_list,
+            placeholder: "Ex.: 0, 30, 60",
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Para prazos irregulares. Quando preenchido, ignora o nº de parcelas e o intervalo acima.</p>
+      </div>
+    </fieldset>
 
     <div>
       <%= form.label :description, "Descrição", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>

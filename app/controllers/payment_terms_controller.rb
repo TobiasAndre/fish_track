@@ -6,7 +6,7 @@ class PaymentTermsController < ApplicationController
   end
 
   def new
-    @payment_term = PaymentTerm.new(active: true)
+    @payment_term = PaymentTerm.new(active: true, installments_count: 1, interval_days: 0)
   end
 
   def create
@@ -42,6 +42,9 @@ class PaymentTermsController < ApplicationController
   end
 
   def payment_term_params
-    params.require(:payment_term).permit(:name, :description, :days, :active)
+    params.require(:payment_term).permit(
+      :name, :description, :active,
+      :days, :installments_count, :interval_days, :day_offsets_list
+    )
   end
 end

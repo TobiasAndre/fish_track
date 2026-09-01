@@ -6,12 +6,50 @@ export default class extends Controller {
     "quantity",
     "totalValue",
     "totalCents",
-    "pricePerKg"
+    "pricePerKg",
+    "occurredOn",
+    "paymentTerm",
+    "dueOn",
+    "dueHintManual",
+    "dueHintAuto"
   ]
 
   connect() {
     this.formatInitialCurrencyValue()
     this.recalculate()
+    this.applyDueDate()
+  }
+
+  // Preenche a data de vencimento a partir da condição de pagamento
+  // selecionada (data do lançamento + dias da 1ª parcela). Sem condição, o
+  // campo volta a ser editável manualmente.
+  applyDueDate() {
+    if (!this.hasDueOnTarget || !this.hasPaymentTermTarget || !this.hasOccurredOnTarget) return
+
+    const option = this.paymentTermTarget.options[this.paymentTermTarget.selectedIndex]
+    const offset = option ? parseInt(option.dataset.firstOffset ?? "", 10) : NaN
+    const baseDate = this.occurredOnTarget.value
+    const usesTerm = Boolean(this.paymentTermTarget.value) && !Number.isNaN(offset) && Boolean(baseDate)
+
+    if (usesTerm) {
+      const date = new Date(`${baseDate}T00:00:00`)
+      date.setDate(date.getDate() + offset)
+      this.dueOnTarget.value = this.toISODate(date)
+    }
+
+    this.dueOnTarget.readOnly = usesTerm
+    this.dueOnTarget.classList.toggle("bg-gray-50", usesTerm)
+    this.dueOnTarget.classList.toggle("dark:bg-gray-900", usesTerm)
+
+    if (this.hasDueHintManualTarget) this.dueHintManualTarget.hidden = usesTerm
+    if (this.hasDueHintAutoTarget) this.dueHintAutoTarget.hidden = !usesTerm
+  }
+
+  toISODate(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
   }
 
   formatDecimalInput(event) {
