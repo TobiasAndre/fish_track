@@ -46,6 +46,30 @@ RSpec.describe "FinancialEntries", type: :request do
       expect(response.body).to include("Ração do lote")
       expect(response.body).not_to include("Despesa geral")
     end
+
+    it "shows 10 entries per page by default" do
+      create_list(:financial_entry, 12)
+
+      get financial_entries_path
+
+      expect(response.body.scan("Editar").size).to eq(10)
+    end
+
+    it "honours a valid per_page selection" do
+      create_list(:financial_entry, 25)
+
+      get financial_entries_path, params: { per_page: 20 }
+
+      expect(response.body.scan("Editar").size).to eq(20)
+    end
+
+    it "falls back to the default for an invalid per_page" do
+      create_list(:financial_entry, 15)
+
+      get financial_entries_path, params: { per_page: 999 }
+
+      expect(response.body.scan("Editar").size).to eq(10)
+    end
   end
 
   describe "POST /financial_entries" do

@@ -2,19 +2,23 @@ class FinancialEntriesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_entry, only: [:edit, :update, :destroy]
 
+  PER_PAGE_OPTIONS = [10, 20, 30, 50].freeze
+
   def index
     @q_stage = params[:stage].presence
     @q_from  = params[:from].presence
     @q_to    = params[:to].presence
     @q_type  = params[:entry_type].presence
     @q_batch_id = params[:batch_id].presence
+    @per_page = per_page
+    @per_page_options = PER_PAGE_OPTIONS
 
     @batches = Batch.order(:status, started_on: :desc)
 
     @entries = FinancialEntry.includes(:unit, :batch)
                              .order(occurred_on: :desc, created_at: :desc)
                              .page(params[:page])
-                             .per(5)
+                             .per(@per_page)
 
     @entries = @entries.where(stage: @q_stage) if @q_stage.present?
     @entries = @entries.where(entry_type: @q_type) if @q_type.present?
@@ -61,6 +65,11 @@ class FinancialEntriesController < ApplicationController
   end
 
   private
+
+  def per_page
+    requested = params[:per_page].to_i
+    PER_PAGE_OPTIONS.include?(requested) ? requested : PER_PAGE_OPTIONS.first
+  end
 
   def set_entry
     @entry = FinancialEntry.find(params[:id])
