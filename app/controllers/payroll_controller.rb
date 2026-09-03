@@ -5,7 +5,12 @@ class PayrollController < ApplicationController
     @month = (params[:month] || Date.current.month).to_i
     @competence_date = Date.new(@year, @month, 1)
 
-    @employees = Employee.order(:name)
+    # Não exibe na folha da competência quem foi desligado antes do 1º dia do
+    # mês. Quem foi desligado no próprio mês continua aparecendo para o acerto
+    # rescisório.
+    @employees = Employee
+      .where("terminated_on IS NULL OR terminated_on >= ?", @competence_date)
+      .order(:name)
 
     @items_by_employee = PayrollItem.where(year: @year, month: @month)
       .includes(:employee)

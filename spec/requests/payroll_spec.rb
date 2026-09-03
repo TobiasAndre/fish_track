@@ -145,6 +145,28 @@ RSpec.describe "Payroll", type: :request do
       expect(response.body).not_to include("Acerto rescisório")
     end
 
+    it "hides the employee entirely on competências after the termination month" do
+      create(
+        :employee, name: "Fulano Desligado", salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get payroll_path, params: { year: 2026, month: 9 }
+
+      expect(response.body).not_to include("Fulano Desligado")
+    end
+
+    it "still lists the employee on competências before the termination" do
+      create(
+        :employee, name: "Fulano Ativo Antes", salary_cents: 300_000,
+        started_on: Date.new(2024, 1, 10), status: "terminated", terminated_on: Date.new(2026, 8, 20)
+      )
+
+      get payroll_path, params: { year: 2026, month: 7 }
+
+      expect(response.body).to include("Fulano Ativo Antes")
+    end
+
     it "creates a payroll item when the lançar button is submitted" do
       employee = create(
         :employee, salary_cents: 300_000,
