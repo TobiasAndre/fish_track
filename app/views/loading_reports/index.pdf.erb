@@ -60,6 +60,19 @@
     text-align: right;
   }
 
+  .loadings tr.record-start td {
+    border-top: 2px solid #888;
+  }
+
+  .loadings tr.record-end td {
+    border-bottom: 2px solid #888;
+    color: #333;
+  }
+
+  .loadings tbody tr {
+    page-break-inside: avoid;
+  }
+
   .empty {
     text-align: center;
     color: #777;
@@ -133,7 +146,7 @@
 
 <div class="section-title">Carregamentos</div>
 
-<table>
+<table class="loadings">
   <thead>
     <tr>
       <th>Data</th>
@@ -144,6 +157,8 @@
       <th>Fornecedor</th>
       <th>Quantidade</th>
       <th>Peso total</th>
+    </tr>
+    <tr>
       <th>Média</th>
       <th>Preço por kg</th>
       <th>Milheiro</th>
@@ -158,7 +173,7 @@
   <tbody>
     <% if @events.any? %>
       <% @events.each do |event| %>
-        <tr>
+        <tr class="record-start">
           <td><%= event.occurred_on.present? ? l(event.occurred_on) : "-" %></td>
           <td><%= event.batch_stocking&.batch&.name || "-" %></td>
           <td><%= event.batch_stocking&.pond&.name || "-" %></td>
@@ -167,6 +182,8 @@
           <td><%= event.supplier&.name || "-" %></td>
           <td class="text-right"><%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "-" %></td>
           <td class="text-right"><%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "-" %></td>
+        </tr>
+        <tr class="record-end">
           <td class="text-right"><%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 1, separator: ",", delimiter: ".")} g" : "-" %></td>
           <td class="text-right"><%= event.price_per_kg_cents.to_i.positive? ? number_to_currency(event.price_per_kg_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
           <td class="text-right"><%= event.thousand_value_cents.to_i.positive? ? number_to_currency(event.thousand_value_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
@@ -179,7 +196,7 @@
       <% end %>
     <% else %>
       <tr>
-        <td colspan="16" class="empty">
+        <td colspan="8" class="empty">
           Nenhum carregamento encontrado para os filtros selecionados.
         </td>
       </tr>
