@@ -178,8 +178,8 @@
           <td><%= event.batch_stocking&.batch&.name || "-" %></td>
           <td><%= event.batch_stocking&.pond&.name || "-" %></td>
           <td><%= event.loading_destination.presence || "-" %></td>
-          <td><%= event.customer ? truncate(event.customer.name, length: 18) : "-" %></td>
-          <td><%= event.supplier ? truncate(event.supplier.name, length: 18) : "-" %></td>
+          <td><%= event.customer ? truncate(event.customer.name, length: 15) : "-" %></td>
+          <td><%= event.supplier ? truncate(event.supplier.name, length: 15) : "-" %></td>
           <td class="text-right"><%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "-" %></td>
           <td class="text-right"><%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "-" %></td>
         </tr>
