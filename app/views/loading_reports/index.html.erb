@@ -172,11 +172,11 @@
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
-                <%= event.customer&.name || "—" %>
+                <%= event.customer ? truncate(event.customer.name, length: 18) : "—" %>
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
-                <%= event.supplier ? truncate(event.supplier.name, length: 20) : "—" %>
+                <%= event.supplier ? truncate(event.supplier.name, length: 18) : "—" %>
               </td>
 
               <td class="px-4 pt-3 text-right text-gray-700 dark:text-gray-300">
