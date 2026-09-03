@@ -68,6 +68,7 @@ class LoadingReportsController < ApplicationController
     render pdf: "relatorio-carregamentos",
           template: "loading_reports/index",
           layout: "pdf",
+          encoding: "UTF-8",
           page_size: "A4",
           orientation: "Landscape",
           margin: {
