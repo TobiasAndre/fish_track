@@ -7,6 +7,9 @@ class FinancialEntriesController < ApplicationController
     @q_from  = params[:from].presence
     @q_to    = params[:to].presence
     @q_type  = params[:entry_type].presence
+    @q_batch_id = params[:batch_id].presence
+
+    @batches = Batch.order(:status, started_on: :desc)
 
     @entries = FinancialEntry.includes(:unit, :batch)
                              .order(occurred_on: :desc, created_at: :desc)
@@ -15,6 +18,7 @@ class FinancialEntriesController < ApplicationController
 
     @entries = @entries.where(stage: @q_stage) if @q_stage.present?
     @entries = @entries.where(entry_type: @q_type) if @q_type.present?
+    @entries = @entries.where(batch_id: @q_batch_id) if @q_batch_id.present?
     @entries = @entries.where("occurred_on >= ?", @q_from) if @q_from.present?
     @entries = @entries.where("occurred_on <= ?", @q_to) if @q_to.present?
 

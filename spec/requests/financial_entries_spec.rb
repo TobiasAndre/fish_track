@@ -35,6 +35,17 @@ RSpec.describe "FinancialEntries", type: :request do
       expect(response.body).to include("Venda")
       expect(response.body).not_to include("Combustível")
     end
+
+    it "filters by batch" do
+      batch = create(:batch)
+      create(:financial_entry, batch: batch, description: "Ração do lote")
+      create(:financial_entry, batch: nil, description: "Despesa geral")
+
+      get financial_entries_path, params: { batch_id: batch.id }
+
+      expect(response.body).to include("Ração do lote")
+      expect(response.body).not_to include("Despesa geral")
+    end
   end
 
   describe "POST /financial_entries" do
