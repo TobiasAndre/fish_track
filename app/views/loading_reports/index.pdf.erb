@@ -105,8 +105,8 @@
       <th scope="row">Tanque</th>
       <td><%= @ponds.find_by(id: params[:pond_id])&.name || "Todos" %></td>
 
-      <th scope="row"></th>
-      <td></td>
+      <th scope="row">Cliente</th>
+      <td><%= @customers.find_by(id: params[:customer_id])&.name || "Todos" %></td>
     </tr>
   </tbody>
 </table>

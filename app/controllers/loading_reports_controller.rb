@@ -3,7 +3,7 @@ class LoadingReportsController < ApplicationController
   skip_before_action :authenticate_user!, only: :share_pdf
 
   def index
-    load_loading_report(params.permit(:start_date, :end_date, :integrated_id, :batch_id, :pond_id).to_h)
+    load_loading_report(params.permit(:start_date, :end_date, :integrated_id, :batch_id, :pond_id, :customer_id).to_h)
 
     respond_to do |format|
       format.html
@@ -17,7 +17,8 @@ class LoadingReportsController < ApplicationController
       end_date: params[:end_date],
       integrated_id: params[:integrated_id],
       batch_id: params[:batch_id],
-      pond_id: params[:pond_id]
+      pond_id: params[:pond_id],
+      customer_id: params[:customer_id]
     }.compact_blank
 
     report_share = ReportShare.create!(report_type: "loading_report", filters: filters)
@@ -42,6 +43,7 @@ class LoadingReportsController < ApplicationController
     @batches = Batch.order(:name)
     @ponds = Pond.includes(:unit).joins(:unit).order("units.name ASC, ponds.name ASC")
     @integrateds = Integrated.order(:name)
+    @customers = Customer.order(:name)
 
     @events = StockingEvent
       .where(event_type: "loading")
@@ -53,6 +55,7 @@ class LoadingReportsController < ApplicationController
     @events = @events.where(integrated_id: filters[:integrated_id]) if filters[:integrated_id].present?
     @events = @events.where(batch_stockings: { batch_id: filters[:batch_id] }) if filters[:batch_id].present?
     @events = @events.where(batch_stockings: { pond_id: filters[:pond_id] }) if filters[:pond_id].present?
+    @events = @events.where(customer_id: filters[:customer_id]) if filters[:customer_id].present?
 
     @events = @events.order(occurred_on: :desc, created_at: :desc)
 

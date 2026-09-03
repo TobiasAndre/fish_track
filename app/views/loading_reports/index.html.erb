@@ -5,7 +5,7 @@
     </h1>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      Consulte os carregamentos lançados, filtrando por período, produtor, lote e tanque.
+      Consulte os carregamentos lançados, filtrando por período, produtor, cliente, lote e tanque.
     </p>
   </div>
 
@@ -28,6 +28,14 @@
           <%= label_tag :integrated_id, "Produtor (Integrado)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
           <%= select_tag :integrated_id,
               options_from_collection_for_select(@integrateds, :id, :name, params[:integrated_id]),
+              include_blank: "Todos",
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+        </div>
+
+        <div>
+          <%= label_tag :customer_id, "Cliente", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= select_tag :customer_id,
+              options_from_collection_for_select(@customers, :id, :name, params[:customer_id]),
               include_blank: "Todos",
               class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
@@ -64,7 +72,8 @@
                 end_date: params[:end_date],
                 integrated_id: params[:integrated_id],
                 batch_id: params[:batch_id],
-                pond_id: params[:pond_id]
+                pond_id: params[:pond_id],
+                customer_id: params[:customer_id]
               ),
               target: "_blank",
               class: "inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700" %>
@@ -77,6 +86,7 @@
       <%= hidden_field_tag :integrated_id, params[:integrated_id] %>
       <%= hidden_field_tag :batch_id, params[:batch_id] %>
       <%= hidden_field_tag :pond_id, params[:pond_id] %>
+      <%= hidden_field_tag :customer_id, params[:customer_id] %>
       <button type="submit" title="Compartilhar no WhatsApp"
         class="inline-flex items-center justify-center rounded-lg bg-green-500 p-2 text-white hover:bg-green-600 transition">
         <i class="fa-brands fa-whatsapp text-xl"></i>
