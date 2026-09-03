@@ -133,12 +133,17 @@
           <tr>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Lote</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de origem</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de destino</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Cliente</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Produtor</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Fornecedor</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Quantidade</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Peso total</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Média</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Preço por kg</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Milheiro</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Frete</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Carregamento</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Total</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Pagamento</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Observações</th>
@@ -161,11 +166,11 @@
               </td>
 
               <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                <%= event.customer&.name || "—" %>
+                <%= event.loading_destination.presence || "—" %>
               </td>
 
               <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                <%= event.integrated&.name || "—" %>
+                <%= event.customer&.name || "—" %>
               </td>
 
               <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
@@ -178,6 +183,26 @@
 
               <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
                 <%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 1, separator: ",", delimiter: ".")} g" : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.price_per_kg_cents.to_i.positive? ? number_to_currency(event.price_per_kg_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.thousand_value_cents.to_i.positive? ? number_to_currency(event.thousand_value_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.freight_cost_cents.to_i.positive? ? number_to_currency(event.freight_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
+              </td>
+
+              <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                <%= event.loading_cost_cents.to_i.positive? ? number_to_currency(event.loading_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
               </td>
 
               <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
@@ -196,7 +221,7 @@
 
           <% if @events.empty? %>
             <tr>
-              <td colspan="11" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="16" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                 Nenhum carregamento encontrado para os filtros selecionados.
               </td>
             </tr>

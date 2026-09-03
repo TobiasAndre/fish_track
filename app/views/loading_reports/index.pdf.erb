@@ -138,12 +138,17 @@
     <tr>
       <th>Data</th>
       <th>Lote</th>
-      <th>Tanque</th>
+      <th>Tanque de origem</th>
+      <th>Tanque de destino</th>
       <th>Cliente</th>
-      <th>Produtor</th>
       <th>Fornecedor</th>
       <th>Quantidade</th>
       <th>Peso total</th>
+      <th>Média</th>
+      <th>Preço por kg</th>
+      <th>Milheiro</th>
+      <th>Frete</th>
+      <th>Carregamento</th>
       <th>Total</th>
       <th>Pagamento</th>
       <th>Observações</th>
@@ -157,11 +162,16 @@
           <td><%= event.occurred_on.present? ? l(event.occurred_on) : "-" %></td>
           <td><%= event.batch_stocking&.batch&.name || "-" %></td>
           <td><%= event.batch_stocking&.pond&.name || "-" %></td>
+          <td><%= event.loading_destination.presence || "-" %></td>
           <td><%= event.customer&.name || "-" %></td>
-          <td><%= event.integrated&.name || "-" %></td>
           <td><%= event.supplier&.name || "-" %></td>
           <td class="text-right"><%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "-" %></td>
           <td class="text-right"><%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "-" %></td>
+          <td class="text-right"><%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 1, separator: ",", delimiter: ".")} g" : "-" %></td>
+          <td class="text-right"><%= event.price_per_kg_cents.to_i.positive? ? number_to_currency(event.price_per_kg_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= event.thousand_value_cents.to_i.positive? ? number_to_currency(event.thousand_value_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= event.freight_cost_cents.to_i.positive? ? number_to_currency(event.freight_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= event.loading_cost_cents.to_i.positive? ? number_to_currency(event.loading_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
           <td class="text-right"><%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "-" %></td>
           <td><%= event.payment_method&.name || "-" %></td>
           <td><%= event.notes.presence || "-" %></td>
@@ -169,7 +179,7 @@
       <% end %>
     <% else %>
       <tr>
-        <td colspan="11" class="empty">
+        <td colspan="16" class="empty">
           Nenhum carregamento encontrado para os filtros selecionados.
         </td>
       </tr>
