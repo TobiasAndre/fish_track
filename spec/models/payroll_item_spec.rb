@@ -33,7 +33,7 @@ RSpec.describe PayrollItem, type: :model do
     end
 
     it "updates the financial entry's amount when the item is updated" do
-      item = create(:payroll_item, amount_cents: 50_000)
+      item = create(:payroll_item, item_type: "advance", amount_cents: 50_000)
 
       item.update!(amount_cents: 75_000)
 
@@ -41,7 +41,7 @@ RSpec.describe PayrollItem, type: :model do
     end
 
     it "removes the financial entry when the item is destroyed" do
-      item = create(:payroll_item)
+      item = create(:payroll_item, item_type: "advance")
       financial_entry = item.financial_entry
 
       item.destroy
@@ -49,10 +49,20 @@ RSpec.describe PayrollItem, type: :model do
       expect(FinancialEntry.exists?(financial_entry.id)).to be false
     end
 
-    it "labels a bonus's financial entry description accordingly" do
-      item = create(:payroll_item, item_type: "bonus")
+    it "creates the financial entry for a salary payment and labels it accordingly" do
+      item = create(:payroll_item, item_type: "salary_payment", amount_cents: 300_000)
 
-      expect(item.financial_entry.description).to start_with("Bônus")
+      expect(item.financial_entry).to be_present
+      expect(item.financial_entry.amount_cents).to eq(300_000)
+      expect(item.financial_entry.description).to start_with("Pagamento salário")
+    end
+
+    it "does not create a standalone financial entry for bonuses, discounts or the base salary" do
+      %w[bonus discount salary].each do |type|
+        item = create(:payroll_item, item_type: type, amount_cents: 20_000)
+
+        expect(item.financial_entry).to be_nil
+      end
     end
   end
 

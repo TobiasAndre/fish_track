@@ -38,6 +38,7 @@
       <% thirteenth_advances = items.select { |i| i.item_type == "thirteenth_advance" } %>
       <% bonuses = items.select { |i| i.item_type == "bonus" } %>
       <% discounts = items.select { |i| i.item_type == "discount" } %>
+      <% salary_payment = items.find { |i| i.item_type == "salary_payment" } %>
       <% total_adv_cents = advances.sum(&:amount_cents) %>
       <% total_thirteenth_advance_cents = thirteenth_advances.sum(&:amount_cents) %>
       <% total_bonus_cents = bonuses.sum(&:amount_cents) %>
@@ -45,6 +46,8 @@
       <% terminated_this_month = emp.terminated? && emp.terminated_on.present? && emp.terminated_on.year == @year && emp.terminated_on.month == @month %>
       <% salary_cents = terminated_this_month ? 0 : emp.salary_on(@competence_date).to_i %>
       <% remaining_cents = [salary_cents + total_bonus_cents - total_adv_cents - total_discount_cents, 0].max %>
+      <% paid_cents = salary_payment&.amount_cents.to_i %>
+      <% outstanding_cents = [remaining_cents - paid_cents, 0].max %>
       <% emp_alerts = EmployeeAlerts.new(emp, reference_date: @competence_date).call %>
       <% available_vacations = emp.vacations.where(status: "available") %>
       <% scheduled_vacations = emp.vacations.where(status: "scheduled") %>
@@ -94,8 +97,32 @@
           <div class="text-right">
             <div class="text-xs text-gray-500 dark:text-gray-400">Saldo a pagar</div>
             <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              <%= number_to_currency(remaining_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+              <%= number_to_currency(outstanding_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
             </div>
+
+            <% if salary_payment %>
+              <div class="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+                Pago em <%= l(salary_payment.occurred_on) %> —
+                <%= number_to_currency(paid_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+              </div>
+              <%= button_to "Estornar pagamento", payroll_item_path(salary_payment),
+                method: :delete,
+                data: { turbo_confirm: "Estornar o pagamento do salário? Isso também remove o lançamento do financeiro." },
+                class: "mt-2 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                        hover:bg-gray-50 dark:hover:bg-gray-800 transition text-xs font-medium" %>
+            <% elsif remaining_cents > 0 %>
+              <%= button_to "Marcar salário como pago", payroll_items_path,
+                params: {
+                  payroll_item: {
+                    employee_id: emp.id, year: @year, month: @month, item_type: "salary_payment",
+                    occurred_on: Date.current, amount_cents: remaining_cents,
+                    notes: "Pagamento de salário #{"%02d" % @month}/#{@year}"
+                  }
+                },
+                data: { turbo_confirm: "Marcar #{number_to_currency(remaining_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".")} como pago e lançar no financeiro?" },
+                class: "mt-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700
+                        dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs font-medium transition" %>
+            <% end %>
           </div>
         </div>
 
@@ -218,10 +245,19 @@
               </span>
             </div>
 
+            <% if paid_cents > 0 %>
+              <div class="mt-2 flex items-center justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-300">Pago</span>
+                <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                  <%= number_to_currency(paid_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+                </span>
+              </div>
+            <% end %>
+
             <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Falta pagar</span>
               <span class="font-semibold text-gray-900 dark:text-gray-100">
-                <%= number_to_currency(remaining_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+                <%= number_to_currency(outstanding_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
               </span>
             </div>
           </div>

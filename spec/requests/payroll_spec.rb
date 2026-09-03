@@ -119,6 +119,29 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll salary payment" do
+    it "offers a button to mark the salary as paid when there is a balance" do
+      create(:employee, name: "A Pagar", salary_cents: 300_000, started_on: 2.years.ago.to_date)
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("Marcar salário como pago")
+    end
+
+    it "shows the paid state and reduces the outstanding balance once paid" do
+      employee = create(:employee, name: "Ja Pago", salary_cents: 300_000, started_on: 2.years.ago.to_date)
+      create(
+        :payroll_item, employee: employee, item_type: "salary_payment",
+        year: Date.current.year, month: Date.current.month, amount_cents: 300_000
+      )
+
+      get payroll_path, params: { year: Date.current.year, month: Date.current.month }
+
+      expect(response.body).to include("Estornar pagamento")
+      expect(response.body).not_to include("Marcar salário como pago")
+    end
+  end
+
   describe "GET /payroll for a terminated employee" do
     it "shows the acerto rescisório card for the competência of the termination" do
       employee = create(

@@ -5,12 +5,19 @@ class PayrollItemsController < ApplicationController
     "advance" => "Adiantamento",
     "thirteenth_advance" => "Adiantamento 13º",
     "bonus" => "Bônus",
-    "discount" => "Desconto"
+    "discount" => "Desconto",
+    "salary_payment" => "Pagamento de salário"
   }.freeze
 
   INSTALLABLE_ITEM_TYPES = %w[advance thirteenth_advance].freeze
 
   def create
+    if payroll_item_params[:item_type] == "salary_payment" && salary_payment_exists?
+      redirect_to payroll_path(year: payroll_item_params[:year], month: payroll_item_params[:month]),
+                  alert: "O salário desta competência já foi marcado como pago."
+      return
+    end
+
     if installment_advance?
       create_installments!
     else
@@ -46,6 +53,14 @@ class PayrollItemsController < ApplicationController
 
   def installments_count
     params[:installments_count].to_i.clamp(1, 36)
+  end
+
+  def salary_payment_exists?
+    PayrollItem.salary_payment.exists?(
+      employee_id: payroll_item_params[:employee_id],
+      year: payroll_item_params[:year],
+      month: payroll_item_params[:month]
+    )
   end
 
   def installment_advance?

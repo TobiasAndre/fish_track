@@ -23,7 +23,7 @@ RSpec.describe "PayrollItems", type: :request do
       expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
     end
 
-    it "creates a bonus and its linked financial entry" do
+    it "creates a bonus without a standalone financial entry" do
       expect do
         post payroll_items_path, params: {
           payroll_item: {
@@ -34,13 +34,14 @@ RSpec.describe "PayrollItems", type: :request do
             item_type: "bonus"
           }
         }
-      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+      end.to change(PayrollItem, :count).by(1)
 
       expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
       expect(PayrollItem.last.item_type).to eq("bonus")
+      expect(FinancialEntry.count).to eq(0)
     end
 
-    it "creates a discount and its linked financial entry" do
+    it "creates a discount without a standalone financial entry" do
       expect do
         post payroll_items_path, params: {
           payroll_item: {
@@ -51,10 +52,49 @@ RSpec.describe "PayrollItems", type: :request do
             item_type: "discount"
           }
         }
-      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+      end.to change(PayrollItem, :count).by(1)
 
       expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
       expect(PayrollItem.last.item_type).to eq("discount")
+      expect(FinancialEntry.count).to eq(0)
+    end
+
+    it "creates a salary payment and its linked financial entry" do
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 300_000,
+            item_type: "salary_payment"
+          }
+        }
+      end.to change(PayrollItem, :count).by(1).and change(FinancialEntry, :count).by(1)
+
+      expect(FinancialEntry.last.description).to start_with("Pagamento salário")
+    end
+
+    it "refuses a second salary payment for the same competence" do
+      create(
+        :payroll_item, employee: employee, item_type: "salary_payment",
+        year: 2026, month: 6, amount_cents: 300_000
+      )
+
+      expect do
+        post payroll_items_path, params: {
+          payroll_item: {
+            employee_id: employee.id,
+            year: 2026,
+            month: 6,
+            amount_cents: 300_000,
+            item_type: "salary_payment"
+          }
+        }
+      end.not_to change(PayrollItem, :count)
+
+      expect(response).to redirect_to(payroll_path(year: 2026, month: 6))
+      expect(flash[:alert]).to be_present
     end
 
     it "uses the given occurred_on instead of defaulting to the first of the month" do
