@@ -57,6 +57,17 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
     end
 
+    it "filters the history by batch" do
+      batch = create(:batch)
+      matching = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, batch: batch)
+      other_entry = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type)
+
+      get silo_stock_entries_path, params: { batch_id: batch.id }
+
+      expect(response.body).to include(edit_silo_stock_entry_path(matching))
+      expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
+    end
+
     it "filters the history by period" do
       inside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 1, 15))
       outside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 3, 1))
