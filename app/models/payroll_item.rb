@@ -37,10 +37,15 @@ class PayrollItem < ApplicationRecord
   end
 
   def create_financial_entry!
+    # Um item de folha só é lançado quando de fato foi pago, então já nasce
+    # liquidado. A baixa nunca fica no futuro: se a competência ainda não
+    # chegou, usa a data de hoje.
     FinancialEntry.create!(
       entry_type: "expense",
       stage: "general",
       occurred_on: occurred_on,
+      due_on: occurred_on,
+      settled_on: [occurred_on, Date.current].min,
       amount_cents: amount_cents,
       description: financial_description,
       notes: notes,
@@ -53,6 +58,7 @@ class PayrollItem < ApplicationRecord
 
     financial_entry.update!(
       occurred_on: occurred_on,
+      due_on: occurred_on,
       amount_cents: amount_cents,
       description: financial_description,
       notes: notes

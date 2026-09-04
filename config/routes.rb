@@ -86,7 +86,12 @@ Rails.application.routes.draw do
       end
     end
     resource :dashboard, only: [:show]
-    resources :financial_entries
+    resources :financial_entries do
+      member do
+        patch :settle
+        patch :unsettle
+      end
+    end
     resources :employees do
       member do
         get :termination_report, defaults: { format: :html }

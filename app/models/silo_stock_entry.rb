@@ -98,6 +98,7 @@ class SiloStockEntry < ApplicationRecord
         entry_type: "expense",
         stage: batch&.stage || "general",
         occurred_on: installment[:due_on],
+        due_on: installment[:due_on],
         amount_cents: amount_cents,
         description: financial_description(installment),
         unit_id: silo&.unit_id || batch&.unit&.id,

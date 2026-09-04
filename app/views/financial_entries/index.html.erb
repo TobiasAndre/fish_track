@@ -7,10 +7,19 @@
       </p>
     </div>
 
-    <%= link_to "Novo lançamento", new_financial_entry_path,
-      class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
-              dark:bg-indigo-500 dark:hover:bg-indigo-400
-              text-white text-sm font-medium transition" %>
+    <div class="flex items-center gap-2">
+      <%= link_to "Gerar PDF",
+        financial_entries_path(format: :pdf, stage: @q_stage, entry_type: @q_type,
+                               status: @q_status, batch_id: @q_batch_id, from: @q_from, to: @q_to),
+        target: "_blank",
+        class: "px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700
+                text-white text-sm font-medium transition" %>
+
+      <%= link_to "Novo lançamento", new_financial_entry_path,
+        class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
+                dark:bg-indigo-500 dark:hover:bg-indigo-400
+                text-white text-sm font-medium transition" %>
+    </div>
   </div>
 
   <!-- Totais -->
@@ -37,9 +46,34 @@
     </div>
   </div>
 
+  <!-- Contas em aberto -->
+  <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">A pagar em aberto</p>
+      <p class="mt-1 text-2xl font-semibold text-red-700 dark:text-red-300">
+        <%= number_to_currency(@pending_payable_cents / 100.0) %>
+      </p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">A receber em aberto</p>
+      <p class="mt-1 text-2xl font-semibold text-green-700 dark:text-green-300">
+        <%= number_to_currency(@pending_receivable_cents / 100.0) %>
+      </p>
+    </div>
+
+    <div class="rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-900/20 p-4">
+      <p class="text-xs text-amber-700 dark:text-amber-300">Vencidas (em aberto)</p>
+      <p class="mt-1 text-2xl font-semibold text-amber-800 dark:text-amber-200">
+        <%= number_to_currency(@overdue_cents / 100.0) %>
+        <span class="text-sm font-normal">· <%= @overdue_count %></span>
+      </p>
+    </div>
+  </div>
+
   <!-- Filtros -->
   <div class="mt-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-    <%= form_with url: financial_entries_path, method: :get, class: "grid grid-cols-1 sm:grid-cols-6 gap-3" do %>
+    <%= form_with url: financial_entries_path, method: :get, class: "grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-7 gap-3" do %>
       <%= hidden_field_tag :per_page, @per_page %>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fase</label>
@@ -53,6 +87,14 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tipo</label>
         <%= select_tag :entry_type,
           options_for_select([["Todos", ""], ["Entrada", "income"], ["Saída", "expense"]], @q_type),
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                  border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Situação</label>
+        <%= select_tag :status,
+          options_for_select([["Todas", ""], ["Em aberto", "pending"], ["Vencidas", "overdue"], ["Liquidadas", "settled"]], @q_status),
           class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
                   border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
       </div>
@@ -97,7 +139,9 @@
     <table class="w-full text-sm">
       <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
         <tr>
-          <th class="text-left px-4 py-3 font-medium">Data</th>
+          <th class="text-left px-4 py-3 font-medium">Competência</th>
+          <th class="text-left px-4 py-3 font-medium">Vencimento</th>
+          <th class="text-left px-4 py-3 font-medium">Situação</th>
           <th class="text-left px-4 py-3 font-medium">Fase</th>
           <th class="text-left px-4 py-3 font-medium">Descrição</th>
           <th class="text-left px-4 py-3 font-medium">Vínculo</th>
@@ -108,8 +152,28 @@
 
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <% @entries.each do |e| %>
-          <tr>
-            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= e.occurred_on %></td>
+          <tr class="<%= "bg-amber-50/60 dark:bg-amber-900/10" if e.overdue? %>">
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= l(e.occurred_on) %></td>
+            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <span class="<%= "font-medium text-amber-700 dark:text-amber-300" if e.overdue? %>">
+                <%= l(e.due_on) %>
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <% if e.settled? %>
+                <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
+                  Liquidado <%= l(e.settled_on) %>
+                </span>
+              <% elsif e.overdue? %>
+                <span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+                  Vencido
+                </span>
+              <% else %>
+                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                  Em aberto
+                </span>
+              <% end %>
+            </td>
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= enum_t(e, :stage) %></td>
             <td class="px-4 py-3">
               <div class="font-medium text-gray-900 dark:text-gray-100"><%= e.description %></div>
@@ -134,6 +198,15 @@
             </td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <% if e.settled? %>
+                  <%= button_to "Reabrir", unsettle_financial_entry_path(e), method: :patch,
+                    data: { turbo_confirm: "Reabrir este lançamento (voltar para em aberto)?" },
+                    class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                            hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <% else %>
+                  <%= button_to "Liquidar", settle_financial_entry_path(e), method: :patch,
+                    class: "px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white transition" %>
+                <% end %>
                 <%= link_to "Editar", edit_financial_entry_path(e),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
@@ -147,7 +220,7 @@
 
         <% if @entries.empty? %>
           <tr>
-            <td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+            <td colspan="8" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
               Nenhum lançamento encontrado.
             </td>
           </tr>

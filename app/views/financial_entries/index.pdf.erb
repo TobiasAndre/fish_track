@@ -1,0 +1,237 @@
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #111;
+    background: #fff;
+  }
+
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+
+  th {
+    background: #f0f0f0;
+    border: 1px solid #bbb;
+    padding: 6px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    vertical-align: top;
+  }
+
+  .master-table td {
+    font-weight: bold;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .income {
+    color: #15803d;
+  }
+
+  .expense {
+    color: #b91c1c;
+  }
+
+  .muted {
+    color: #777;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .badge-overdue {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+  }
+
+  .badge-settled {
+    background: #dcfce7;
+    border-color: #22c55e;
+    color: #166534;
+  }
+
+  .empty {
+    text-align: center;
+    color: #777;
+    padding: 18px;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #666;
+  }
+</style>
+
+<% status_labels = { "pending" => "Em aberto", "overdue" => "Vencidas", "settled" => "Liquidadas" } %>
+<% stage_labels = { "nursery" => "Berçário", "juvenile" => "Juvenil", "growout" => "Engorda", "general" => "Geral Sede" } %>
+<% type_labels = { "income" => "Entrada", "expense" => "Saída" } %>
+
+<div class="header">
+  <h1 class="title">Relatório Financeiro</h1>
+
+  <div class="subtitle">
+    Gerado em <%= l((@generated_at || Time.current).to_date) %>
+  </div>
+</div>
+
+<div class="section-title">Filtros utilizados</div>
+
+<table>
+  <tbody>
+    <tr>
+      <th scope="row">Competência de</th>
+      <td><%= @q_from.presence || "—" %></td>
+
+      <th scope="row">Competência até</th>
+      <td><%= @q_to.presence || "—" %></td>
+
+      <th scope="row">Tipo</th>
+      <td><%= type_labels[@q_type] || "Todos" %></td>
+    </tr>
+    <tr>
+      <th scope="row">Fase</th>
+      <td><%= stage_labels[@q_stage] || "Todas" %></td>
+
+      <th scope="row">Situação</th>
+      <td><%= status_labels[@q_status] || "Todas" %></td>
+
+      <th scope="row">Lote</th>
+      <td><%= @batches.detect { |b| b.id.to_s == @q_batch_id.to_s }&.name || "Todos" %></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Resumo</div>
+
+<table class="master-table">
+  <thead>
+    <tr>
+      <th>Entradas</th>
+      <th>Saídas</th>
+      <th>Saldo</th>
+      <th>A pagar em aberto</th>
+      <th>A receber em aberto</th>
+      <th>Vencidas (em aberto)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="text-right"><%= number_to_currency(@total_income_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+      <td class="text-right"><%= number_to_currency(@total_expense_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+      <td class="text-right"><%= number_to_currency(@balance_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+      <td class="text-right"><%= number_to_currency(@pending_payable_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+      <td class="text-right"><%= number_to_currency(@pending_receivable_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></td>
+      <td class="text-right"><%= number_to_currency(@overdue_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %> · <%= @overdue_count.to_i %></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Lançamentos</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Competência</th>
+      <th>Vencimento</th>
+      <th>Situação</th>
+      <th>Fase</th>
+      <th>Descrição</th>
+      <th>Vínculo</th>
+      <th>Valor</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if @entries.any? %>
+      <% @entries.each do |e| %>
+        <tr>
+          <td><%= e.occurred_on.present? ? l(e.occurred_on) : "-" %></td>
+          <td><%= e.due_on.present? ? l(e.due_on) : "-" %></td>
+          <td>
+            <% if e.settled? %>
+              <span class="badge badge-settled">Liquidado <%= l(e.settled_on) if e.settled_on %></span>
+            <% elsif e.overdue? %>
+              <span class="badge badge-overdue">Vencido</span>
+            <% else %>
+              <span class="badge">Em aberto</span>
+            <% end %>
+          </td>
+          <td><%= stage_labels[e.stage] || e.stage %></td>
+          <td>
+            <%= e.description %>
+            <% if e.notes.present? %>
+              <div class="muted"><%= e.notes %></div>
+            <% end %>
+          </td>
+          <td>
+            <% if e.batch.present? %>
+              Lote: <%= e.batch.name %>
+            <% elsif e.unit.present? %>
+              Unidade: <%= e.unit.name %>
+            <% else %>
+              -
+            <% end %>
+          </td>
+          <td class="text-right <%= e.income? ? "income" : "expense" %>">
+            <%= number_to_currency(e.amount_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+          </td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr>
+        <td colspan="7" class="empty">
+          Nenhum lançamento encontrado para os filtros selecionados.
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="footer">
+  Relatório gerado automaticamente pelo Fish Track.
+</div>

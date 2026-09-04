@@ -19,11 +19,39 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
-      <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.label :occurred_on, "Data (competência)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
       <%= f.date_field :occurred_on, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
                                             border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
     </div>
 
+    <div>
+      <%= f.label :due_on, "Vencimento", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+      <%= f.date_field :due_on, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                                        border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Em branco = usa a data de competência.</p>
+    </div>
+  </div>
+
+  <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+    <label for="financial_entry_mark_settled" class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+      <%= check_box_tag "financial_entry[mark_settled]", "1",
+        (@entry.new_record? ? true : @entry.settled_on.present?),
+        id: "financial_entry_mark_settled",
+        class: "rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-500" %>
+      Já liquidado (pago / recebido)
+    </label>
+
+    <div class="mt-3">
+      <%= f.label :settled_on, "Data da liquidação", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%= f.date_field :settled_on, class: "w-full sm:w-1/2 rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
+                                            border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Só usada quando marcado como liquidado. Em branco = data de competência.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div data-controller="money-input">
       <%= f.label :amount_cents, "Valor (R$)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
 

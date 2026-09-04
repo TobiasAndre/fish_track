@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_31_000006) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_04_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -223,9 +223,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_31_000006) do
     t.datetime "updated_at", null: false
     t.bigint "payroll_item_id"
     t.bigint "silo_stock_entry_id"
+    t.date "due_on", null: false
+    t.date "settled_on"
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
+    t.index ["due_on"], name: "index_financial_entries_on_due_on"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
     t.index ["payroll_item_id"], name: "index_financial_entries_on_payroll_item_id"
+    t.index ["settled_on"], name: "index_financial_entries_on_settled_on"
     t.index ["silo_stock_entry_id"], name: "index_financial_entries_on_silo_stock_entry_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"

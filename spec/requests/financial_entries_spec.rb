@@ -128,4 +128,101 @@ RSpec.describe "FinancialEntries", type: :request do
       expect(response).to redirect_to(financial_entries_path)
     end
   end
+
+  describe "GET /financial_entries.pdf" do
+    it "renders a PDF report" do
+      create(:financial_entry, entry_type: "income", amount_cents: 10_000)
+      create(:financial_entry, entry_type: "expense", amount_cents: 4_000, settled_on: nil, due_on: Date.current.prev_day)
+
+      get financial_entries_path(format: :pdf)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to eq("application/pdf")
+    end
+
+    it "is not paginated (includes every matching entry)" do
+      create_list(:financial_entry, 12)
+
+      get financial_entries_path(format: :pdf, per_page: 10)
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe "filtering by status" do
+    it "returns only pending / overdue / settled entries" do
+      create(:financial_entry, description: "LancFuturoAberto", due_on: Date.current.next_month, settled_on: nil)
+      create(:financial_entry, description: "LancAtrasado", due_on: Date.current.prev_day, settled_on: nil)
+      create(:financial_entry, description: "LancLiquidado", settled_on: Date.current)
+
+      get financial_entries_path, params: { status: "pending" }
+      expect(response.body).to include("LancFuturoAberto", "LancAtrasado")
+      expect(response.body).not_to include("LancLiquidado")
+
+      get financial_entries_path, params: { status: "overdue" }
+      expect(response.body).to include("LancAtrasado")
+      expect(response.body).not_to include("LancFuturoAberto")
+
+      get financial_entries_path, params: { status: "settled" }
+      expect(response.body).to include("LancLiquidado")
+      expect(response.body).not_to include("LancAtrasado")
+    end
+  end
+
+  describe "PATCH /financial_entries/:id/settle" do
+    it "marks the entry as settled" do
+      entry = create(:financial_entry, settled_on: nil)
+
+      patch settle_financial_entry_path(entry), params: { settled_on: "2026-05-10" }
+
+      expect(response).to redirect_to(financial_entries_path)
+      expect(entry.reload.settled_on).to eq(Date.new(2026, 5, 10))
+    end
+
+    it "defaults the settlement date to today" do
+      entry = create(:financial_entry, settled_on: nil)
+
+      patch settle_financial_entry_path(entry)
+
+      expect(entry.reload.settled_on).to eq(Date.current)
+    end
+  end
+
+  describe "PATCH /financial_entries/:id/unsettle" do
+    it "reopens a settled entry" do
+      entry = create(:financial_entry, settled_on: Date.current)
+
+      patch unsettle_financial_entry_path(entry)
+
+      expect(response).to redirect_to(financial_entries_path)
+      expect(entry.reload.settled_on).to be_nil
+    end
+  end
+
+  describe "POST /financial_entries with settlement" do
+    it "creates a pending entry when 'já liquidado' is unchecked" do
+      post financial_entries_path, params: {
+        financial_entry: {
+          entry_type: "expense", stage: "general",
+          occurred_on: Date.current, due_on: Date.current.next_month,
+          amount_cents: 5_000, description: "Conta a pagar", mark_settled: "0"
+        }
+      }
+
+      expect(FinancialEntry.last).to be_pending
+      expect(FinancialEntry.last.due_on).to eq(Date.current.next_month)
+    end
+
+    it "creates a settled entry when 'já liquidado' is checked" do
+      post financial_entries_path, params: {
+        financial_entry: {
+          entry_type: "income", stage: "general",
+          occurred_on: Date.current, amount_cents: 5_000,
+          description: "Recebido à vista", mark_settled: "1"
+        }
+      }
+
+      expect(FinancialEntry.last).to be_settled
+    end
+  end
 end
