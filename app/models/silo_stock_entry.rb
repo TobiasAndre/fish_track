@@ -26,6 +26,7 @@ class SiloStockEntry < ApplicationRecord
   after_commit :remove_financial_entries!, on: :destroy
 
   scope :recent_first, -> { order(occurred_on: :desc, created_at: :desc) }
+  scope :oldest_first, -> { order(occurred_on: :asc, created_at: :asc) }
 
   # Lançamento financeiro "principal" (a 1ª parcela). Mantido por conveniência /
   # compatibilidade -- para o cronograma completo use `financial_entries`.

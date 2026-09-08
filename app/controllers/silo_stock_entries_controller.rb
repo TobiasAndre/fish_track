@@ -64,7 +64,7 @@ class SiloStockEntriesController < ApplicationController
 
     scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, :financial_entries, silo: :unit, feeding_type: :feeding_brand)
       .left_joins(:silo)
-      .recent_first
+      .oldest_first
 
     scope = scope.where(silos: { unit_id: @q_unit_id }) if @q_unit_id.present?
     scope = scope.where(silo_id: @q_silo_id) if @q_silo_id.present?
