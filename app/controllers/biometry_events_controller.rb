@@ -99,7 +99,7 @@ class BiometryEventsController < StockingEventPagesController
     @active_batch_stockings = @active_batch_stockings.where(ponds: { unit_id: @selected_unit_id }) if @selected_unit_id.present?
     @active_batch_stockings = @active_batch_stockings.where(pond_id: @selected_pond_id) if @selected_pond_id.present?
 
-    @active_batch_stockings = @active_batch_stockings.order("batches.name ASC", "batch_stockings.stocked_on DESC")
+    @active_batch_stockings = @active_batch_stockings.order("batch_stockings.pond_id ASC", "batch_stockings.stocked_on DESC")
 
     return unless @selected_batch_stocking.present?
 

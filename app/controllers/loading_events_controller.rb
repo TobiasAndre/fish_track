@@ -103,6 +103,14 @@ class LoadingEventsController < StockingEventPagesController
     "loading"
   end
 
+  def filtered_events(batch_stocking_id = @selected_batch_stocking&.id)
+    return StockingEvent.none if batch_stocking_id.blank?
+
+    StockingEvent
+      .where(event_type: event_type, batch_stocking_id: batch_stocking_id)
+      .order(occurred_on: :asc, created_at: :asc)
+  end
+
   def redirect_path_for(batch_stocking_id)
     loading_events_path(batch_stocking_id:)
   end
