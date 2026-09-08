@@ -132,16 +132,16 @@
         <thead class="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de origem</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de destino</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Origem</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Destino</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Cliente</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Fornecedor</th>
-            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Quantidade</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Qtde</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Peso total</th>
           </tr>
           <tr>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Média</th>
-            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Preço por kg</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Preço/kg</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Milheiro</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Frete</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Carregamento</th>
@@ -165,7 +165,7 @@
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
-                <%= event.customer ? truncate(event.customer.name, length: 10) : "—" %>
+                <%= event.customer ? truncate(event.customer.name, length: 10, omission: "") : "—" %>
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
