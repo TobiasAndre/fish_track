@@ -132,7 +132,6 @@
         <thead class="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Lote</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de origem</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Tanque de destino</th>
             <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Cliente</th>
@@ -147,8 +146,6 @@
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Frete</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Carregamento</th>
             <th class="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Total</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Pagamento</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Observações</th>
           </tr>
         </thead>
 
@@ -160,10 +157,6 @@
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
-                <%= event.batch_stocking&.batch&.name || "—" %>
-              </td>
-
-              <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
                 <%= event.batch_stocking&.pond&.name || "—" %>
               </td>
 
@@ -172,7 +165,7 @@
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
-                <%= event.customer ? truncate(event.customer.name, length: 15) : "—" %>
+                <%= event.customer ? truncate(event.customer.name, length: 10) : "—" %>
               </td>
 
               <td class="px-4 pt-3 text-gray-700 dark:text-gray-300">
@@ -212,14 +205,6 @@
               <td class="px-4 pb-3 text-right text-gray-700 dark:text-gray-300">
                 <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
               </td>
-
-              <td class="px-4 pb-3 text-gray-700 dark:text-gray-300">
-                <%= event.payment_method&.name || "—" %>
-              </td>
-
-              <td class="px-4 pb-3 text-gray-700 dark:text-gray-300">
-                <%= event.notes.presence || "—" %>
-              </td>
             </tr>
           </tbody>
         <% end %>
@@ -227,7 +212,7 @@
         <% if @events.empty? %>
           <tbody class="border-t-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <tr>
-              <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                 Nenhum carregamento encontrado para os filtros selecionados.
               </td>
             </tr>
