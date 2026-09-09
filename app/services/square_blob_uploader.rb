@@ -5,8 +5,15 @@ require "json"
 class SquareBlobUploader
   class UploadError < StandardError; end
 
-  ENDPOINT = ENV.fetch("SQUARE_BLOB_UPLOAD_URL")
-  API_KEY  = ENV.fetch("SQUARECLOUD_API_KEY")
+  # Resolvidos sob demanda (e não no corpo da classe) para que o eager load em
+  # produção não quebre quando as variáveis ainda não estiverem configuradas.
+  def self.endpoint
+    ENV.fetch("SQUARE_BLOB_UPLOAD_URL")
+  end
+
+  def self.api_key
+    ENV.fetch("SQUARECLOUD_API_KEY")
+  end
 
   def self.call(file:, filename: nil, content_type: nil)
     new(file:, filename:, content_type:).call
@@ -36,8 +43,8 @@ class SquareBlobUploader
       file: Faraday::Multipart::FilePart.new(file_io.path, @content_type, @filename)
     }
 
-    response = conn.post(ENDPOINT) do |req|
-      req.headers["Authorization"] = API_KEY
+    response = conn.post(self.class.endpoint) do |req|
+      req.headers["Authorization"] = self.class.api_key
       req.body = payload
     end
 

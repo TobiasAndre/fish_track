@@ -53,37 +53,37 @@ RSpec.describe "LoadingReports", type: :request do
     end
 
     it "filters by period" do
-      inside = create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 6, 15), notes: "Dentro do período")
-      outside = create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 1, 1), notes: "Fora do período")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 6, 15), loading_destination: "Destino dentro do período")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 1, 1), loading_destination: "Destino fora do período")
 
       get loading_reports_path, params: { start_date: "2026-06-01", end_date: "2026-06-30" }
 
-      expect(response.body).to include(inside.notes)
-      expect(response.body).not_to include(outside.notes)
+      expect(response.body).to include("Destino dentro do período")
+      expect(response.body).not_to include("Destino fora do período")
     end
 
     it "filters by produtor (integrado)" do
       other_integrated = create(:integrated, customer: customer)
-      matching = create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: integrated, notes: "Do produtor filtrado")
-      other = create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: other_integrated, notes: "De outro produtor")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: integrated, loading_destination: "Destino do produtor filtrado")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: other_integrated, loading_destination: "Destino de outro produtor")
 
       get loading_reports_path, params: { integrated_id: integrated.id }
 
-      expect(response.body).to include(matching.notes)
-      expect(response.body).not_to include(other.notes)
+      expect(response.body).to include("Destino do produtor filtrado")
+      expect(response.body).not_to include("Destino de outro produtor")
     end
 
     it "filters by lote" do
       other_batch = create(:batch, pond: pond)
       other_batch_stocking = other_batch.batch_stockings.first
 
-      matching = create(:stocking_event, :loading, batch_stocking: batch_stocking, notes: "Do lote filtrado")
-      other = create(:stocking_event, :loading, batch_stocking: other_batch_stocking, notes: "De outro lote")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "Destino do lote filtrado")
+      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "Destino de outro lote")
 
       get loading_reports_path, params: { batch_id: batch.id }
 
-      expect(response.body).to include(matching.notes)
-      expect(response.body).not_to include(other.notes)
+      expect(response.body).to include("Destino do lote filtrado")
+      expect(response.body).not_to include("Destino de outro lote")
     end
 
     it "filters by tanque" do
@@ -91,13 +91,13 @@ RSpec.describe "LoadingReports", type: :request do
       other_batch = create(:batch, pond: other_pond)
       other_batch_stocking = other_batch.batch_stockings.first
 
-      matching = create(:stocking_event, :loading, batch_stocking: batch_stocking, notes: "Do tanque filtrado")
-      other = create(:stocking_event, :loading, batch_stocking: other_batch_stocking, notes: "De outro tanque")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "Destino do tanque filtrado")
+      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "Destino de outro tanque")
 
       get loading_reports_path, params: { pond_id: pond.id }
 
-      expect(response.body).to include(matching.notes)
-      expect(response.body).not_to include(other.notes)
+      expect(response.body).to include("Destino do tanque filtrado")
+      expect(response.body).not_to include("Destino de outro tanque")
     end
 
     it "sums the quantity, weight and value of the filtered events" do
@@ -117,6 +117,26 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.body).to include("250")
       expect(response.body).to include("125,000")
       expect(response.body).to include("R$  1.250,00")
+    end
+
+    it "reflects edits and deletions of loading events in the totals" do
+      kept = create(
+        :stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 50, avg_weight_g: 500, price_per_kg_cents: 1_000
+      )
+      removed = create(
+        :stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 75, avg_weight_g: 500, price_per_kg_cents: 1_000
+      )
+
+      kept.update!(total_weight_kg: 40) # 50kg -> 40kg
+      removed.destroy
+
+      get loading_reports_path
+
+      expect(response.body).to include("1 carregamento(s) encontrado(s)")
+      expect(response.body).to include("R$  400,00") # only the kept, edited event: 40kg * R$10
+      expect(response.body).not_to include("R$  1.250,00") # stale combined total is gone
     end
 
     it "renders a PDF" do
