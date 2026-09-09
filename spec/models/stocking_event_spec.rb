@@ -135,6 +135,27 @@ RSpec.describe StockingEvent, type: :model do
     end
   end
 
+  describe "#effective_thousand_price_cents" do
+    it "combines the weight-based price per 1000 fish with the fixed milheiro" do
+      # 68g avg -> 68kg per 1000 fish; R$ 11,98/kg -> R$ 814,64; + R$ 180,00 milheiro
+      event = build(:stocking_event, :loading,
+        avg_weight_g: 68, price_per_kg_cents: 1_198, thousand_value_cents: 18_000)
+
+      expect(event.effective_thousand_price_cents).to eq(99_464) # R$ 994,64
+    end
+
+    it "is zero when there is neither a price per kg nor a milheiro" do
+      event = build(:stocking_event, :loading,
+        avg_weight_g: 68, price_per_kg_cents: 0, thousand_value_cents: 0)
+
+      expect(event.effective_thousand_price_cents).to eq(0)
+    end
+
+    it "is zero for a non-loading event" do
+      expect(build(:stocking_event, :mortality).effective_thousand_price_cents).to eq(0)
+    end
+  end
+
   describe "event_type enum" do
     it "exposes predicate methods for each event type" do
       expect(build(:stocking_event, :mortality)).to be_mortality_event_type

@@ -56,6 +56,15 @@ class StockingEvent < ApplicationRecord
     I18n.t("stocking_events.event_types.#{event_type}", default: event_type.to_s)
   end
 
+  # Preço efetivo por milheiro de um carregamento: o valor de 1.000 peixes
+  # considerando o peso (preço/kg) somado ao milheiro fixo. Em gramas por peixe,
+  # avg_weight_g já é numericamente o nº de kg de 1.000 peixes.
+  def effective_thousand_price_cents
+    return 0 unless loading_event_type?
+
+    (avg_weight_g.to_d * price_per_kg_cents.to_i).round + thousand_value_cents.to_i
+  end
+
   private
 
   def activity_event_type
