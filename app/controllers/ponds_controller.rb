@@ -4,7 +4,7 @@ class PondsController < ApplicationController
   before_action :normalize_quantities, only: %i[create update]
 
   def index
-    @ponds = Pond.includes(:unit).order(:id)
+    @ponds = Pond.includes(:unit).ordered
   end
 
   def new
@@ -53,6 +53,6 @@ class PondsController < ApplicationController
   end
 
   def pond_params
-    params.require(:pond).permit(:unit_id, :name, :capacity, :capacity_unit)
+    params.require(:pond).permit(:unit_id, :name, :capacity, :capacity_unit, :order_number)
   end
 end

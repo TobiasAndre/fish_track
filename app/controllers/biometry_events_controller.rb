@@ -87,7 +87,7 @@ class BiometryEventsController < StockingEventPagesController
 
     @units = Unit.order(:name)
     @selected_unit_id = params[:unit_id].presence
-    @ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id).order(:name) : Pond.order(:name)
+    @ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id).ordered : Pond.ordered
     @selected_pond_id = params[:pond_id].presence
 
     @active_batch_stockings =

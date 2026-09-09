@@ -41,7 +41,7 @@ class LoadingReportsController < ApplicationController
 
   def load_loading_report(filters)
     @batches = Batch.order(:name)
-    @ponds = Pond.includes(:unit).joins(:unit).order("units.name ASC, ponds.name ASC")
+    @ponds = Pond.includes(:unit).joins(:unit).order("units.name ASC, ponds.order_number ASC, ponds.name ASC")
     @integrateds = Integrated.order(:name)
     @customers = Customer.order(:name)
 
