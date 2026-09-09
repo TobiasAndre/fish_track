@@ -123,7 +123,7 @@
               <div class="xl:col-span-2">
                 <%= stocking_form.label :quantity, "Quantidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
                 <div class="mt-1">
-                  <%= f.text_field :quantity,
+                  <%= stocking_form.text_field :quantity,
                     inputmode: "numeric",
                     data: {
                       controller: "integer-mask",
