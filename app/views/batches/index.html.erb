@@ -92,7 +92,7 @@
                   </thead>
 
                   <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-                    <% batch.batch_stockings.each do |stocking| %>
+                    <% batch.batch_stockings.sort_by { |s| [s.pond.unit.name, s.pond.order_number, s.pond.id] }.each do |stocking| %>
                       <tr>
                         <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
                           <%= stocking.pond.unit.name %>
