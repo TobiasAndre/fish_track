@@ -39,14 +39,11 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :users, only: %i[index new create edit update]
     resources :companies, only: %i[index new create edit update]
-    resources :company_settings, only: %i[show edit update]
-    resources :memberships
-    resources :tenants, only: [:new, :create]
+    resources :company_settings, only: %i[edit update]
     resources :activity_logs, only: [:index]
   end
 
   authenticate :user do
-    resources :companies, only: [:new, :create, :edit, :update]
     resources :units
     resources :products
     resources :payment_terms
