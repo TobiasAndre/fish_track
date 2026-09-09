@@ -81,4 +81,47 @@ RSpec.describe "BiometryEvents", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
   end
+
+  describe "editing and removing a biometry event keeps the batch in sync" do
+    # 1000 fish stocked 20 days ago at 5g (auto initial biometry); a newer
+    # biometry 10 days ago puts the batch at 20g / 20kg.
+    let(:batch) do
+      create(:batch, pond: pond, stocking_quantity: 1000, stocking_avg_weight_g: 5.0,
+        stocked_on: 20.days.ago.to_date)
+    end
+
+    let!(:newest_biometry) do
+      create(:stocking_event, :biometrics,
+        batch_stocking: batch_stocking,
+        volume: 1000, quantity: 1000, total_weight_kg: 20.0,
+        occurred_on: 10.days.ago.to_date)
+    end
+
+    it "starts with the batch reflecting the newest biometry" do
+      expect(batch.reload.avg_weight_g.to_f).to eq(20.0)
+    end
+
+    it "recomputes the batch avg weight and biomass when the event is updated" do
+      patch biometry_event_path(newest_biometry), params: {
+        stocking_event: {
+          batch_stocking_id: batch_stocking.id,
+          occurred_on: 10.days.ago.to_date,
+          volume: 1000, quantity: 1000, total_weight_kg: 35.0 # avg -> 35g
+        }
+      }
+
+      expect(response).to redirect_to(biometry_events_path(batch_stocking_id: batch_stocking.id))
+      expect(batch.reload.avg_weight_g.to_f).to eq(35.0)
+      expect(batch.current_biomass_kg.to_f).to eq(35.0)
+    end
+
+    it "reverts the batch to the initial biometry when the newest event is deleted" do
+      delete biometry_event_path(newest_biometry)
+
+      expect(response).to redirect_to(biometry_events_path(batch_stocking_id: batch_stocking.id))
+      expect(batch_stocking.stocking_events.where(event_type: "biometrics").count).to eq(1)
+      expect(batch.reload.avg_weight_g.to_f).to eq(5.0)
+      expect(batch.current_biomass_kg.to_f).to eq(5.0)
+    end
+  end
 end

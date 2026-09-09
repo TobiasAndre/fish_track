@@ -260,6 +260,220 @@ RSpec.describe StockingEvent, type: :model do
     end
   end
 
+  describe "keeping the batch in sync with its biometry events" do
+    let(:batch) do
+      create(:batch, stocking_quantity: 1000, stocking_avg_weight_g: 5.0, stocked_on: 30.days.ago.to_date)
+    end
+    let(:batch_stocking) { batch.batch_stockings.first }
+
+    def add_biometry(avg_weight_g:, occurred_on:)
+      # volume == quantity keeps avg_weight_g == total_weight_kg/quantity*1000
+      create(:stocking_event, :biometrics,
+        batch_stocking: batch_stocking,
+        volume: 1000,
+        quantity: 1000,
+        total_weight_kg: avg_weight_g, # (avg/1000)*1000 kg for 1000 fish
+        occurred_on: occurred_on)
+    end
+
+    it "pushes the newest biometry's avg weight and biomass onto the batch when one is created" do
+      add_biometry(avg_weight_g: 20.0, occurred_on: 5.days.ago.to_date)
+
+      expect(batch.reload.avg_weight_g.to_f).to eq(20.0)
+      expect(batch.current_biomass_kg.to_f).to eq(20.0) # 1000 fish * 20g / 1000
+    end
+
+    it "re-syncs the batch when a biometry's avg weight is edited" do
+      event = add_biometry(avg_weight_g: 20.0, occurred_on: 5.days.ago.to_date)
+
+      event.update!(volume: 1000, quantity: 1000, total_weight_kg: 30.0) # avg -> 30g
+
+      expect(batch.reload.avg_weight_g.to_f).to eq(30.0)
+      expect(batch.current_biomass_kg.to_f).to eq(30.0)
+    end
+
+    it "falls back to the real newest biometry when an edit moves an event into the past" do
+      old_event = add_biometry(avg_weight_g: 12.0, occurred_on: 10.days.ago.to_date)
+      add_biometry(avg_weight_g: 25.0, occurred_on: 2.days.ago.to_date)
+      expect(batch.reload.avg_weight_g.to_f).to eq(25.0)
+
+      old_event.update!(occurred_on: 1.day.ago.to_date) # now the newest, avg 12g
+
+      expect(batch.reload.avg_weight_g.to_f).to eq(12.0)
+    end
+
+    it "reverts the batch to the previous biometry when the newest one is destroyed" do
+      add_biometry(avg_weight_g: 15.0, occurred_on: 8.days.ago.to_date)
+      newest = add_biometry(avg_weight_g: 40.0, occurred_on: 1.day.ago.to_date)
+      expect(batch.reload.avg_weight_g.to_f).to eq(40.0)
+
+      newest.destroy
+
+      expect(batch.reload.avg_weight_g.to_f).to eq(15.0)
+      expect(batch.current_biomass_kg.to_f).to eq(15.0) # 1000 * 15g / 1000
+    end
+
+    it "leaves the batch untouched when a non-newest biometry is destroyed" do
+      stale = add_biometry(avg_weight_g: 15.0, occurred_on: 8.days.ago.to_date)
+      add_biometry(avg_weight_g: 40.0, occurred_on: 1.day.ago.to_date)
+
+      stale.destroy
+
+      expect(batch.reload.avg_weight_g.to_f).to eq(40.0)
+      expect(batch.current_biomass_kg.to_f).to eq(40.0)
+    end
+
+    it "falls back to the stocking's initial avg weight when every biometry is removed" do
+      extra = add_biometry(avg_weight_g: 22.0, occurred_on: 3.days.ago.to_date)
+      initial = batch_stocking.stocking_events.where(event_type: "biometrics").order(:occurred_on).first
+
+      extra.destroy
+      initial.destroy
+
+      expect(batch_stocking.stocking_events.where(event_type: "biometrics")).to be_empty
+      expect(batch.reload.avg_weight_g.to_f).to eq(5.0) # the stocking's initial avg weight
+    end
+  end
+
+  describe "keeping the batch balance in sync with its mortality events" do
+    let(:batch) do
+      create(:batch, stocking_quantity: 1000, stocking_avg_weight_g: 5.0, stocked_on: 20.days.ago.to_date)
+    end
+    let(:batch_stocking) { batch.batch_stockings.first }
+
+    def add_mortality(quantity:, occurred_on: 5.days.ago.to_date, avg_weight_g: 5.0)
+      create(:stocking_event, :mortality,
+        batch_stocking: batch_stocking,
+        quantity: quantity,
+        avg_weight_g: avg_weight_g,
+        total_weight_kg: quantity * avg_weight_g / 1000.0,
+        occurred_on: occurred_on)
+    end
+
+    it "deducts quantity and biomass from the batch when a mortality is recorded" do
+      add_mortality(quantity: 100)
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 900, current_biomass_kg: 4.5)
+      expect(batch.reload).to have_attributes(current_quantity: 900, current_biomass_kg: 4.5)
+    end
+
+    it "recomputes the balance from scratch when a mortality quantity is edited" do
+      mortality = add_mortality(quantity: 100)
+      expect(batch.reload.current_quantity).to eq(900)
+
+      mortality.update!(quantity: 300, total_weight_kg: 300 * 5.0 / 1000.0)
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 700, current_biomass_kg: 3.5)
+      expect(batch.reload).to have_attributes(current_quantity: 700, current_biomass_kg: 3.5)
+    end
+
+    it "restores the full balance when a mortality is destroyed" do
+      first = add_mortality(quantity: 100, occurred_on: 8.days.ago.to_date)
+      add_mortality(quantity: 50, occurred_on: 3.days.ago.to_date)
+      expect(batch.reload.current_quantity).to eq(850)
+
+      first.destroy
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 950, current_biomass_kg: 4.75)
+      expect(batch.reload).to have_attributes(current_quantity: 950, current_biomass_kg: 4.75)
+    end
+
+    it "recovers a balance that had bottomed out at zero once the mortality is reduced" do
+      mortality = add_mortality(quantity: 5_000) # more than the stocked amount
+      expect(batch_stocking.reload.current_quantity).to eq(0)
+
+      mortality.update!(quantity: 200, total_weight_kg: 200 * 5.0 / 1000.0)
+
+      expect(batch_stocking.reload.current_quantity).to eq(800)
+      expect(batch.reload.current_quantity).to eq(800)
+    end
+
+    it "uses the avg weight from a biometry that precedes the mortality" do
+      create(:stocking_event, :biometrics,
+        batch_stocking: batch_stocking,
+        volume: 1000, quantity: 1000, total_weight_kg: 10.0, # avg -> 10g
+        occurred_on: 8.days.ago.to_date)
+
+      mortality = add_mortality(quantity: 200, occurred_on: 5.days.ago.to_date, avg_weight_g: 10.0)
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 800, current_biomass_kg: 8.0)
+
+      mortality.destroy
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 1000, current_biomass_kg: 10.0)
+    end
+  end
+
+  describe "keeping the batch balance in sync with its loading events" do
+    let(:batch) do
+      create(:batch, stocking_quantity: 1000, stocking_avg_weight_g: 5.0, stocked_on: 20.days.ago.to_date)
+    end
+    let(:batch_stocking) { batch.batch_stockings.first }
+
+    def add_loading(total_weight_kg:, avg_weight_g: 5.0, occurred_on: 5.days.ago.to_date)
+      create(:stocking_event, :loading,
+        batch_stocking: batch_stocking,
+        total_weight_kg: total_weight_kg,
+        avg_weight_g: avg_weight_g,
+        occurred_on: occurred_on)
+    end
+
+    it "derives the loaded quantity from weight and deducts it from the batch" do
+      event = add_loading(total_weight_kg: 2.0, avg_weight_g: 5.0)
+
+      expect(event.quantity).to eq(400) # ceil(2.0kg * 1000 / 5g)
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 600, current_biomass_kg: 3.0)
+      expect(batch.reload).to have_attributes(current_quantity: 600, current_biomass_kg: 3.0)
+    end
+
+    it "recomputes the balance from scratch when a loading is edited" do
+      event = add_loading(total_weight_kg: 2.0, avg_weight_g: 5.0) # 400 loaded
+      expect(batch.reload.current_quantity).to eq(600)
+
+      event.update!(total_weight_kg: 3.0, avg_weight_g: 5.0) # 600 loaded
+
+      expect(event.reload.quantity).to eq(600)
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 400, current_biomass_kg: 2.0)
+      expect(batch.reload).to have_attributes(current_quantity: 400, current_biomass_kg: 2.0)
+    end
+
+    it "restores the full balance when a loading is destroyed" do
+      first = add_loading(total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: 8.days.ago.to_date) # 200
+      add_loading(total_weight_kg: 0.5, avg_weight_g: 5.0, occurred_on: 3.days.ago.to_date) # 100
+      expect(batch.reload.current_quantity).to eq(700)
+
+      first.destroy
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 900, current_biomass_kg: 4.5)
+      expect(batch.reload).to have_attributes(current_quantity: 900, current_biomass_kg: 4.5)
+    end
+
+    it "recovers a balance that had bottomed out at zero once the loading is reduced" do
+      event = add_loading(total_weight_kg: 100.0, avg_weight_g: 5.0) # loads far more than stocked
+      expect(batch_stocking.reload.current_quantity).to eq(0)
+
+      event.update!(total_weight_kg: 1.0, avg_weight_g: 5.0) # 200 loaded
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 800, current_biomass_kg: 4.0)
+      expect(batch.reload.current_quantity).to eq(800)
+    end
+
+    it "uses the avg weight from a biometry that precedes the loading" do
+      create(:stocking_event, :biometrics,
+        batch_stocking: batch_stocking,
+        volume: 1000, quantity: 1000, total_weight_kg: 10.0, # avg -> 10g
+        occurred_on: 8.days.ago.to_date)
+
+      event = add_loading(total_weight_kg: 2.0, avg_weight_g: 10.0, occurred_on: 5.days.ago.to_date) # 200 loaded
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 800, current_biomass_kg: 8.0)
+
+      event.destroy
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 1000, current_biomass_kg: 10.0)
+    end
+  end
+
   describe ".recent_first" do
     it "orders events by occurred_on and created_at descending" do
       batch_stocking = create(:batch_stocking)

@@ -286,6 +286,21 @@ RSpec.describe "LoadingEvents", type: :request do
 
       expect(event.reload.supplier).to eq(supplier)
     end
+
+    it "rebuilds the batch balance when the loaded weight is edited" do
+      # 1000 fish @ 5g; first loading takes out 200 (1.0kg)
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: Date.current)
+      expect(batch.reload.current_quantity).to eq(800)
+
+      patch loading_event_path(event), params: {
+        stocking_event: { total_weight_kg: "2,0", avg_weight_g: "5,0" } # -> 400 loaded
+      }
+
+      expect(event.reload.quantity).to eq(400)
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 600, current_biomass_kg: 3.0)
+      expect(batch.reload).to have_attributes(current_quantity: 600, current_biomass_kg: 3.0)
+    end
   end
 
   describe "DELETE /loading_events/:id" do
@@ -297,6 +312,19 @@ RSpec.describe "LoadingEvents", type: :request do
       end.to change { batch_stocking.stocking_events.where(event_type: "loading").count }.by(-1)
 
       expect(response).to redirect_to(loading_events_path(batch_stocking_id: batch_stocking.id))
+    end
+
+    it "restores the batch balance when the loading is removed" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.5, avg_weight_g: 5.0, occurred_on: 3.days.ago.to_date) # keeps 700
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: Date.current) # 200 more -> 500
+      expect(batch.reload.current_quantity).to eq(500)
+
+      delete loading_event_path(event)
+
+      expect(batch_stocking.reload).to have_attributes(current_quantity: 700, current_biomass_kg: 3.5)
+      expect(batch.reload).to have_attributes(current_quantity: 700, current_biomass_kg: 3.5)
     end
   end
 end

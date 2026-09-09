@@ -21,7 +21,7 @@ class StockingEvent < ApplicationRecord
   validates :batch_stocking_id, presence: true
   validate :batch_must_be_active_for_feeding, if: :feeding?
 
-  after_commit :update_batch_avg_weight, on: %i[create update]
+  after_commit :update_batch_avg_weight, on: %i[create update destroy]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
 
   with_options if: :biometrics? do
@@ -174,20 +174,25 @@ class StockingEvent < ApplicationRecord
 
   def update_batch_avg_weight
     return unless biometrics?
-    return if avg_weight_g.blank?
+    return if batch_stocking.blank?
+    return if batch_stocking.destroyed? || batch_stocking.marked_for_destruction?
 
-    batch = batch_stocking&.batch
+    batch = batch_stocking.batch
     return unless batch
     return if batch.destroyed? || batch.marked_for_destruction?
 
+    # Recompute from what's currently persisted so that editing or deleting a
+    # biometry event always leaves the batch pointing at the newest remaining
+    # measurement (falling back to the stocking's initial average weight).
     last_biometry = batch_stocking.stocking_events
       .where(event_type: "biometrics")
       .order(occurred_on: :desc, created_at: :desc)
       .first
 
-    return unless last_biometry&.avg_weight_g.present?
+    new_avg_weight = last_biometry&.avg_weight_g || batch_stocking.avg_weight_g
+    return if new_avg_weight.blank?
 
-    batch.update(avg_weight_g: last_biometry.avg_weight_g)
+    batch.update(avg_weight_g: new_avg_weight)
   end
 
   def recalculate_batch_stocking_balance
