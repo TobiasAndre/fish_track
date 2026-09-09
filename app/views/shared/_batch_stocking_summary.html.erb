@@ -1,0 +1,56 @@
+<%#
+  Resumo do alojamento selecionado, exibido no topo das telas de eventos
+  (biometria, mortalidade, carregamento, arraçoamento).
+
+  locals:
+    batch_stocking:        BatchStocking selecionado
+    current_avg_weight_g:  peso médio corrente (opcional)
+%>
+<% current_avg_weight_g = local_assigns.fetch(:current_avg_weight_g, nil) %>
+<% saldo_atual = batch_stocking.current_quantity || batch_stocking.quantity %>
+<% pond_capacity = batch_stocking.pond&.capacity.to_f.nonzero? || 1 %>
+<% fish_per_m2 = saldo_atual.to_f / pond_capacity %>
+
+<div class="flex flex-wrap gap-2">
+  <% if batch_stocking.stocked_on.present? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+      Alojamento:
+      <span class="ml-1 font-medium"><%= l(batch_stocking.stocked_on) %></span>
+    </span>
+  <% end %>
+
+  <% if batch_stocking.quantity.present? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+      Qtd. alojada:
+      <span class="ml-1 font-medium"><%= number_with_delimiter(batch_stocking.quantity, delimiter: ".") %></span>
+    </span>
+  <% end %>
+
+  <% if saldo_atual.present? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+      Saldo atual:
+      <span class="ml-1 font-medium"><%= number_with_delimiter(saldo_atual, delimiter: ".") %></span>
+    </span>
+  <% end %>
+
+  <% if current_avg_weight_g.to_f.positive? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+      Peso atual:
+      <span class="ml-1 font-medium"><%= number_with_precision(current_avg_weight_g, precision: 2, separator: ",", delimiter: ".") %>g</span>
+    </span>
+  <% end %>
+
+  <% if batch_stocking.pond&.capacity.to_f.positive? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+      Peixes por m²:
+      <span class="ml-1 font-medium"><%= number_with_precision(fish_per_m2, precision: 2, separator: ",", delimiter: ".") %></span>
+    </span>
+  <% end %>
+
+  <% if batch_stocking.current_biomass_kg.present? %>
+    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+      Biomassa atual:
+      <span class="ml-1 font-medium"><%= number_with_precision(batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") %>kg</span>
+    </span>
+  <% end %>
+</div>

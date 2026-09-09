@@ -46,6 +46,17 @@ RSpec.describe "BiometryEvents", type: :request do
       expect(response.body).to include("Novo lançamento")
       expect(response.body).to include("Histórico")
     end
+
+    it "shows the running balance (stocked minus mortalities/loadings), not just the stocked amount" do
+      create(:stocking_event, :mortality, batch_stocking: batch_stocking, quantity: 150, occurred_on: Date.current)
+
+      get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+      expect(response.body).to include("Qtd. alojada")
+      expect(response.body).to include("1.000")
+      expect(response.body).to include("Saldo atual")
+      expect(response.body).to include("850")
+    end
   end
 
   describe "POST /biometry_events" do

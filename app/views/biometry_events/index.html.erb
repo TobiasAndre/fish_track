@@ -11,51 +11,9 @@
       <%= @selected_batch_stocking.display_name %>
     </h2>
 
-    <div class="flex flex-wrap gap-2">
-      <% if @selected_batch_stocking.stocked_on.present? %>
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Alojamento:
-          <span class="ml-1 font-medium">
-            <%= l(@selected_batch_stocking.stocked_on) %>
-          </span>
-        </span>
-      <% end %>
-
-      <% if @selected_batch_stocking.quantity.present? %>
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Qtd. alojada:
-          <span class="ml-1 font-medium">
-            <%= number_with_delimiter(@selected_batch_stocking.quantity, delimiter: ".") %>
-          </span>
-        </span>
-      <% end %>
-
-      <% if @selected_batch_stocking.avg_weight_g.present? %>
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Peso atual:
-          <span class="ml-1 font-medium">
-            <%= number_with_precision(@current_avg_weight_g, precision: 2, separator: ",", delimiter: ".") %>g
-          </span>
-        </span>
-      <% end %>
-
-      <% fish_per_m2 = @selected_batch_stocking.quantity.to_f / ((@selected_batch_stocking.pond&.capacity || 1).to_f.nonzero? || 1) %>
-      <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-        Peixes por m²:
-        <span class="ml-1 font-medium">
-          <%= number_with_precision(fish_per_m2, precision: 2, separator: ",", delimiter: ".") %>
-        </span>
-      </span>
-
-      <% if @selected_batch_stocking.current_biomass_kg.present? %>
-        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          Biomassa atual:
-          <span class="ml-1 font-medium">
-            <%= number_with_precision(@selected_batch_stocking.current_biomass_kg, precision: 2, separator: ",", delimiter: ".") %>kg
-          </span>
-        </span>
-      <% end %>
-    </div>
+    <%= render "shared/batch_stocking_summary",
+          batch_stocking: @selected_batch_stocking,
+          current_avg_weight_g: @current_avg_weight_g %>
 
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3">

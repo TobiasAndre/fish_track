@@ -76,6 +76,18 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response.body).to include("Novo lançamento")
     end
 
+    it "shows the running balance after a previous loading, not just the stocked amount" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: Date.current) # 200 loaded
+
+      get loading_events_path(batch_stocking_id: batch_stocking.id)
+
+      expect(response.body).to include("Qtd. alojada")
+      expect(response.body).to include("1.000")
+      expect(response.body).to include("Saldo atual")
+      expect(response.body).to include("800")
+    end
+
     it "shows a print action for each event in the history" do
       event = create(:stocking_event, :loading, batch_stocking: batch_stocking)
 
