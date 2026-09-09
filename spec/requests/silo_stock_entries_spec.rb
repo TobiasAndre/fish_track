@@ -68,6 +68,19 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
     end
 
+    it "filters the history by feeding brand" do
+      other_brand = create(:feeding_brand, name: "Purina")
+      other_type = create(:feeding_type, name: "Extrusada 28%", feeding_brand: other_brand)
+
+      matching = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type)
+      other_entry = create(:silo_stock_entry, silo: silo, feeding_type: other_type)
+
+      get silo_stock_entries_path, params: { feeding_brand_id: feeding_brand.id }
+
+      expect(response.body).to include(edit_silo_stock_entry_path(matching))
+      expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
+    end
+
     it "filters the history by period" do
       inside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 1, 15))
       outside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 3, 1))
