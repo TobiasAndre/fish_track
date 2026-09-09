@@ -77,7 +77,7 @@ Rails.application.routes.draw do
       collection { post :create_share }
     end
     resources :biometry_events, only: %i[index new create edit update destroy]
-    resources :mortality_events, only: %i[index new create]
+    resources :mortality_events, only: %i[index new create edit update destroy]
     resources :feeding_events, only: %i[index new create edit update destroy]
     resources :silo_stock_entries, only: %i[index create edit update destroy]
     resources :loading_events, only: %i[index new edit create update destroy] do

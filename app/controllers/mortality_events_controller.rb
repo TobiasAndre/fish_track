@@ -17,6 +17,41 @@ class MortalityEventsController < StockingEventPagesController
     end
   end
 
+  def edit
+    @stocking_event = StockingEvent.find(params[:id])
+    @selected_batch_stocking = @stocking_event.batch_stocking
+    @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+    @events = filtered_events(@selected_batch_stocking&.id)
+    load_active_batch_stockings
+
+    render :index
+  end
+
+  def update
+    @stocking_event = StockingEvent.find(params[:id])
+    @stocking_event.assign_attributes(event_params)
+    apply_event_calculations(@stocking_event)
+
+    if @stocking_event.save
+      redirect_to redirect_path_for(@stocking_event.batch_stocking_id),
+        notice: "Mortalidade atualizada com sucesso."
+    else
+      @selected_batch_stocking = @stocking_event.batch_stocking
+      @current_avg_weight_g = current_avg_weight_for(@selected_batch_stocking)
+      @events = filtered_events(@selected_batch_stocking&.id)
+      load_active_batch_stockings
+
+      render :index, status: :unprocessable_content
+    end
+  end
+
+  def destroy
+    @stocking_event = StockingEvent.find(params[:id])
+    batch_stocking_id = @stocking_event.batch_stocking_id
+    @stocking_event.destroy
+    redirect_to redirect_path_for(batch_stocking_id), notice: "Mortalidade removida com sucesso."
+  end
+
   private
 
   def event_type

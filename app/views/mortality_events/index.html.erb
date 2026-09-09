@@ -54,7 +54,7 @@
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3">
         <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-          Novo lançamento
+          <%= @stocking_event.persisted? ? "Editar mortalidade" : "Novo lançamento" %>
         </h2>
       </div>
 
@@ -70,7 +70,8 @@
       <% end %>
 
       <%= form_with model: @stocking_event,
-        url: mortality_events_path,
+        url: @stocking_event.persisted? ? mortality_event_path(@stocking_event) : mortality_events_path,
+        method: @stocking_event.persisted? ? :patch : :post,
         local: true,
         data: { controller: "mortality-form" },
         class: "space-y-4" do |f| %>
@@ -151,7 +152,7 @@
         </div>
 
         <div class="flex justify-end pt-1">
-          <%= f.submit "Salvar mortalidade",
+          <%= f.submit @stocking_event.persisted? ? "Atualizar mortalidade" : "Salvar mortalidade",
             class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition" %>
         </div>
       <% end %>
@@ -178,6 +179,7 @@
                 <th class="py-2 pr-4 font-medium">Peso médio usado</th>
                 <th class="py-2 pr-4 font-medium">Peso perdido</th>
                 <th class="py-2 pr-4 font-medium">Observações</th>
+                <th class="py-2 pr-4 font-medium text-right">Ações</th>
               </tr>
             </thead>
 
@@ -202,6 +204,23 @@
 
                   <td class="py-2 pr-4">
                     <%= event.notes.presence || "—" %>
+                  </td>
+
+                  <td class="py-2 pr-4 text-right">
+                    <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <%= link_to edit_mortality_event_path(event),
+                        class: "text-gray-500 hover:text-indigo-600 transition",
+                        title: "Editar" do %>
+                        ✏️
+                      <% end %>
+
+                      <%= link_to mortality_event_path(event),
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        class: "text-gray-500 hover:text-red-600 transition",
+                        title: "Excluir" do %>
+                        🗑️
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -326,6 +345,7 @@
                       <th class="py-2 pr-4 font-medium">Peso médio usado</th>
                       <th class="py-2 pr-4 font-medium">Peso perdido</th>
                       <th class="py-2 pr-4 font-medium">Observações</th>
+                      <th class="py-2 pr-4 font-medium text-right">Ações</th>
                     </tr>
                   </thead>
 
@@ -350,6 +370,23 @@
 
                         <td class="py-2 pr-4">
                           <%= event.notes.presence || "—" %>
+                        </td>
+
+                        <td class="py-2 pr-4 text-right">
+                          <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                            <%= link_to edit_mortality_event_path(event),
+                              class: "text-gray-500 hover:text-indigo-600 transition",
+                              title: "Editar" do %>
+                              ✏️
+                            <% end %>
+
+                            <%= link_to mortality_event_path(event),
+                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                              class: "text-gray-500 hover:text-red-600 transition",
+                              title: "Excluir" do %>
+                              🗑️
+                            <% end %>
+                          </div>
                         </td>
                       </tr>
                     <% end %>
