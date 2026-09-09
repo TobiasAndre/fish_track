@@ -275,6 +275,21 @@ RSpec.describe "LoadingEvents", type: :request do
         %(<option selected="selected" value="#{supplier.id}">#{supplier.name}</option>)
       )
     end
+
+    it "pre-fills the weight and quantity fields with the saved event values, not the batch's current avg weight" do
+      # batch stocked at 5g; this loading was saved at 500g avg / 100kg -> 200 fish.
+      # The form used to default avg_weight_g to @current_avg_weight_g (5g),
+      # which then made the JS recompute the wrong quantity.
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 100, avg_weight_g: 500)
+
+      get edit_loading_event_path(event)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at('input[name="stocking_event[avg_weight_g]"]')["value"]).to eq("500,00")
+      expect(doc.at('input[name="stocking_event[total_weight_kg]"]')["value"]).to eq("100,000")
+      expect(doc.at('input[name="stocking_event[quantity]"]')["value"]).to eq(event.quantity.to_s)
+    end
   end
 
   describe "PATCH /loading_events/:id" do

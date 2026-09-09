@@ -86,7 +86,7 @@
             <%= f.text_field :avg_weight_g,
               required: true,
               inputmode: "decimal",
-              value: number_with_precision(@current_avg_weight_g.to_f, precision: 2, separator: ",", delimiter: "."),
+              value: number_with_precision((@stocking_event.avg_weight_g.presence || @current_avg_weight_g).to_f, precision: 2, separator: ",", delimiter: "."),
               data: {
                 "loading-form-target": "avgWeight",
                 action: "input->loading-form#formatDecimalInput change->loading-form#recalculate"
