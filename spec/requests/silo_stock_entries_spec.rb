@@ -81,6 +81,34 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
     end
 
+    it "restricts the history type filter to the selected brand's types" do
+      feeding_type # ensure the brand has a type
+      other_brand = create(:feeding_brand, name: "Purina")
+      other_type = create(:feeding_type, name: "Extrusada 28%", feeding_brand: other_brand)
+
+      get silo_stock_entries_path, params: { feeding_brand_id: feeding_brand.id }
+
+      type_select = Nokogiri::HTML(response.body).at('select[name="feeding_type_id"]')
+      option_labels = type_select.css("option").map(&:text)
+
+      expect(option_labels).to include(feeding_type.name)
+      expect(option_labels).not_to include(other_type.name)
+    end
+
+    it "drops a stale type filter that does not belong to the selected brand" do
+      other_brand = create(:feeding_brand, name: "Purina")
+      other_type = create(:feeding_type, name: "Extrusada 28%", feeding_brand: other_brand)
+
+      matching = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type)
+      other_entry = create(:silo_stock_entry, silo: silo, feeding_type: other_type)
+
+      get silo_stock_entries_path, params: { feeding_brand_id: feeding_brand.id, feeding_type_id: other_type.id }
+
+      # brand wins; the mismatched type filter is ignored, so the brand's entry still shows
+      expect(response.body).to include(edit_silo_stock_entry_path(matching))
+      expect(response.body).not_to include(edit_silo_stock_entry_path(other_entry))
+    end
+
     it "filters the history by period" do
       inside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 1, 15))
       outside = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, occurred_on: Date.new(2026, 3, 1))

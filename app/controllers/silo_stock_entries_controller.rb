@@ -64,6 +64,20 @@ class SiloStockEntriesController < ApplicationController
     @q_from = params[:from].presence
     @q_to = params[:to].presence
 
+    # Quando uma marca está filtrada, o filtro de tipo só oferece os tipos
+    # daquela marca -- e um tipo de outra marca que tenha sobrado no parâmetro
+    # é ignorado.
+    @filter_feeding_types =
+      if @q_feeding_brand_id.present?
+        @feeding_types.select { |type| type.feeding_brand_id.to_s == @q_feeding_brand_id }
+      else
+        @feeding_types
+      end
+
+    if @q_feeding_type_id.present? && @filter_feeding_types.none? { |type| type.id.to_s == @q_feeding_type_id }
+      @q_feeding_type_id = nil
+    end
+
     scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, :financial_entries, silo: :unit, feeding_type: :feeding_brand)
       .left_joins(:silo)
       .oldest_first
