@@ -51,8 +51,9 @@
           <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
             <tr>
               <th class="px-2 py-2 text-left font-semibold">Tanque</th>
-              <th class="px-2 py-2 text-right font-semibold">Biomassa (kg)</th>
+              <th class="px-2 py-2 text-right font-semibold">Qtde. peixes</th>
               <th class="px-2 py-2 text-right font-semibold">Peso médio (g)</th>
+              <th class="px-2 py-2 text-right font-semibold">Biomassa (kg)</th>
               <th class="px-2 py-2 text-left font-semibold">Faixa</th>
               <% temperature_ranges.each do |range| %>
                 <th class="px-2 py-2 text-right font-semibold whitespace-nowrap"><%= temp_label.call(range) %></th>
@@ -63,8 +64,9 @@
             <% @plan.rows.each do |row| %>
               <tr>
                 <td class="px-2 py-1.5 font-medium text-gray-900 dark:text-gray-100"><%= row.pond.name %></td>
-                <td class="px-2 py-1.5 text-right"><%= row.biomass_kg.positive? ? kg.call(row.biomass_kg) : "—" %></td>
+                <td class="px-2 py-1.5 text-right"><%= row.quantity.positive? ? number_with_delimiter(row.quantity, delimiter: ".") : "—" %></td>
                 <td class="px-2 py-1.5 text-right"><%= row.avg_weight_g.positive? ? number_with_precision(row.avg_weight_g, precision: 2, separator: ",", delimiter: ".") : "—" %></td>
+                <td class="px-2 py-1.5 text-right"><%= row.biomass_kg.positive? ? kg.call(row.biomass_kg) : "—" %></td>
                 <td class="px-2 py-1.5 whitespace-nowrap"><%= weight_label.call(row.weight_range) %></td>
                 <% temperature_ranges.each do |range| %>
                   <td class="px-2 py-1.5 text-right"><%= kg.call(row.feed_kg_by_temp[range.id]) %></td>
@@ -74,6 +76,10 @@
           </tbody>
         </table>
       </div>
+
+      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        "—" indica que não há biomassa de lote ativo, peso médio, ou taxa de arraçoamento cadastrada para a faixa de peso/temperatura.
+      </p>
     <% end %>
   </div>
 

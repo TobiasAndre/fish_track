@@ -1,15 +1,19 @@
 # Monta o plano de arraçoamento por tanque: quanto de ração (kg) e quanto tempo
 # (min) dar em cada faixa de temperatura da água.
 #
-#   trato_kg  = biomassa_kg * %arraçoamento(faixa_de_peso, faixa_de_temp) / 100
+#   trato_kg  = biomassa_kg * taxa_arraçoamento(faixa_de_peso, faixa_de_temp)
 #   tempo_min = trato_kg * (segundos_amostra / kg_amostra) / 60
 #
-# Biomassa e peso médio vêm dos lotes ativos de cada tanque; o percentual vem da
-# tabela de arraçoamento (feeding_strategy_items); a calibração de tempo vem dos
-# campos feed_sample_* do próprio tanque.
+# A taxa é armazenada como percentual (feeding_strategy_items.feeding_percentage,
+# ex.: "6.00" = 6%), então trato_kg = biomassa_kg * taxa / 100.
+#
+# Biomassa, quantidade e peso médio vêm dos lotes ativos de cada tanque (fonte
+# canônica: colunas current_* de batch_stockings); a matriz de taxas vem da
+# tabela de arraçoamento existente (feeding_tables/feeding_strategy_items); a
+# calibração de tempo vem dos campos feed_sample_* do próprio tanque.
 class FeedingPlan
   Row = Struct.new(
-    :pond, :biomass_kg, :avg_weight_g, :weight_range,
+    :pond, :quantity, :biomass_kg, :avg_weight_g, :weight_range,
     :feed_kg_by_temp, :time_min_by_temp,
     keyword_init: true
   )
@@ -41,6 +45,7 @@ class FeedingPlan
   end
 
   # { pond_id => { biomass_kg: BigDecimal, quantity: Integer } } dos lotes ativos.
+  # Uma única query agregada -- sem N+1 ao montar várias linhas.
   def active_totals_by_pond_id
     @active_totals_by_pond_id ||=
       BatchStocking
@@ -57,8 +62,9 @@ class FeedingPlan
 
   def build_row(pond)
     totals = active_totals_by_pond_id[pond.id] || { biomass_kg: 0.to_d, quantity: 0 }
+    quantity = totals[:quantity]
     biomass_kg = totals[:biomass_kg]
-    avg_weight_g = totals[:quantity].positive? ? (biomass_kg * 1000 / totals[:quantity]) : 0.to_d
+    avg_weight_g = quantity.positive? ? (biomass_kg * 1000 / quantity) : 0.to_d
     weight_range = weight_range_for(avg_weight_g)
     seconds_per_kg = pond.feed_seconds_per_kg
 
@@ -66,8 +72,8 @@ class FeedingPlan
     time_min_by_temp = {}
 
     temperature_ranges.each do |temp_range|
-      percentage = weight_range && strategy_matrix[[weight_range.id, temp_range.id]]&.feeding_percentage
-      feed_kg = percentage && biomass_kg.positive? ? (biomass_kg * percentage / 100) : nil
+      rate = weight_range && strategy_matrix[[weight_range.id, temp_range.id]]&.feeding_percentage
+      feed_kg = rate && biomass_kg.positive? ? (biomass_kg * rate / 100) : nil
 
       feed_kg_by_temp[temp_range.id] = feed_kg
       time_min_by_temp[temp_range.id] = feed_kg && seconds_per_kg ? (feed_kg * seconds_per_kg / 60) : nil
@@ -75,6 +81,7 @@ class FeedingPlan
 
     Row.new(
       pond: pond,
+      quantity: quantity,
       biomass_kg: biomass_kg,
       avg_weight_g: avg_weight_g,
       weight_range: weight_range,
@@ -83,9 +90,14 @@ class FeedingPlan
     )
   end
 
+  # Faixa aplicável ao peso médio, no mesmo espírito do VLOOKUP(...; VERDADEIRO)
+  # da planilha: a faixa de maior `weight_from` que ainda seja <= peso médio.
+  # Assim um peso que caia numa "folga" entre duas faixas (ex.: 9,95 g entre
+  # 3–9,9 e 10–13,9) usa a faixa anterior, como no Excel. Peso abaixo da menor
+  # faixa (ou sem peso) -> nil (trato indisponível, nunca zero).
   def weight_range_for(avg_weight_g)
     return if avg_weight_g <= 0
 
-    weight_ranges.find { |range| range.weight_from <= avg_weight_g && avg_weight_g <= range.weight_to }
+    weight_ranges.select { |range| range.weight_from <= avg_weight_g }.last
   end
 end

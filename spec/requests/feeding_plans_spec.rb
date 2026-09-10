@@ -30,16 +30,47 @@ RSpec.describe "FeedingPlans", type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it "renders the feed table with the computed ration per pond" do
-      stock(pond, biomass_kg: 6_000, quantity: 800_000) # avg 7,5 g -> faixa 3-9,9
+    it "renders the tank row with quantity, average weight, biomass and the computed ration" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000) # avg 7,67 g -> faixa 3-9,9
 
       get feeding_plans_path
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Trato (Kg) por temperatura")
-      expect(response.body).to include("Tempo (min) por temperatura")
+      expect(response.body).to include("Qtde. peixes")
       expect(response.body).to include("Tanque 4")
-      expect(response.body).to include("360") # 6000 kg * 6% = 360 kg
+      expect(response.body).to include("900.000") # quantidade de peixes
+      expect(response.body).to include("6.900")   # biomassa (kg)
+      expect(response.body).to include("7,67")    # peso médio (g)
+      expect(response.body).to include("414")     # 6900 kg * 6% = 414 kg
+    end
+
+    it "renders one column per registered temperature range, dynamically" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000)
+      other = create(:feeding_temperature_range, temperature_from: 30, temperature_to: 31)
+
+      get feeding_plans_path
+
+      expect(response.body).to include("24–26°C")
+      expect(response.body).to include("30–31°C")
+
+      other.destroy
+      get feeding_plans_path
+      expect(response.body).to include("24–26°C")
+      expect(response.body).not_to include("30–31°C")
+    end
+
+    it "shows an unavailable marker (not zero) when there is no rate for a weight/temperature cell" do
+      pond_no_rate = create(:pond, unit: unit, name: "Tanque 9")
+      create(:feeding_weight_range, weight_from: 100, weight_to: 199.9) # faixa sem strategy items
+      stock(pond_no_rate, biomass_kg: 15_000, quantity: 100_000) # avg 150 g
+
+      get feeding_plans_path
+
+      row = Nokogiri::HTML(response.body).css("tr").find { |tr| tr.text.include?("Tanque 9") }
+      temp_cell = row.css("td").last
+      expect(temp_cell.text.strip).to eq("—")
+      expect(temp_cell.text).not_to include("0")
     end
 
     it "filters the ponds by unit" do
