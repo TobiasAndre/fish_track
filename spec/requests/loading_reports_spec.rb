@@ -27,7 +27,7 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.body).to include("Nenhum carregamento encontrado")
     end
 
-    it "lists loading events with their batch, pond and totals" do
+    it "lists loading events grouped by client/producer with the pond and date" do
       event = create(
         :stocking_event, :loading,
         batch_stocking: batch_stocking, customer: customer, integrated: integrated,
@@ -37,11 +37,10 @@ RSpec.describe "LoadingReports", type: :request do
       get loading_reports_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(batch.name)
       expect(response.body).to include(pond.name)
       expect(response.body).to include(customer.name)
       expect(response.body).to include(integrated.name)
-      expect(response.body).to include(I18n.l(event.occurred_on))
+      expect(response.body).to include(I18n.l(event.occurred_on, format: "%d/%m/%y"))
     end
 
     it "does not include mortality or biometry events" do
@@ -52,38 +51,39 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.body).not_to include("Mortalidade única")
     end
 
+    # The Repasse column is abbreviated to 10 chars, so these markers stay short.
     it "filters by period" do
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 6, 15), loading_destination: "Destino dentro do período")
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 1, 1), loading_destination: "Destino fora do período")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 6, 15), loading_destination: "P-DENTRO")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 1, 1), loading_destination: "P-FORA")
 
       get loading_reports_path, params: { start_date: "2026-06-01", end_date: "2026-06-30" }
 
-      expect(response.body).to include("Destino dentro do período")
-      expect(response.body).not_to include("Destino fora do período")
+      expect(response.body).to include("P-DENTRO")
+      expect(response.body).not_to include("P-FORA")
     end
 
     it "filters by produtor (integrado)" do
       other_integrated = create(:integrated, customer: customer)
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: integrated, loading_destination: "Destino do produtor filtrado")
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: other_integrated, loading_destination: "Destino de outro produtor")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: integrated, loading_destination: "PROD-SIM")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, integrated: other_integrated, loading_destination: "PROD-NAO")
 
       get loading_reports_path, params: { integrated_id: integrated.id }
 
-      expect(response.body).to include("Destino do produtor filtrado")
-      expect(response.body).not_to include("Destino de outro produtor")
+      expect(response.body).to include("PROD-SIM")
+      expect(response.body).not_to include("PROD-NAO")
     end
 
     it "filters by lote" do
       other_batch = create(:batch, pond: pond)
       other_batch_stocking = other_batch.batch_stockings.first
 
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "Destino do lote filtrado")
-      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "Destino de outro lote")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "LOTE-SIM")
+      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "LOTE-NAO")
 
       get loading_reports_path, params: { batch_id: batch.id }
 
-      expect(response.body).to include("Destino do lote filtrado")
-      expect(response.body).not_to include("Destino de outro lote")
+      expect(response.body).to include("LOTE-SIM")
+      expect(response.body).not_to include("LOTE-NAO")
     end
 
     it "filters by tanque" do
@@ -91,13 +91,13 @@ RSpec.describe "LoadingReports", type: :request do
       other_batch = create(:batch, pond: other_pond)
       other_batch_stocking = other_batch.batch_stockings.first
 
-      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "Destino do tanque filtrado")
-      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "Destino de outro tanque")
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, loading_destination: "TANQ-SIM")
+      create(:stocking_event, :loading, batch_stocking: other_batch_stocking, loading_destination: "TANQ-NAO")
 
       get loading_reports_path, params: { pond_id: pond.id }
 
-      expect(response.body).to include("Destino do tanque filtrado")
-      expect(response.body).not_to include("Destino de outro tanque")
+      expect(response.body).to include("TANQ-SIM")
+      expect(response.body).not_to include("TANQ-NAO")
     end
 
     it "sums the quantity, weight and value of the filtered events" do

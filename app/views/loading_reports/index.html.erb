@@ -127,97 +127,103 @@
       </div>
     </div>
 
+    <% brl = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+    <% abbr = ->(str) { str.present? ? truncate(str.to_s, length: 10, omission: "") : "—" } %>
+
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+      <table class="min-w-full text-xs">
+        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
           <tr>
-            <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Data</th>
-            <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Origem</th>
-            <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Destino</th>
-            <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Cliente</th>
-            <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Fornecedor</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qtde</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Peso total</th>
-          </tr>
-          <tr>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Média</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Preço/kg</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Milheiro</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Frete</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Carregamento</th>
-            <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Total</th>
+            <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">Data</th>
+            <th class="px-2 py-2 text-right font-semibold">Quant. (kg)</th>
+            <th class="px-2 py-2 text-right font-semibold">Peixes</th>
+            <th class="px-2 py-2 text-right font-semibold">Média (kg)</th>
+            <th class="px-2 py-2 text-right font-semibold">Preço/kg</th>
+            <th class="px-2 py-2 text-right font-semibold">Milheiro</th>
+            <th class="px-2 py-2 text-right font-semibold">Preço (R$)</th>
+            <th class="px-2 py-2 text-right font-semibold">Frete</th>
+            <th class="px-2 py-2 text-right font-semibold">Carregamento</th>
+            <th class="px-2 py-2 text-right font-semibold">Pagamento</th>
+            <th class="px-2 py-2 text-left font-semibold">Tanque</th>
+            <th class="px-2 py-2 text-left font-semibold">Repasse</th>
           </tr>
         </thead>
 
-        <% @events.each do |event| %>
-          <tbody class="border-t-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
-            <tr>
-              <td class="px-3 pt-2 text-gray-700 dark:text-gray-300">
-                <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
-              </td>
+        <tbody>
+          <% if @events.any? %>
+            <% groups = @events
+                 .group_by { |e| [e.customer&.name.presence || "Sem cliente", e.integrated&.name.presence] }
+                 .sort_by { |(customer_name, producer_name), _| [customer_name, producer_name.to_s] } %>
+            <% groups.each do |(customer_name, producer_name), group_events| %>
+              <tr class="bg-gray-800 text-white">
+                <td colspan="12" class="px-2 py-1.5 font-semibold"><%= [customer_name, producer_name].compact.join(" / ") %></td>
+              </tr>
 
-              <td class="px-3 pt-2 text-gray-700 dark:text-gray-300">
-                <%= event.batch_stocking&.pond&.name || "—" %>
-              </td>
+              <% group_weight_kg = 0.to_d %>
+              <% group_fish = 0 %>
+              <% group_payment_cents = 0 %>
 
-              <td class="px-3 pt-2 text-gray-700 dark:text-gray-300">
-                <%= event.loading_destination.presence || "—" %>
-              </td>
+              <% group_events.sort_by { |e| [e.occurred_on || Date.new(1900, 1, 1), e.id] }.each do |event| %>
+                <% group_weight_kg += event.total_weight_kg.to_d %>
+                <% group_fish += event.quantity.to_i %>
+                <% group_payment_cents += event.total_cents.to_i %>
 
-              <td class="px-3 pt-2 text-gray-700 dark:text-gray-300">
-                <%= event.customer ? truncate(event.customer.name, length: 10, omission: "") : "—" %>
-              </td>
+                <tr class="border-t border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300">
+                  <td class="px-2 py-1.5 whitespace-nowrap"><%= event.occurred_on.present? ? l(event.occurred_on, format: "%d/%m/%y") : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.total_weight_kg.present? ? number_with_precision(event.total_weight_kg, precision: 2, separator: ",", delimiter: ".") : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.avg_weight_g.present? ? number_with_precision(event.avg_weight_g.to_d / 1000, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.price_per_kg_cents.to_i.positive? ? brl.call(event.price_per_kg_cents) : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.thousand_value_cents.to_i.positive? ? brl.call(event.thousand_value_cents) : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.effective_thousand_price_cents.positive? ? brl.call(event.effective_thousand_price_cents) : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.freight_cost_cents.to_i.positive? ? brl.call(event.freight_cost_cents) : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.loading_cost_cents.to_i.positive? ? brl.call(event.loading_cost_cents) : "—" %></td>
+                  <td class="px-2 py-1.5 text-right"><%= event.total_cents.to_i.positive? ? brl.call(event.total_cents) : "—" %></td>
+                  <td class="px-2 py-1.5"><%= abbr.call(event.batch_stocking&.pond&.name) %></td>
+                  <td class="px-2 py-1.5"><%= abbr.call(event.loading_destination) %></td>
+                </tr>
+              <% end %>
 
-              <td class="px-3 pt-2 text-gray-700 dark:text-gray-300">
-                <%= event.supplier ? truncate(event.supplier.name, length: 15) : "—" %>
-              </td>
+              <% group_suppliers = group_events.map { |e| e.supplier&.name }.compact.uniq.map { |name| abbr.call(name) }.join(" / ") %>
+              <tr class="bg-gray-100 dark:bg-gray-800 font-semibold text-gray-800 dark:text-gray-100">
+                <td class="px-2 py-1.5">TOTAL</td>
+                <td class="px-2 py-1.5 text-right"><%= number_with_precision(group_weight_kg, precision: 2, separator: ",", delimiter: ".") %></td>
+                <td class="px-2 py-1.5 text-right"><%= number_with_delimiter(group_fish, delimiter: ".") %></td>
+                <td class="px-2 py-1.5 text-right"><%= group_fish.positive? ? number_with_precision(group_weight_kg / group_fish, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="px-2 py-1.5 text-right"><%= brl.call(group_payment_cents) %></td>
+                <td></td>
+                <td class="px-2 py-1.5"><%= group_suppliers.presence || "—" %></td>
+              </tr>
+            <% end %>
 
-              <td class="px-3 pt-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.quantity.present? ? number_with_delimiter(event.quantity, delimiter: ".") : "—" %>
-              </td>
-
-              <td class="px-3 pt-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.total_weight_kg.present? ? "#{number_with_precision(event.total_weight_kg, precision: 3, separator: ",", delimiter: ".")} kg" : "—" %>
-              </td>
+            <% all_suppliers = @events.map { |e| e.supplier&.name }.compact.uniq.map { |name| abbr.call(name) }.join(" / ") %>
+            <tr class="bg-gray-200 dark:bg-gray-700 font-semibold text-gray-900 dark:text-gray-50">
+              <td class="px-2 py-1.5">GERAL</td>
+              <td class="px-2 py-1.5 text-right"><%= number_with_precision(@total_weight_kg.to_d, precision: 2, separator: ",", delimiter: ".") %></td>
+              <td class="px-2 py-1.5 text-right"><%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %></td>
+              <td class="px-2 py-1.5 text-right"><%= @total_quantity.to_i.positive? ? number_with_precision(@total_weight_kg.to_d / @total_quantity.to_i, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td class="px-2 py-1.5 text-right"><%= brl.call(@total_cents) %></td>
+              <td></td>
+              <td class="px-2 py-1.5"><%= all_suppliers.presence || "—" %></td>
             </tr>
-
+          <% else %>
             <tr>
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.avg_weight_g.present? ? "#{number_with_precision(event.avg_weight_g, precision: 1, separator: ",", delimiter: ".")} g" : "—" %>
-              </td>
-
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.price_per_kg_cents.to_i.positive? ? number_to_currency(event.price_per_kg_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
-              </td>
-
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.thousand_value_cents.to_i.positive? ? number_to_currency(event.thousand_value_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
-              </td>
-
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.freight_cost_cents.to_i.positive? ? number_to_currency(event.freight_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
-              </td>
-
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.loading_cost_cents.to_i.positive? ? number_to_currency(event.loading_cost_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
-              </td>
-
-              <td class="px-3 pb-2 text-right text-gray-700 dark:text-gray-300">
-                <%= event.total_cents.to_i.positive? ? number_to_currency(event.total_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") : "—" %>
-              </td>
-            </tr>
-          </tbody>
-        <% end %>
-
-        <% if @events.empty? %>
-          <tbody class="border-t-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-            <tr>
-              <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="12" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                 Nenhum carregamento encontrado para os filtros selecionados.
               </td>
             </tr>
-          </tbody>
-        <% end %>
+          <% end %>
+        </tbody>
       </table>
     </div>
   </div>
