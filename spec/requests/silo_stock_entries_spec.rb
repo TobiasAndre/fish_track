@@ -55,6 +55,18 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(section.text).to include("500,000kg")
     end
 
+    it "shows a grand total at the end of the current stock table" do
+      other_type = create(:feeding_type, feeding_brand: feeding_brand)
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 300)
+      create(:silo_stock_entry, silo: nil, feeding_type: other_type, quantity_kg: 450)
+
+      get silo_stock_entries_path
+
+      footer = current_stock_section(response.body).css("tfoot tr").first
+      expect(footer.text).to include("Total geral")
+      expect(footer.text).to include("750,000kg")
+    end
+
     it "includes in the current stock entries that were recorded without a silo" do
       create(:silo_stock_entry, silo: nil, feeding_type: feeding_type, quantity_kg: 750)
 
