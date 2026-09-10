@@ -74,6 +74,14 @@
     font-size: 10px;
   }
 
+  /* Espaço em branco entre um grupo e o próximo. */
+  .loadings tr.group-spacer td {
+    border: none;
+    background: #fff;
+    padding: 0;
+    height: 8px;
+  }
+
   .loadings tr.group-total td {
     background: #eee;
     font-weight: bold;
@@ -163,7 +171,11 @@
       <% groups = @events
            .group_by { |e| [e.customer&.name.presence || "Sem cliente", e.integrated&.name.presence] }
            .sort_by { |(customer_name, producer_name), _| [customer_name, producer_name.to_s] } %>
-      <% groups.each do |(customer_name, producer_name), group_events| %>
+      <% groups.each_with_index do |((customer_name, producer_name), group_events), group_index| %>
+        <% if group_index.positive? %>
+          <tr class="group-spacer"><td colspan="12"></td></tr>
+        <% end %>
+
         <tr class="group-title">
           <td colspan="12"><%= [customer_name, producer_name].compact.join(" / ") %></td>
         </tr>

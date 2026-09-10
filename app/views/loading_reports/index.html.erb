@@ -154,7 +154,11 @@
             <% groups = @events
                  .group_by { |e| [e.customer&.name.presence || "Sem cliente", e.integrated&.name.presence] }
                  .sort_by { |(customer_name, producer_name), _| [customer_name, producer_name.to_s] } %>
-            <% groups.each do |(customer_name, producer_name), group_events| %>
+            <% groups.each_with_index do |((customer_name, producer_name), group_events), group_index| %>
+              <% if group_index.positive? %>
+                <tr><td colspan="12" class="h-3 bg-white dark:bg-gray-900"></td></tr>
+              <% end %>
+
               <tr class="bg-gray-800 text-white">
                 <td colspan="12" class="px-2 py-1.5 font-semibold"><%= [customer_name, producer_name].compact.join(" / ") %></td>
               </tr>
