@@ -79,11 +79,6 @@
     font-weight: bold;
   }
 
-  .loadings tr.grand-total td {
-    background: #ddd;
-    font-weight: bold;
-  }
-
   .empty {
     text-align: center;
     color: #777;
@@ -207,22 +202,6 @@
           <td><%= group_suppliers.presence || "-" %></td>
         </tr>
       <% end %>
-
-      <% all_suppliers = @events.map { |e| e.supplier&.name }.compact.uniq.map { |name| abbr.call(name) }.join(" / ") %>
-      <tr class="grand-total">
-        <td>TOTAL</td>
-        <td class="text-right"><%= number_with_precision(@total_weight_kg.to_d, precision: 2, separator: ",", delimiter: ".") %></td>
-        <td class="text-right"><%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %></td>
-        <td class="text-right"><%= @total_quantity.to_i.positive? ? number_with_precision(@total_weight_kg.to_d / @total_quantity.to_i, precision: 3, separator: ",", delimiter: ".") : "-" %></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td class="text-right"><%= brl.call(@total_cents) %></td>
-        <td></td>
-        <td><%= all_suppliers.presence || "-" %></td>
-      </tr>
     <% else %>
       <tr>
         <td colspan="12" class="empty">
