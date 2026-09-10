@@ -52,7 +52,7 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(section).to be_present
       expect(section.css("tbody tr").count).to eq(1)
       expect(section.text).to include(silo.name)
-      expect(section.text).to include("500,000kg")
+      expect(section.text).to include("500kg")
     end
 
     it "shows a grand total at the end of the current stock table" do
@@ -64,7 +64,7 @@ RSpec.describe "SiloStockEntries", type: :request do
 
       footer = current_stock_section(response.body).css("tfoot tr").first
       expect(footer.text).to include("Total geral")
-      expect(footer.text).to include("750,000kg")
+      expect(footer.text).to include("750kg")
     end
 
     it "includes in the current stock entries that were recorded without a silo" do
@@ -77,7 +77,7 @@ RSpec.describe "SiloStockEntries", type: :request do
       row = section.css("tbody tr").first
       expect(row).to be_present
       expect(row.text).to include("Sem silo")
-      expect(row.text).to include("750,000kg")
+      expect(row.text).to include("750kg")
     end
 
     it "filters the history by silo" do

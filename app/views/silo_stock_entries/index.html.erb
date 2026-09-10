@@ -194,7 +194,7 @@
                 <td class="py-2 pr-4"><%= silo&.name || "Sem silo" %></td>
                 <td class="py-2 pr-4"><%= feeding_type&.name || "—" %></td>
                 <td class="py-2 pr-4"><%= feeding_type&.feeding_brand&.name || "—" %></td>
-                <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+                <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
               </tr>
             <% end %>
           </tbody>
@@ -203,7 +203,7 @@
             <% total_estoque_kg = stock_rows.sum { |(_key, total_kg)| total_kg.to_d } %>
             <tr class="border-t-2 border-gray-300 dark:border-gray-700 font-semibold text-gray-900 dark:text-gray-100">
               <td class="py-2 pr-4" colspan="4">Total geral</td>
-              <td class="py-2 pr-4"><%= number_with_precision(total_estoque_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+              <td class="py-2 pr-4"><%= number_with_precision(total_estoque_kg, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
             </tr>
           </tfoot>
         </table>
@@ -305,7 +305,7 @@
                 <td class="py-2 pr-4"><%= entry.batch&.name || "—" %></td>
                 <td class="py-2 pr-4"><%= entry.feeding_type.name %></td>
                 <td class="py-2 pr-4"><%= entry.feeding_brand.name %></td>
-                <td class="py-2 pr-4"><%= number_with_precision(entry.quantity_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+                <td class="py-2 pr-4"><%= number_with_precision(entry.quantity_kg, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
                 <td class="py-2 pr-4"><%= entry.price_per_kg_cents.to_i.positive? ? number_to_currency(entry.price_per_kg_cents.to_i / 100.0) : "—" %></td>
                 <td class="py-2 pr-4"><%= entry.total_cents.to_i.positive? ? number_to_currency(entry.total_cents.to_i / 100.0) : "—" %></td>
                 <td class="py-2 pr-4"><%= [entry.payment_method&.name, entry.payment_term&.name].compact.join(" · ").presence || "—" %></td>
