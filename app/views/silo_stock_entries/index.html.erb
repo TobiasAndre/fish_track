@@ -156,7 +156,19 @@
     <% end %>
   </div>
 
-  <% if @current_stock.present? %>
+  <% silos_by_id = @silos.index_by(&:id) %>
+  <% feeding_types_by_id = @feeding_types.index_by(&:id) %>
+  <% stock_rows = @current_stock
+       .select { |_key, total_kg| total_kg.to_d.positive? }
+       .sort_by { |(silo_id, feeding_type_id), _|
+         [
+           silo_id.nil? ? 1 : 0, # entradas sem silo por último
+           silos_by_id[silo_id]&.unit&.name.to_s,
+           silos_by_id[silo_id]&.name.to_s,
+           feeding_types_by_id[feeding_type_id]&.name.to_s
+         ] } %>
+
+  <% if stock_rows.any? %>
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Estoque atual (soma das entradas)</h2>
 
@@ -173,19 +185,17 @@
           </thead>
 
           <tbody>
-            <% @silos.each do |silo| %>
-              <% @feeding_types.each do |feeding_type| %>
-                <% total_kg = @current_stock[[silo.id, feeding_type.id]] %>
-                <% next if total_kg.blank? || total_kg.to_d <= 0 %>
+            <% stock_rows.each do |(silo_id, feeding_type_id), total_kg| %>
+              <% silo = silos_by_id[silo_id] %>
+              <% feeding_type = feeding_types_by_id[feeding_type_id] %>
 
-                <tr class="border-b border-gray-100 dark:border-gray-800">
-                  <td class="py-2 pr-4"><%= silo.unit.name %></td>
-                  <td class="py-2 pr-4"><%= silo.name %></td>
-                  <td class="py-2 pr-4"><%= feeding_type.name %></td>
-                  <td class="py-2 pr-4"><%= feeding_type.feeding_brand.name %></td>
-                  <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
-                </tr>
-              <% end %>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-4"><%= silo&.unit&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= silo&.name || "Sem silo" %></td>
+                <td class="py-2 pr-4"><%= feeding_type&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= feeding_type&.feeding_brand&.name || "—" %></td>
+                <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, separator: ",", delimiter: ".") %>kg</td>
+              </tr>
             <% end %>
           </tbody>
         </table>

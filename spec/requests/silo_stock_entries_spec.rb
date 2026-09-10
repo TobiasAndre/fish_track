@@ -37,14 +37,35 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(response.body).to include(feeding_brand.name)
     end
 
+    def current_stock_section(body)
+      doc = Nokogiri::HTML(body)
+      doc.css("h2").find { |h| h.text.include?("Estoque atual") }&.parent
+    end
+
     it "shows the current stock summary as the sum of entries per silo and type" do
       create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 300)
       create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 200)
 
       get silo_stock_entries_path
 
-      expect(response.body).to include("Estoque atual")
-      expect(response.body).to include("500,000kg")
+      section = current_stock_section(response.body)
+      expect(section).to be_present
+      expect(section.css("tbody tr").count).to eq(1)
+      expect(section.text).to include(silo.name)
+      expect(section.text).to include("500,000kg")
+    end
+
+    it "includes in the current stock entries that were recorded without a silo" do
+      create(:silo_stock_entry, silo: nil, feeding_type: feeding_type, quantity_kg: 750)
+
+      get silo_stock_entries_path
+
+      section = current_stock_section(response.body)
+      expect(section).to be_present
+      row = section.css("tbody tr").first
+      expect(row).to be_present
+      expect(row.text).to include("Sem silo")
+      expect(row.text).to include("750,000kg")
     end
 
     it "filters the history by silo" do
