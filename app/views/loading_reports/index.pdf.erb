@@ -93,6 +93,7 @@
 </style>
 
 <% brl = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+<% abbr = ->(str) { str.present? ? truncate(str.to_s, length: 10, omission: "") : "-" } %>
 
 <div class="header">
   <h1 class="title">Relatorio de Carregamentos</h1>
@@ -178,12 +179,12 @@
             <td class="text-right"><%= event.freight_cost_cents.to_i.positive? ? brl.call(event.freight_cost_cents) : "-" %></td>
             <td class="text-right"><%= event.loading_cost_cents.to_i.positive? ? brl.call(event.loading_cost_cents) : "-" %></td>
             <td class="text-right"><%= event.total_cents.to_i.positive? ? brl.call(event.total_cents) : "-" %></td>
-            <td><%= event.batch_stocking&.pond&.name || "-" %></td>
-            <td><%= event.loading_destination.presence || "-" %></td>
+            <td><%= abbr.call(event.batch_stocking&.pond&.name) %></td>
+            <td><%= abbr.call(event.loading_destination) %></td>
           </tr>
         <% end %>
 
-        <% group_suppliers = group_events.map { |e| e.supplier&.name }.compact.uniq.join(" / ") %>
+        <% group_suppliers = group_events.map { |e| e.supplier&.name }.compact.uniq.map { |name| abbr.call(name) }.join(" / ") %>
         <tr class="group-total">
           <td>TOTAL</td>
           <td class="text-right"><%= number_with_precision(group_weight_kg, precision: 2, separator: ",", delimiter: ".") %></td>
@@ -200,7 +201,7 @@
         </tr>
       <% end %>
 
-      <% all_suppliers = @events.map { |e| e.supplier&.name }.compact.uniq.join(" / ") %>
+      <% all_suppliers = @events.map { |e| e.supplier&.name }.compact.uniq.map { |name| abbr.call(name) }.join(" / ") %>
       <tr class="grand-total">
         <td>TOTAL GERAL</td>
         <td class="text-right"><%= number_with_precision(@total_weight_kg.to_d, precision: 2, separator: ",", delimiter: ".") %></td>
