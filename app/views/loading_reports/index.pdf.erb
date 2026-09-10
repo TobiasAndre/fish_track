@@ -155,10 +155,12 @@
 
   <tbody>
     <% if @events.any? %>
-      <% groups = @events.group_by { |e| e.integrated&.name || "Sem produtor" }.sort_by { |name, _| name } %>
-      <% groups.each do |producer_name, group_events| %>
+      <% groups = @events
+           .group_by { |e| [e.customer&.name.presence || "Sem cliente", e.integrated&.name.presence] }
+           .sort_by { |(customer_name, producer_name), _| [customer_name, producer_name.to_s] } %>
+      <% groups.each do |(customer_name, producer_name), group_events| %>
         <tr class="group-title">
-          <td colspan="12"><%= producer_name %></td>
+          <td colspan="12"><%= [customer_name, producer_name].compact.join(" / ") %></td>
         </tr>
 
         <% group_weight_kg = 0.to_d %>
