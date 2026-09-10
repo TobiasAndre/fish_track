@@ -112,6 +112,10 @@ Rails.application.routes.draw do
       resources :feeding_strategy_items, only: %i[create destroy]
     end
 
+    resources :feeding_plans, only: [:index] do
+      collection { patch :calibrations }
+    end
+
     resources :feeding_types, except: [:show]
     resources :feeding_brands, except: [:show]
 

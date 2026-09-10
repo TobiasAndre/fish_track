@@ -1,0 +1,158 @@
+<% kg = ->(value) { value ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "—" } %>
+<% mins = ->(value) { value ? number_with_precision(value, precision: 1, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "—" } %>
+<% temp_label = ->(range) { "#{range.temperature_from.to_i}–#{range.temperature_to.to_i}°C" } %>
+<% weight_label = ->(range) { range ? "#{number_with_precision(range.weight_from, precision: 1, strip_insignificant_zeros: true, separator: ",")}–#{number_with_precision(range.weight_to, precision: 1, strip_insignificant_zeros: true, separator: ",")} g" : "—" } %>
+<% temperature_ranges = @plan.temperature_ranges %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Arraçoamento</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Trato (kg) e tempo (min) por tanque em cada faixa de temperatura da água, a partir da biomassa dos lotes ativos.
+    </p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <%= form_with url: feeding_plans_path, method: :get, local: true, class: "flex flex-wrap items-end gap-3" do %>
+      <div class="w-64">
+        <%= label_tag :feeding_table_id, "Tabela de arraçoamento", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+        <%= select_tag :feeding_table_id,
+          options_from_collection_for_select(@feeding_tables, :id, :name, @feeding_table&.id),
+          include_blank: @feeding_tables.any? ? false : "—",
+          onchange: "this.form.submit()",
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div class="w-56">
+        <%= label_tag :unit_id, "Unidade", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+        <%= select_tag :unit_id,
+          options_from_collection_for_select(@units, :id, :name, @selected_unit_id),
+          prompt: "Todas as unidades",
+          onchange: "this.form.submit()",
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+    <% end %>
+
+    <% if @feeding_table.blank? %>
+      <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        Cadastre uma <%= link_to "tabela de arraçoamento", new_feeding_table_path, class: "underline font-medium" %> com os percentuais para calcular o trato.
+      </div>
+    <% end %>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Trato (Kg) por temperatura</h2>
+
+    <% if @ponds.empty? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum tanque cadastrado para o filtro selecionado.</p>
+    <% else %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+          <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <tr>
+              <th class="px-2 py-2 text-left font-semibold">Tanque</th>
+              <th class="px-2 py-2 text-right font-semibold">Biomassa (kg)</th>
+              <th class="px-2 py-2 text-right font-semibold">Peso médio (g)</th>
+              <th class="px-2 py-2 text-left font-semibold">Faixa</th>
+              <% temperature_ranges.each do |range| %>
+                <th class="px-2 py-2 text-right font-semibold whitespace-nowrap"><%= temp_label.call(range) %></th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+            <% @plan.rows.each do |row| %>
+              <tr>
+                <td class="px-2 py-1.5 font-medium text-gray-900 dark:text-gray-100"><%= row.pond.name %></td>
+                <td class="px-2 py-1.5 text-right"><%= row.biomass_kg.positive? ? kg.call(row.biomass_kg) : "—" %></td>
+                <td class="px-2 py-1.5 text-right"><%= row.avg_weight_g.positive? ? number_with_precision(row.avg_weight_g, precision: 2, separator: ",", delimiter: ".") : "—" %></td>
+                <td class="px-2 py-1.5 whitespace-nowrap"><%= weight_label.call(row.weight_range) %></td>
+                <% temperature_ranges.each do |range| %>
+                  <td class="px-2 py-1.5 text-right"><%= kg.call(row.feed_kg_by_temp[range.id]) %></td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+
+  <% unless @ponds.empty? %>
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">Calibração de tempo</h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+        Informe uma amostra por tanque (quantos kg de ração foram dados e em quantos segundos). O tempo de cada trato é estimado a partir dessa taxa.
+      </p>
+
+      <%= form_with url: calibrations_feeding_plans_path, method: :patch, local: true do %>
+        <%= hidden_field_tag :feeding_table_id, @feeding_table&.id %>
+        <%= hidden_field_tag :unit_id, @selected_unit_id %>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs">
+            <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+              <tr>
+                <th class="px-2 py-2 text-left font-semibold">Tanque</th>
+                <th class="px-2 py-2 text-left font-semibold">Ração da amostra (kg)</th>
+                <th class="px-2 py-2 text-left font-semibold">Tempo da amostra (s)</th>
+                <th class="px-2 py-2 text-right font-semibold">s/kg</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+              <% @ponds.each do |pond| %>
+                <tr>
+                  <td class="px-2 py-1.5 font-medium text-gray-900 dark:text-gray-100"><%= pond.name %></td>
+                  <td class="px-2 py-1.5">
+                    <%= number_field_tag "calibrations[#{pond.id}][feed_sample_kg]", pond.feed_sample_kg,
+                      step: 0.001, min: 0,
+                      class: "w-28 rounded-lg border px-2 py-1 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <%= number_field_tag "calibrations[#{pond.id}][feed_sample_seconds]", pond.feed_sample_seconds,
+                      step: 0.01, min: 0,
+                      class: "w-28 rounded-lg border px-2 py-1 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+                  </td>
+                  <td class="px-2 py-1.5 text-right"><%= pond.feed_seconds_per_kg ? number_with_precision(pond.feed_seconds_per_kg, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-3">
+          <%= submit_tag "Salvar calibração",
+            class: "inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Tempo (min) por temperatura</h2>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+          <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <tr>
+              <th class="px-2 py-2 text-left font-semibold">Tanque</th>
+              <th class="px-2 py-2 text-right font-semibold">s/kg</th>
+              <% temperature_ranges.each do |range| %>
+                <th class="px-2 py-2 text-right font-semibold whitespace-nowrap"><%= temp_label.call(range) %></th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+            <% @plan.rows.each do |row| %>
+              <tr>
+                <td class="px-2 py-1.5 font-medium text-gray-900 dark:text-gray-100"><%= row.pond.name %></td>
+                <td class="px-2 py-1.5 text-right"><%= row.pond.feed_seconds_per_kg ? number_with_precision(row.pond.feed_seconds_per_kg, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
+                <% temperature_ranges.each do |range| %>
+                  <td class="px-2 py-1.5 text-right"><%= mins.call(row.time_min_by_temp[range.id]) %></td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>
