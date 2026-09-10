@@ -92,6 +92,11 @@ class SiloStockEntriesController < ApplicationController
 
     @entries = scope.page(params[:page]).per(15)
 
+    # Totais do recorte filtrado (não só da página exibida).
+    @entries_count = scope.count
+    @entries_total_kg = scope.sum(:quantity_kg)
+    @entries_total_cents = scope.sum(:total_cents)
+
     @current_stock = SiloStockEntry.group(:silo_id, :feeding_type_id).sum(:quantity_kg)
   end
 

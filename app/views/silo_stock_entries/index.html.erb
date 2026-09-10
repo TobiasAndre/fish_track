@@ -338,6 +338,16 @@
               </tr>
             <% end %>
           </tbody>
+
+          <tfoot>
+            <tr class="border-t-2 border-gray-300 dark:border-gray-700 font-semibold text-gray-900 dark:text-gray-100">
+              <td class="py-2 pr-4" colspan="6">Total (<%= pluralize(@entries_count, "entrada", "entradas") %>)</td>
+              <td class="py-2 pr-4"><%= number_with_precision(@entries_total_kg.to_d, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
+              <td class="py-2 pr-4"></td>
+              <td class="py-2 pr-4"><%= number_to_currency(@entries_total_cents.to_i / 100.0) %></td>
+              <td class="py-2 pr-4" colspan="3"></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 

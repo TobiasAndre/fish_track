@@ -80,6 +80,38 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(row.text).to include("750kg")
     end
 
+    def history_total_row(body)
+      Nokogiri::HTML(body).css("tfoot tr").map { |r| r.text.gsub(/\s+/, " ").strip }.grep(/Total \(/).first
+    end
+
+    it "shows the weight and value totals of the whole history" do
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 1_000, total_cents: 50_000)
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 500,   total_cents: 25_000)
+
+      get silo_stock_entries_path
+
+      row = history_total_row(response.body)
+      expect(row).to include("Total (2 entradas)")
+      expect(row).to include("1.500kg")
+      expect(row).to include("R$ 750,00")
+    end
+
+    it "totals only the filtered entries" do
+      other_brand = create(:feeding_brand, name: "Purina")
+      other_type = create(:feeding_type, feeding_brand: other_brand)
+
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 1_000, total_cents: 50_000)
+      create(:silo_stock_entry, silo: silo, feeding_type: other_type, quantity_kg: 3_000, total_cents: 90_000)
+
+      get silo_stock_entries_path, params: { feeding_brand_id: feeding_brand.id }
+
+      row = history_total_row(response.body)
+      expect(row).to include("Total (1 entrada)")
+      expect(row).to include("1.000kg")
+      expect(row).to include("R$ 500,00")
+      expect(row).not_to include("4.000kg")
+    end
+
     it "filters the history by silo" do
       matching = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type)
       other_entry = create(:silo_stock_entry)
