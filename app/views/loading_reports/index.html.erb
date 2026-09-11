@@ -166,11 +166,15 @@
               <% group_weight_kg = 0.to_d %>
               <% group_fish = 0 %>
               <% group_payment_cents = 0 %>
+              <% group_freight_cents = 0 %>
+              <% group_loading_cents = 0 %>
 
               <% group_events.sort_by { |e| [e.occurred_on || Date.new(1900, 1, 1), e.id] }.each do |event| %>
                 <% group_weight_kg += event.total_weight_kg.to_d %>
                 <% group_fish += event.quantity.to_i %>
                 <% group_payment_cents += event.total_cents.to_i %>
+                <% group_freight_cents += event.freight_cost_cents.to_i %>
+                <% group_loading_cents += event.loading_cost_cents.to_i %>
 
                 <tr class="border-t border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300">
                   <td class="px-2 py-1.5 whitespace-nowrap"><%= event.occurred_on.present? ? l(event.occurred_on, format: "%d/%m/%y") : "—" %></td>
@@ -198,7 +202,8 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
+                <td class="px-2 py-1.5 text-right"><%= brl.call(group_freight_cents) %></td>
+                <td class="px-2 py-1.5 text-right"><%= brl.call(group_loading_cents) %></td>
                 <td class="px-2 py-1.5 text-right"><%= brl.call(group_payment_cents) %></td>
                 <td></td>
                 <td class="px-2 py-1.5"><%= group_suppliers.presence || "—" %></td>
@@ -215,7 +220,8 @@
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
+              <td class="px-2 py-1.5 text-right"><%= brl.call(@total_freight_cents) %></td>
+              <td class="px-2 py-1.5 text-right"><%= brl.call(@total_loading_cents) %></td>
               <td class="px-2 py-1.5 text-right"><%= brl.call(@total_cents) %></td>
               <td></td>
               <td class="px-2 py-1.5"><%= all_suppliers.presence || "—" %></td>

@@ -62,6 +62,8 @@ class LoadingReportsController < ApplicationController
     @total_quantity = @events.sum(:quantity)
     @total_weight_kg = @events.sum(:total_weight_kg)
     @total_cents = @events.sum(:total_cents)
+    @total_freight_cents = @events.sum(:freight_cost_cents)
+    @total_loading_cents = @events.sum(:loading_cost_cents)
   end
 
   def render_loading_report_pdf
