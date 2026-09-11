@@ -201,7 +201,6 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
                 <td class="px-2 py-1.5 text-right"><%= brl.call(group_freight_cents) %></td>
                 <td class="px-2 py-1.5 text-right"><%= brl.call(group_loading_cents) %></td>
                 <td class="px-2 py-1.5 text-right"><%= brl.call(group_payment_cents) %></td>
@@ -216,7 +215,6 @@
               <td class="px-2 py-1.5 text-right"><%= number_with_precision(@total_weight_kg.to_d, precision: 2, separator: ",", delimiter: ".") %></td>
               <td class="px-2 py-1.5 text-right"><%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %></td>
               <td class="px-2 py-1.5 text-right"><%= @total_quantity.to_i.positive? ? number_with_precision(@total_weight_kg.to_d / @total_quantity.to_i, precision: 3, separator: ",", delimiter: ".") : "—" %></td>
-              <td></td>
               <td></td>
               <td></td>
               <td></td>

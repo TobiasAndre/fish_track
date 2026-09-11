@@ -217,6 +217,7 @@
           <td class="text-right"><%= group_fish.positive? ? number_with_precision(group_weight_kg / group_fish, precision: 3, separator: ",", delimiter: ".") : "-" %></td>
           <td></td>
           <td></td>
+          <td></td>
           <td class="text-right"><%= brl.call(group_freight_cents) %></td>
           <td class="text-right"><%= brl.call(group_loading_cents) %></td>
           <td class="text-right"><%= brl.call(group_payment_cents) %></td>
@@ -231,6 +232,7 @@
         <td class="text-right"><%= number_with_precision(@total_weight_kg.to_d, precision: 2, separator: ",", delimiter: ".") %></td>
         <td class="text-right"><%= number_with_delimiter(@total_quantity.to_i, delimiter: ".") %></td>
         <td class="text-right"><%= @total_quantity.to_i.positive? ? number_with_precision(@total_weight_kg.to_d / @total_quantity.to_i, precision: 3, separator: ",", delimiter: ".") : "-" %></td>
+        <td></td>
         <td></td>
         <td></td>
         <td class="text-right"><%= brl.call(@total_freight_cents) %></td>
