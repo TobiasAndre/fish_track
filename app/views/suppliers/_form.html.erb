@@ -31,7 +31,10 @@
       <div>
         <%= form.label :tax_id, "CPF/CNPJ", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
         <div class="mt-1">
-          <%= form.text_field :tax_id, class: "w-full rounded-lg border px-3 py-2 text-sm
+          <%= form.text_field :tax_id,
+                maxlength: 18,
+                data: { controller: "tax-id", action: "input->tax-id#format" },
+                class: "w-full rounded-lg border px-3 py-2 text-sm
                     bg-white dark:bg-gray-950
                     border-gray-300 dark:border-gray-700
                     text-gray-900 dark:text-gray-100

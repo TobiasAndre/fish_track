@@ -1,4 +1,22 @@
 module ApplicationHelper
+  # Formats a CPF (000.000.000-00) or CNPJ (00.000.000/0000-00) based on
+  # digit count. Returns the original value unmasked when it doesn't match
+  # either length.
+  def format_tax_id(value)
+    return nil if value.blank?
+
+    digits = value.to_s.gsub(/\D/, "")
+
+    case digits.length
+    when 11
+      digits.gsub(/(\d{3})(\d{3})(\d{3})(\d{2})/, '\1.\2.\3-\4')
+    when 14
+      digits.gsub(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '\1.\2.\3/\4-\5')
+    else
+      value
+    end
+  end
+
   def enum_t(model, enum_name, value: nil)
     value ||= model.public_send(enum_name)
 
