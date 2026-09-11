@@ -415,12 +415,14 @@
       </div>
 
       <% if @active_batch_stockings.present? %>
-        <% @active_batch_stockings.each_with_index do |batch_stocking, index| %>
+        <% previous_batch_id = nil %>
+        <% @active_batch_stockings.each do |batch_stocking| %>
           <% events = batch_stocking.loading_events.sort_by { |event| event.occurred_on || Date.new(1900, 1, 1) } %>
 
-          <% if index.positive? %>
+          <% if previous_batch_id.present? && previous_batch_id != batch_stocking.batch_id %>
             <hr class="border-t-2 border-gray-200 dark:border-gray-800">
           <% end %>
+          <% previous_batch_id = batch_stocking.batch_id %>
 
           <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
             <div class="px-4 py-3 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
