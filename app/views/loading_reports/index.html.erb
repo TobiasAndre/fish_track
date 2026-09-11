@@ -65,17 +65,11 @@
               loading_reports_path,
               class: "inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700" %>
 
-        <%= link_to "Gerar PDF",
-              loading_reports_path(
-                format: :pdf,
-                start_date: params[:start_date],
-                end_date: params[:end_date],
-                integrated_id: params[:integrated_id],
-                batch_id: params[:batch_id],
-                pond_id: params[:pond_id],
-                customer_id: params[:customer_id]
-              ),
-              target: "_blank",
+        <%= button_tag "Gerar PDF",
+              type: "submit",
+              name: "format",
+              value: "pdf",
+              formtarget: "_blank",
               class: "inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700" %>
       </div>
     <% end %>
@@ -139,8 +133,8 @@
             <th class="px-2 py-2 text-right font-semibold">Peixes</th>
             <th class="px-2 py-2 text-right font-semibold">Média (kg)</th>
             <th class="px-2 py-2 text-right font-semibold">Preço/kg</th>
-            <th class="px-2 py-2 text-right font-semibold">Milheiro</th>
-            <th class="px-2 py-2 text-right font-semibold">Preço (R$)</th>
+            <th class="px-2 py-2 text-right font-semibold">Milheiro (Alev.)</th>
+            <th class="px-2 py-2 text-right font-semibold">Milheiro (Juv.)</th>
             <th class="px-2 py-2 text-right font-semibold">Frete</th>
             <th class="px-2 py-2 text-right font-semibold">Carregamento</th>
             <th class="px-2 py-2 text-right font-semibold">Pagamento</th>
