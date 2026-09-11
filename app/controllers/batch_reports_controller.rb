@@ -48,7 +48,25 @@ class BatchReportsController < ApplicationController
       @events = @events.where(event_type: filters[:event_type]) if filters[:event_type].present?
       @events = @events.where("occurred_on >= ?", filters[:start_date]) if filters[:start_date].present?
       @events = @events.where("occurred_on <= ?", filters[:end_date]) if filters[:end_date].present?
+
+      @report_batches = [@batch]
+    else
+      @report_batches = batches_matching(filters)
     end
+  end
+
+  # Without a specific lote chosen, filter the "Dados atuais" list down to
+  # batches that have a matching event, so the event type/date filters still
+  # do something useful.
+  def batches_matching(filters)
+    return @batches unless filters[:event_type].present? || filters[:start_date].present? || filters[:end_date].present?
+
+    events = StockingEvent.joins(:batch_stocking)
+    events = events.where(event_type: filters[:event_type]) if filters[:event_type].present?
+    events = events.where("stocking_events.occurred_on >= ?", filters[:start_date]) if filters[:start_date].present?
+    events = events.where("stocking_events.occurred_on <= ?", filters[:end_date]) if filters[:end_date].present?
+
+    @batches.where(id: events.select("batch_stockings.batch_id").distinct)
   end
 
   def render_batch_report_pdf

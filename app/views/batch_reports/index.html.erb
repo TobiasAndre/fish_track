@@ -5,7 +5,7 @@
     </h1>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      Consulte os dados atuais do lote.
+      Consulte os dados atuais dos lotes, com ou sem um lote específico selecionado.
     </p>
   </div>
 
@@ -83,7 +83,7 @@
     <% end %>
   </div>
 
-  <% if @batch.present? %>
+  <% if @report_batches.present? %>
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Dados atuais do lote</h2>
@@ -103,18 +103,20 @@
           </thead>
 
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= @batch.name %></td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= @batch.current_pond&.name || "-" %></td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= @batch.current_quantity.present? ? number_with_delimiter(@batch.current_quantity, delimiter: ".") : "—" %></td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.avg_weight_g || 0, precision: 2, separator: ",", delimiter: ".") %> g</td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(@batch.current_biomass_kg || 0, precision: 2, separator: ",", delimiter: ".") %> kg</td>
-              <td class="px-4 py-3">
-                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
-                  <%= enum_t(@batch, :status) %>
-                </span>
-              </td>
-            </tr>
+            <% @report_batches.each do |batch| %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100"><%= batch.name %></td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= batch.current_pond&.name || "-" %></td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= batch.current_quantity.present? ? number_with_delimiter(batch.current_quantity, delimiter: ".") : "—" %></td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(batch.avg_weight_g || 0, precision: 2, separator: ",", delimiter: ".") %> g</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300"><%= number_with_precision(batch.current_biomass_kg || 0, precision: 2, separator: ",", delimiter: ".") %> kg</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900/40 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
+                    <%= enum_t(batch, :status) %>
+                  </span>
+                </td>
+              </tr>
+            <% end %>
           </tbody>
         </table>
       </div>
@@ -122,11 +124,11 @@
   <% else %>
     <div class="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
       <h2 class="text-base font-semibold text-blue-900 dark:text-blue-100">
-        Selecione um lote
+        Nenhum lote encontrado
       </h2>
 
       <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
-        Use os filtros acima para visualizar o relatório.
+        Ajuste os filtros para visualizar o relatório.
       </p>
     </div>
   <% end %>
