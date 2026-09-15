@@ -17,7 +17,7 @@ class Employee < ApplicationRecord
            class_name: "EmployeeVacation",
            dependent: :destroy
 
-  enum status: { active: "active", inactive: "inactive", terminated: "terminated" }, _default: "active"
+  enum :status, { active: "active", inactive: "inactive", terminated: "terminated" }, default: "active"
 
   validates :name, presence: true
   validates :salary_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

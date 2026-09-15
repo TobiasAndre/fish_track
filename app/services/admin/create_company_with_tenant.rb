@@ -1,3 +1,5 @@
+require "apartment/migrator"
+
 module Admin
   class CreateCompanyWithTenant
     def initialize(company_params:, owner_user_id:)
@@ -11,12 +13,7 @@ module Admin
       begin
         Apartment::Tenant.create(company.tenant_name)
 
-        Apartment::Tenant.switch(company.tenant_name) do
-          ActiveRecord::MigrationContext.new(
-            Rails.root.join("db/migrate").to_s,
-            ActiveRecord::SchemaMigration
-          ).migrate
-        end
+        Apartment::Migrator.migrate(company.tenant_name)
 
         Membership.create!(
           user_id: owner_user_id,

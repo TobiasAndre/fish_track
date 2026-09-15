@@ -5,12 +5,12 @@ class FinancialEntry < ApplicationRecord
   belongs_to :unit, optional: true # útil quando é "Geral Sede" sem lote
   belongs_to :silo_stock_entry, optional: true
 
-  enum entry_type: {
+  enum :entry_type, {
     expense: "expense",
     income: "income"
   }
 
-  enum stage: { nursery: "nursery", juvenile: "juvenile", growout: "growout", general: "general" }
+  enum :stage, { nursery: "nursery", juvenile: "juvenile", growout: "growout", general: "general" }
 
   before_validation :default_due_on
 

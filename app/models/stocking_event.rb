@@ -43,12 +43,12 @@ class StockingEvent < ApplicationRecord
 
   EVENT_TYPES = %w[biometrics mortality feeding loading].freeze
 
-  enum event_type: {
+  enum :event_type, {
     biometrics: "biometrics",
     mortality: "mortality",
     feeding: "feeding",
     loading: "loading"
-  }, _suffix: true
+  }, suffix: true
 
   scope :recent_first, -> { order(occurred_on: :desc, created_at: :desc) }
 

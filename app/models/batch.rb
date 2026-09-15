@@ -9,15 +9,15 @@ class Batch < ApplicationRecord
 
   accepts_nested_attributes_for :batch_stockings, allow_destroy: true, reject_if: :all_blank
 
-  enum status: {
+  enum :status, {
     active: "active",
     closed: "closed"
-  }, _suffix: true
+  }, suffix: true
 
-  enum stage: {
+  enum :stage, {
     juvenile: "juvenile",
     growout: "growout"
-  }, _suffix: true
+  }, suffix: true
 
   validates :name, :started_on, :status, :stage, presence: true
   validates :batch_stockings, presence: true
