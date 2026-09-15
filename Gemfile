@@ -41,6 +41,10 @@ gem "groupdate"
 
 gem "faraday"
 gem "faraday-multipart"
+
+# Pinned below 3.x: json 3.0 breaks ActiveRecord's jsonb attribute assignment
+# (see PaymentTerm#day_offsets=) even though it fixes CVE-2026-54696.
+gem "json", "~> 2.19", ">= 2.19.9"
 gem "wicked_pdf"
 gem "wkhtmltopdf-binary"
 
