@@ -60,7 +60,7 @@ class ApplicationController < ActionController::Base
   end
 
   def system_admin?
-    user_signed_in? && current_user.email == "admin@fishtrack.com"
+    user_signed_in? && current_user.system_admin?
   end
 
   def current_company

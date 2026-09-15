@@ -16,6 +16,7 @@ Apartment::Tenant.switch("public") do
   public_user.name = "Admin" if public_user.respond_to?(:name=)
   public_user.password = ADMIN_PASS
   public_user.password_confirmation = ADMIN_PASS
+  public_user.system_admin = true
   public_user.save!
 
   if public_user.respond_to?(:company=)

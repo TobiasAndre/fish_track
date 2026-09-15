@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::Companies", type: :request do
-  let(:admin) { create(:user, email: "admin@fishtrack.com") }
+  let(:admin) { create(:user, system_admin: true) }
   let(:regular_user) { create(:user) }
 
   describe "GET /admin/companies" do

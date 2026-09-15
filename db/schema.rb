@@ -10,21 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_220000) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "activity_logs", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "company_id"
     t.string "action", null: false
-    t.string "resource_type", null: false
-    t.bigint "resource_id"
-    t.string "event_type"
-    t.string "description", null: false
-    t.string "ip_address"
+    t.bigint "company_id"
     t.datetime "created_at", null: false
+    t.string "description", null: false
+    t.string "event_type"
+    t.string "ip_address"
+    t.bigint "resource_id"
+    t.string "resource_type", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["company_id"], name: "index_activity_logs_on_company_id"
     t.index ["created_at"], name: "index_activity_logs_on_created_at"
     t.index ["resource_type", "resource_id"], name: "index_activity_logs_on_resource_type_and_resource_id"
@@ -32,16 +32,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "batch_stockings", force: :cascade do |t|
+    t.decimal "avg_weight_g", precision: 10, scale: 2
     t.bigint "batch_id", null: false
+    t.datetime "created_at", null: false
+    t.decimal "current_biomass_kg", precision: 12, scale: 3
+    t.integer "current_quantity"
     t.bigint "pond_id", null: false
-    t.bigint "supplier_id"
     t.integer "quantity", null: false
     t.date "stocked_on", null: false
-    t.decimal "avg_weight_g", precision: 10, scale: 2
-    t.datetime "created_at", null: false
+    t.bigint "supplier_id"
     t.datetime "updated_at", null: false
-    t.integer "current_quantity"
-    t.decimal "current_biomass_kg", precision: 12, scale: 3
     t.index ["batch_id", "pond_id", "stocked_on"], name: "idx_batch_stockings_batch_pond_date"
     t.index ["batch_id"], name: "index_batch_stockings_on_batch_id"
     t.index ["pond_id"], name: "index_batch_stockings_on_pond_id"
@@ -49,19 +49,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "batches", force: :cascade do |t|
+    t.decimal "avg_weight_g", precision: 10, scale: 2
+    t.date "closed_on"
+    t.datetime "created_at", null: false
+    t.decimal "current_biomass_kg", precision: 14, scale: 3
+    t.integer "current_quantity"
+    t.integer "initial_quantity"
     t.string "name", null: false
+    t.bigint "product_id"
     t.string "species"
-    t.string "status", default: "active", null: false
     t.string "stage", default: "juvenile", null: false
     t.date "started_on", null: false
-    t.date "closed_on"
-    t.integer "initial_quantity"
-    t.integer "current_quantity"
-    t.decimal "avg_weight_g", precision: 10, scale: 2
-    t.datetime "created_at", null: false
+    t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
-    t.bigint "product_id"
-    t.decimal "current_biomass_kg", precision: 14, scale: 3
     t.index ["name"], name: "index_batches_on_name"
     t.index ["product_id"], name: "index_batches_on_product_id"
     t.index ["started_on"], name: "index_batches_on_started_on"
@@ -69,42 +69,42 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "companies", force: :cascade do |t|
-    t.string "name", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "tenant_name", default: "", null: false
     t.string "logo_url"
+    t.string "name", null: false
     t.string "print_message_line_1"
     t.string "print_message_line_2"
+    t.string "tenant_name", default: "", null: false
+    t.datetime "updated_at", null: false
     t.index ["tenant_name"], name: "index_companies_on_tenant_name", unique: true
   end
 
   create_table "customers", force: :cascade do |t|
-    t.string "name"
-    t.string "tax_id"
-    t.string "state_registration"
-    t.string "email"
     t.string "address"
-    t.string "address_number"
     t.string "address_complement"
-    t.string "neighborhood"
-    t.string "postal_code"
+    t.string "address_number"
     t.string "city"
-    t.string "state"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "email"
+    t.string "name"
+    t.string "neighborhood"
     t.string "phone"
+    t.string "postal_code"
+    t.string "state"
+    t.string "state_registration"
+    t.string "tax_id"
+    t.datetime "updated_at", null: false
   end
 
   create_table "employee_salary_changes", force: :cascade do |t|
+    t.string "change_type", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.date "effective_on", null: false
     t.bigint "employee_id", null: false
     t.bigint "previous_salary_cents"
-    t.bigint "salary_cents", null: false
-    t.date "effective_on", null: false
-    t.string "change_type", null: false
     t.text "reason"
-    t.bigint "created_by_id"
-    t.datetime "created_at", null: false
+    t.bigint "salary_cents", null: false
     t.datetime "updated_at", null: false
     t.index ["change_type"], name: "index_employee_salary_changes_on_change_type"
     t.index ["created_by_id"], name: "index_employee_salary_changes_on_created_by_id"
@@ -114,21 +114,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "employee_vacations", force: :cascade do |t|
-    t.bigint "employee_id", null: false
-    t.date "accrual_started_on", null: false
     t.date "accrual_ended_on", null: false
-    t.date "scheduled_start_on"
-    t.date "scheduled_end_on"
-    t.date "taken_start_on"
-    t.date "taken_end_on"
-    t.string "status", default: "accruing", null: false
+    t.date "accrual_started_on", null: false
+    t.datetime "created_at", null: false
+    t.bigint "employee_id", null: false
     t.integer "entitled_days", default: 30, null: false
-    t.integer "taken_days", default: 0, null: false
+    t.text "notes"
+    t.date "paid_on"
     t.bigint "payment_amount_cents"
     t.date "payment_due_on"
-    t.date "paid_on"
-    t.text "notes"
-    t.datetime "created_at", null: false
+    t.date "scheduled_end_on"
+    t.date "scheduled_start_on"
+    t.string "status", default: "accruing", null: false
+    t.integer "taken_days", default: 0, null: false
+    t.date "taken_end_on"
+    t.date "taken_start_on"
     t.datetime "updated_at", null: false
     t.index ["employee_id", "accrual_started_on"], name: "idx_employee_vacations_on_employee_and_accrual_start"
     t.index ["employee_id"], name: "index_employee_vacations_on_employee_id"
@@ -137,18 +137,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "employees", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "role"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "salary_cents", default: 0, null: false
-    t.date "started_on", default: -> { "CURRENT_DATE" }, null: false
     t.string "department"
+    t.string "name", null: false
+    t.text "notes"
+    t.string "role"
+    t.bigint "salary_cents", default: 0, null: false
+    t.string "share_token"
+    t.date "started_on", default: -> { "CURRENT_DATE" }, null: false
     t.string "status", default: "active", null: false
     t.date "terminated_on"
-    t.text "notes"
     t.bigint "unit_id"
-    t.string "share_token"
+    t.datetime "updated_at", null: false
     t.index ["department"], name: "index_employees_on_department"
     t.index ["name"], name: "index_employees_on_name"
     t.index ["salary_cents"], name: "index_employees_on_salary_cents"
@@ -158,18 +158,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "feeding_brands", force: :cascade do |t|
-    t.string "name", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index "lower(btrim((name)::text))", name: "index_feeding_brands_on_normalized_name", unique: true
   end
 
   create_table "feeding_strategy_items", force: :cascade do |t|
-    t.bigint "feeding_table_id", null: false
-    t.bigint "feeding_weight_range_id", null: false
-    t.bigint "feeding_temperature_range_id", null: false
-    t.decimal "feeding_percentage", precision: 5, scale: 2, null: false
     t.datetime "created_at", null: false
+    t.decimal "feeding_percentage", precision: 5, scale: 2, null: false
+    t.bigint "feeding_table_id", null: false
+    t.bigint "feeding_temperature_range_id", null: false
+    t.bigint "feeding_weight_range_id", null: false
     t.datetime "updated_at", null: false
     t.index ["feeding_table_id", "feeding_weight_range_id", "feeding_temperature_range_id"], name: "idx_feeding_strategy_items_unique_cell", unique: true
     t.index ["feeding_table_id"], name: "index_feeding_strategy_items_on_feeding_table_id"
@@ -178,53 +178,53 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "feeding_tables", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.text "description"
+    t.string "name", null: false
     t.string "share_token"
+    t.datetime "updated_at", null: false
     t.index ["name"], name: "index_feeding_tables_on_name", unique: true
     t.index ["share_token"], name: "index_feeding_tables_on_share_token", unique: true
   end
 
   create_table "feeding_temperature_ranges", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.decimal "temperature_from", precision: 5, scale: 2, null: false
     t.decimal "temperature_to", precision: 5, scale: 2, null: false
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "feeding_types", force: :cascade do |t|
-    t.string "name", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.bigint "feeding_brand_id", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
     t.index "feeding_brand_id, lower(btrim((name)::text))", name: "index_feeding_types_on_brand_and_normalized_name", unique: true
     t.index ["feeding_brand_id"], name: "index_feeding_types_on_feeding_brand_id"
   end
 
   create_table "feeding_weight_ranges", force: :cascade do |t|
-    t.decimal "weight_from", precision: 10, scale: 2, null: false
-    t.decimal "weight_to", precision: 10, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "weight_from", precision: 10, scale: 2, null: false
+    t.decimal "weight_to", precision: 10, scale: 2, null: false
   end
 
   create_table "financial_entries", force: :cascade do |t|
-    t.bigint "unit_id"
-    t.bigint "batch_id"
-    t.string "entry_type", null: false
-    t.string "stage", default: "general", null: false
-    t.date "occurred_on", null: false
     t.bigint "amount_cents", null: false
-    t.string "description", null: false
-    t.text "notes"
+    t.bigint "batch_id"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "payroll_item_id"
-    t.bigint "silo_stock_entry_id"
+    t.string "description", null: false
     t.date "due_on", null: false
+    t.string "entry_type", null: false
+    t.text "notes"
+    t.date "occurred_on", null: false
+    t.bigint "payroll_item_id"
     t.date "settled_on"
+    t.bigint "silo_stock_entry_id"
+    t.string "stage", default: "general", null: false
+    t.bigint "unit_id"
+    t.datetime "updated_at", null: false
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
     t.index ["due_on"], name: "index_financial_entries_on_due_on"
     t.index ["entry_type"], name: "index_financial_entries_on_entry_type"
@@ -236,21 +236,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "integrateds", force: :cascade do |t|
+    t.string "address"
+    t.string "address_complement"
+    t.string "address_number"
+    t.string "city"
+    t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
-    t.string "name", null: false
-    t.string "tax_id"
-    t.string "state_registration"
     t.string "email"
+    t.string "name", null: false
+    t.string "neighborhood"
+    t.text "notes"
     t.string "phone"
     t.string "postal_code"
-    t.string "address"
-    t.string "address_number"
-    t.string "address_complement"
-    t.string "neighborhood"
-    t.string "city"
     t.string "state"
-    t.text "notes"
-    t.datetime "created_at", null: false
+    t.string "state_registration"
+    t.string "tax_id"
     t.datetime "updated_at", null: false
     t.index ["customer_id", "name"], name: "index_integrateds_on_customer_id_and_name"
     t.index ["customer_id"], name: "index_integrateds_on_customer_id"
@@ -259,40 +259,40 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "memberships", force: :cascade do |t|
-    t.bigint "user_id", null: false
     t.bigint "company_id", null: false
-    t.string "role", default: "member", null: false
     t.datetime "created_at", null: false
+    t.string "role", default: "member", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["company_id"], name: "index_memberships_on_company_id"
     t.index ["user_id", "company_id"], name: "index_memberships_on_user_id_and_company_id", unique: true
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
   create_table "order_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description"
     t.bigint "order_id", null: false
     t.bigint "product_id", null: false
     t.decimal "quantity", precision: 12, scale: 3, default: "0.0", null: false
-    t.bigint "unit_price_cents", default: 0, null: false
     t.bigint "total_cents", default: 0, null: false
     t.string "unit", default: "kg", null: false
-    t.string "description"
-    t.datetime "created_at", null: false
+    t.bigint "unit_price_cents", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_order_items_on_order_id"
     t.index ["product_id"], name: "index_order_items_on_product_id"
   end
 
   create_table "orders", force: :cascade do |t|
-    t.bigint "customer_id", null: false
-    t.string "status", default: "draft", null: false
-    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
-    t.bigint "total_cents", default: 0, null: false
-    t.text "notes"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.bigint "customer_id", null: false
+    t.text "notes"
+    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
     t.bigint "payment_method_id", null: false
     t.bigint "payment_term_id", null: false
+    t.string "status", default: "draft", null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
     t.index ["customer_id"], name: "index_orders_on_customer_id"
     t.index ["occurred_on"], name: "index_orders_on_occurred_on"
     t.index ["payment_method_id"], name: "index_orders_on_payment_method_id"
@@ -301,67 +301,67 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "payment_methods", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["active"], name: "index_payment_methods_on_active"
     t.index ["name"], name: "index_payment_methods_on_name"
   end
 
   create_table "payment_terms", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.jsonb "day_offsets", default: [], null: false
     t.integer "days"
+    t.text "description"
     t.integer "installments_count", default: 1, null: false
     t.integer "interval_days", default: 0, null: false
-    t.jsonb "day_offsets", default: [], null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
     t.index ["active"], name: "index_payment_terms_on_active"
     t.index ["name"], name: "index_payment_terms_on_name", unique: true
   end
 
   create_table "payroll_items", force: :cascade do |t|
-    t.bigint "employee_id", null: false
-    t.integer "year", null: false
-    t.integer "month", null: false
     t.bigint "amount_cents", null: false
-    t.text "notes"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "item_type", default: "salary", null: false
-    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
+    t.bigint "employee_id", null: false
     t.integer "installment_number"
     t.integer "installments_count"
+    t.string "item_type", default: "salary", null: false
+    t.integer "month", null: false
+    t.text "notes"
+    t.date "occurred_on", default: -> { "CURRENT_DATE" }, null: false
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
     t.index ["employee_id"], name: "index_payroll_items_on_employee_id"
     t.index ["occurred_on"], name: "index_payroll_items_on_occurred_on"
     t.index ["year", "month"], name: "index_payroll_items_on_year_and_month"
   end
 
   create_table "ponds", force: :cascade do |t|
-    t.bigint "unit_id", null: false
-    t.string "name", null: false
     t.integer "capacity"
     t.string "capacity_unit"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "order_number", default: 0, null: false
     t.decimal "feed_sample_kg", precision: 10, scale: 3
     t.decimal "feed_sample_seconds", precision: 10, scale: 2
+    t.string "name", null: false
+    t.integer "order_number", default: 0, null: false
+    t.bigint "unit_id", null: false
+    t.datetime "updated_at", null: false
     t.index ["unit_id", "name"], name: "index_ponds_on_unit_id_and_name", unique: true
     t.index ["unit_id"], name: "index_ponds_on_unit_id"
   end
 
   create_table "products", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
     t.string "name", null: false
     t.string "sku"
     t.string "unit", default: "kg", null: false
-    t.boolean "active", default: true, null: false
-    t.text "description"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["active"], name: "index_products_on_active"
     t.index ["name"], name: "index_products_on_name"
@@ -369,38 +369,38 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "profiles", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "display_name"
     t.datetime "created_at", null: false
+    t.string "display_name"
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
   end
 
   create_table "report_shares", force: :cascade do |t|
-    t.string "report_type", null: false
-    t.jsonb "filters", default: {}, null: false
-    t.string "share_token"
     t.datetime "created_at", null: false
+    t.jsonb "filters", default: {}, null: false
+    t.string "report_type", null: false
+    t.string "share_token"
     t.datetime "updated_at", null: false
     t.index ["report_type"], name: "index_report_shares_on_report_type"
     t.index ["share_token"], name: "index_report_shares_on_share_token", unique: true
   end
 
   create_table "silo_stock_entries", force: :cascade do |t|
-    t.bigint "silo_id"
-    t.bigint "feeding_type_id", null: false
-    t.bigint "feeding_brand_id", null: false
-    t.date "occurred_on", null: false
-    t.decimal "quantity_kg", precision: 10, scale: 3, null: false
-    t.bigint "total_cents", default: 0, null: false
-    t.integer "price_per_kg_cents", default: 0, null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.bigint "batch_id"
+    t.datetime "created_at", null: false
+    t.date "due_on"
+    t.bigint "feeding_brand_id", null: false
+    t.bigint "feeding_type_id", null: false
+    t.text "notes"
+    t.date "occurred_on", null: false
     t.bigint "payment_method_id"
     t.bigint "payment_term_id"
-    t.date "due_on"
+    t.integer "price_per_kg_cents", default: 0, null: false
+    t.decimal "quantity_kg", precision: 10, scale: 3, null: false
+    t.bigint "silo_id"
+    t.bigint "total_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
     t.index ["batch_id"], name: "index_silo_stock_entries_on_batch_id"
     t.index ["feeding_brand_id"], name: "index_silo_stock_entries_on_feeding_brand_id"
     t.index ["feeding_type_id"], name: "index_silo_stock_entries_on_feeding_type_id"
@@ -411,18 +411,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "silos", force: :cascade do |t|
-    t.bigint "unit_id", null: false
-    t.string "name", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "unit_id", null: false
     t.datetime "updated_at", null: false
     t.index "unit_id, lower(btrim((name)::text))", name: "index_silos_on_unit_and_normalized_name", unique: true
     t.index ["unit_id"], name: "index_silos_on_unit_id"
   end
 
   create_table "simulation_products", force: :cascade do |t|
-    t.bigint "simulation_id", null: false
-    t.bigint "product_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "product_id", null: false
+    t.bigint "simulation_id", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_simulation_products_on_product_id"
     t.index ["simulation_id", "product_id"], name: "index_simulation_products_on_simulation_id_and_product_id", unique: true
@@ -430,22 +430,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "simulations", force: :cascade do |t|
-    t.bigint "customer_id", null: false
-    t.date "simulated_on", null: false
-    t.integer "quantity", default: 0, null: false
     t.decimal "avg_weight_kg", precision: 10, scale: 3, default: "0.0", null: false
-    t.decimal "total_weight_kg", precision: 12, scale: 3, default: "0.0", null: false
-    t.bigint "price_per_kg_cents", default: 0, null: false
-    t.bigint "loading_cost_cents", default: 0, null: false
-    t.bigint "freight_cost_cents", default: 0, null: false
-    t.bigint "total_cents", default: 0, null: false
-    t.text "notes"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "loading_count", default: 1, null: false
-    t.bigint "thousand_value_cents", default: 0, null: false
+    t.bigint "customer_id", null: false
+    t.bigint "freight_cost_cents", default: 0, null: false
     t.bigint "integrated_id"
+    t.bigint "loading_cost_cents", default: 0, null: false
+    t.integer "loading_count", default: 1, null: false
+    t.text "notes"
+    t.bigint "price_per_kg_cents", default: 0, null: false
+    t.integer "quantity", default: 0, null: false
     t.string "share_token"
+    t.date "simulated_on", null: false
+    t.bigint "thousand_value_cents", default: 0, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.decimal "total_weight_kg", precision: 12, scale: 3, default: "0.0", null: false
+    t.datetime "updated_at", null: false
     t.index ["customer_id"], name: "index_simulations_on_customer_id"
     t.index ["integrated_id"], name: "index_simulations_on_integrated_id"
     t.index ["share_token"], name: "index_simulations_on_share_token", unique: true
@@ -453,39 +453,39 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "stocking_events", force: :cascade do |t|
-    t.bigint "batch_stocking_id", null: false
-    t.string "event_type", null: false
-    t.date "occurred_on", null: false
-    t.integer "quantity"
     t.decimal "avg_weight_g", precision: 10, scale: 2
-    t.decimal "feed_kg", precision: 10, scale: 3
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.decimal "total_weight_kg", precision: 10, scale: 3
-    t.integer "volume"
+    t.bigint "batch_stocking_id", null: false
     t.decimal "biomass", precision: 12, scale: 3
-    t.decimal "weight_gain_kg", precision: 12, scale: 3
-    t.decimal "gpd", precision: 10, scale: 3
-    t.integer "price_per_kg_cents"
-    t.integer "thousand_value_cents"
+    t.datetime "created_at", null: false
+    t.bigint "customer_id"
+    t.string "event_type", null: false
+    t.decimal "feed_conversion", precision: 14, scale: 3
+    t.decimal "feed_kg", precision: 10, scale: 3
+    t.bigint "feeding_brand_id"
+    t.bigint "feeding_type_id"
     t.integer "freight_cost_cents"
+    t.decimal "gpd", precision: 10, scale: 3
+    t.string "gta_number"
+    t.bigint "integrated_id"
+    t.string "invoice_number"
     t.integer "loading_cost_cents"
+    t.string "loading_destination"
+    t.text "notes"
+    t.date "occurred_on", null: false
     t.date "payment_date"
     t.string "payment_method"
-    t.bigint "customer_id"
-    t.bigint "integrated_id"
     t.bigint "payment_method_id"
-    t.decimal "feed_conversion", precision: 14, scale: 3
-    t.decimal "tax_percentage", precision: 5, scale: 2
-    t.string "loading_destination"
-    t.string "gta_number"
-    t.string "invoice_number"
+    t.integer "price_per_kg_cents"
+    t.integer "quantity"
     t.string "share_token"
-    t.bigint "total_cents", default: 0, null: false
     t.bigint "supplier_id"
-    t.bigint "feeding_type_id"
-    t.bigint "feeding_brand_id"
+    t.decimal "tax_percentage", precision: 5, scale: 2
+    t.integer "thousand_value_cents"
+    t.bigint "total_cents", default: 0, null: false
+    t.decimal "total_weight_kg", precision: 10, scale: 3
+    t.datetime "updated_at", null: false
+    t.integer "volume"
+    t.decimal "weight_gain_kg", precision: 12, scale: 3
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
@@ -500,44 +500,45 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_10_070505) do
   end
 
   create_table "suppliers", force: :cascade do |t|
-    t.string "name"
-    t.string "tax_id"
-    t.string "email"
-    t.string "state_registration"
     t.string "address"
-    t.string "address_number"
     t.string "address_complement"
+    t.string "address_number"
+    t.string "city"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "name"
     t.string "neighborhood"
     t.string "postal_code"
-    t.string "city"
     t.string "state"
-    t.datetime "created_at", null: false
+    t.string "state_registration"
+    t.string "tax_id"
     t.datetime "updated_at", null: false
   end
 
   create_table "units", force: :cascade do |t|
-    t.string "name", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_units_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "email", default: "", null: false
-    t.string "name", default: "", null: false
-    t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
-    t.integer "sign_in_count", default: 0, null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
-    t.string "current_sign_in_ip"
-    t.string "last_sign_in_ip"
-    t.integer "failed_attempts", default: 0, null: false
-    t.string "unlock_token"
-    t.datetime "locked_at"
     t.datetime "created_at", null: false
+    t.datetime "current_sign_in_at"
+    t.string "current_sign_in_ip"
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.integer "failed_attempts", default: 0, null: false
+    t.datetime "last_sign_in_at"
+    t.string "last_sign_in_ip"
+    t.datetime "locked_at"
+    t.string "name", default: "", null: false
+    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.integer "sign_in_count", default: 0, null: false
+    t.boolean "system_admin", default: false, null: false
+    t.string "unlock_token"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

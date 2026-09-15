@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::ActivityLogs", type: :request do
-  let(:admin) { create(:user, email: "admin@fishtrack.com") }
+  let(:admin) { create(:user, system_admin: true) }
   let(:regular_user) { create(:user) }
 
   def log_for(user:, action: "create", resource_type: "Pond", description: "Tanque X", event_type: nil)

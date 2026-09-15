@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::Users", type: :request do
-  let(:admin) { create(:user, email: "admin@fishtrack.com") }
+  let(:admin) { create(:user, system_admin: true) }
 
   before { sign_in admin }
 
