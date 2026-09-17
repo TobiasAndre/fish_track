@@ -35,9 +35,9 @@ RSpec.describe FeedingPlan do
   # Força a biomassa e a quantidade correntes (fonte canônica) de forma que
   # avg = biomassa * 1000 / quantidade caia num peso conhecido.
   def stock(target_pond, biomass_kg:, quantity:)
-    create(:batch, pond: target_pond, stocking_quantity: quantity, stocking_avg_weight_g: 7.0)
-      .batch_stockings.first
-      .update_columns(current_biomass_kg: biomass_kg, current_quantity: quantity)
+    batch = create(:batch, pond: target_pond, stocking_quantity: quantity, stocking_avg_weight_g: 7.0)
+    batch.batch_stockings.first.update_columns(current_biomass_kg: biomass_kg, current_quantity: quantity)
+    batch
   end
 
   def row_for(target_pond)
@@ -137,6 +137,17 @@ RSpec.describe FeedingPlan do
       expect(row.quantity).to eq(500_000)
       expect(row.biomass_kg).to eq(3_900)
       expect(row.avg_weight_g).to be_within(0.01).of(7.8)
+    end
+
+    it "restringe a biomassa e a quantidade a um único lote quando batch_id é informado" do
+      batch = stock(pond, biomass_kg: 3_000, quantity: 400_000)
+      create(:batch, pond: pond, stocking_quantity: 100_000, stocking_avg_weight_g: 7.0)
+        .batch_stockings.first.update_columns(current_biomass_kg: 900, current_quantity: 100_000)
+
+      row = described_class.new(feeding_table: feeding_table, ponds: [pond], batch_id: batch.id).rows.first
+
+      expect(row.quantity).to eq(400_000)
+      expect(row.biomass_kg).to eq(3_000)
     end
 
     it "ignora lotes fechados" do

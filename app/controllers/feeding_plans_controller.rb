@@ -8,10 +8,39 @@ class FeedingPlansController < ApplicationController
     @units = Unit.order(:name)
     @selected_unit_id = params[:unit_id].presence
 
-    ponds = @selected_unit_id.present? ? Pond.where(unit_id: @selected_unit_id) : Pond.all
-    @ponds = ponds.includes(:unit).ordered.to_a
+    @batches_for_select =
+      if @selected_unit_id.present?
+        Batch
+          .joins(batch_stockings: :pond)
+          .where(status: "active", ponds: { unit_id: @selected_unit_id })
+          .distinct
+          .order(:name)
+          .to_a
+      else
+        []
+      end
 
-    @plan = FeedingPlan.new(feeding_table: @feeding_table, ponds: @ponds)
+    @selected_batch_id = params[:batch_id].presence
+    @selected_batch = @batches_for_select.find { |b| b.id.to_s == @selected_batch_id }
+
+    @ponds_for_select =
+      if @selected_batch
+        Pond
+          .joins(:batch_stockings)
+          .where(unit_id: @selected_unit_id, batch_stockings: { batch_id: @selected_batch.id })
+          .ordered
+          .distinct
+          .to_a
+      else
+        []
+      end
+
+    @selected_pond_id = params[:pond_id].presence
+    @selected_pond = @ponds_for_select.find { |p| p.id.to_s == @selected_pond_id }
+
+    @ponds = @selected_pond ? [@selected_pond] : []
+
+    @plan = FeedingPlan.new(feeding_table: @feeding_table, ponds: @ponds, batch_id: @selected_batch&.id)
   end
 
   def calibrations
@@ -27,7 +56,9 @@ class FeedingPlansController < ApplicationController
 
     redirect_to feeding_plans_path(
       feeding_table_id: params[:feeding_table_id].presence,
-      unit_id: params[:unit_id].presence
+      unit_id: params[:unit_id].presence,
+      batch_id: params[:batch_id].presence,
+      pond_id: params[:pond_id].presence
     ), notice: "Calibração salva."
   end
 

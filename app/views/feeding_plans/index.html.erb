@@ -13,13 +13,13 @@
   </div>
 
   <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-    <%= form_with url: feeding_plans_path, method: :get, local: true, class: "flex flex-wrap items-end gap-3" do %>
+    <%= form_with url: feeding_plans_path, method: :get, local: true, class: "flex flex-wrap items-end gap-3", data: { controller: "auto-submit" } do %>
       <div class="w-64">
         <%= label_tag :feeding_table_id, "Tabela de arraçoamento", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
         <%= select_tag :feeding_table_id,
           options_from_collection_for_select(@feeding_tables, :id, :name, @feeding_table&.id),
           include_blank: @feeding_tables.any? ? false : "—",
-          onchange: "this.form.submit()",
+          data: { action: "change->auto-submit#submit" },
           class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
       </div>
 
@@ -27,9 +27,29 @@
         <%= label_tag :unit_id, "Unidade", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
         <%= select_tag :unit_id,
           options_from_collection_for_select(@units, :id, :name, @selected_unit_id),
-          prompt: "Todas as unidades",
-          onchange: "this.form.submit()",
+          prompt: "Selecione a unidade",
+          data: { action: "change->auto-submit#submit" },
           class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      </div>
+
+      <div class="w-56">
+        <%= label_tag :batch_id, "Lote", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+        <%= select_tag :batch_id,
+          options_from_collection_for_select(@batches_for_select, :id, :name, @selected_batch_id),
+          prompt: "Selecione o lote",
+          disabled: @selected_unit_id.blank?,
+          data: { action: "change->auto-submit#submit" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed" %>
+      </div>
+
+      <div class="w-56">
+        <%= label_tag :pond_id, "Tanque", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+        <%= select_tag :pond_id,
+          options_from_collection_for_select(@ponds_for_select, :id, :name, @selected_pond_id),
+          prompt: "Selecione o tanque",
+          disabled: @selected_batch.blank?,
+          data: { action: "change->auto-submit#submit" },
+          class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed" %>
       </div>
     <% end %>
 
@@ -40,12 +60,16 @@
     <% end %>
   </div>
 
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Trato (Kg) por temperatura</h2>
+  <% if @selected_pond.blank? %>
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Selecione a unidade, o lote e o tanque acima para ver o trato e o tempo de arraçoamento.
+      </p>
+    </div>
+  <% else %>
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Trato (Kg) por temperatura</h2>
 
-    <% if @ponds.empty? %>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum tanque cadastrado para o filtro selecionado.</p>
-    <% else %>
       <div class="overflow-x-auto">
         <table class="min-w-full text-xs">
           <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
@@ -80,10 +104,8 @@
       <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
         "—" indica que não há biomassa de lote ativo, peso médio, ou taxa de arraçoamento cadastrada para a faixa de peso/temperatura.
       </p>
-    <% end %>
-  </div>
+    </div>
 
-  <% unless @ponds.empty? %>
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">Calibração de tempo</h2>
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -93,6 +115,8 @@
       <%= form_with url: calibrations_feeding_plans_path, method: :patch, local: true do %>
         <%= hidden_field_tag :feeding_table_id, @feeding_table&.id %>
         <%= hidden_field_tag :unit_id, @selected_unit_id %>
+        <%= hidden_field_tag :batch_id, @selected_batch_id %>
+        <%= hidden_field_tag :pond_id, @selected_pond_id %>
 
         <div class="overflow-x-auto">
           <table class="min-w-full text-xs">

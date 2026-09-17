@@ -18,9 +18,10 @@ class FeedingPlan
     keyword_init: true
   )
 
-  def initialize(feeding_table:, ponds:)
+  def initialize(feeding_table:, ponds:, batch_id: nil)
     @feeding_table = feeding_table
     @ponds = ponds.to_a
+    @batch_id = batch_id
   end
 
   def temperature_ranges
@@ -51,6 +52,7 @@ class FeedingPlan
       BatchStocking
         .joins(:batch)
         .where(batches: { status: "active" }, pond_id: @ponds.map(&:id))
+        .then { |scope| @batch_id ? scope.where(batch_id: @batch_id) : scope }
         .group(:pond_id)
         .pluck(
           :pond_id,
