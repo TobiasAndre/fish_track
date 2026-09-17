@@ -95,6 +95,36 @@ RSpec.describe "LoadingEvents", type: :request do
 
       expect(response.body).to include(print_loading_event_path(event, format: :pdf))
     end
+
+    it "shows a totals row (quantity, weight and value) at the end of the history" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 50, avg_weight_g: 500, price_per_kg_cents: 1_000)
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 75, avg_weight_g: 500, price_per_kg_cents: 1_000)
+
+      get loading_events_path(batch_stocking_id: batch_stocking.id)
+
+      footer = Nokogiri::HTML(response.body).at_css("tfoot tr")
+      expect(footer.text).to include("Total")
+      expect(footer.text).to include("250") # 100 + 150 peixes
+      expect(footer.text).to include("125,000kg") # 50 + 75 kg
+      expect(footer.text).to include("1.250,00") # R$500 + R$750
+    end
+
+    it "shows a totals row for each tank's history in the active batches listing" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 50, avg_weight_g: 500, price_per_kg_cents: 1_000)
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 75, avg_weight_g: 500, price_per_kg_cents: 1_000)
+
+      get loading_events_path
+
+      footer = Nokogiri::HTML(response.body).at_css("tfoot tr")
+      expect(footer.text).to include("Total")
+      expect(footer.text).to include("250")
+      expect(footer.text).to include("125,000kg")
+      expect(footer.text).to include("1.250,00")
+    end
   end
 
   describe "POST /loading_events" do
