@@ -216,13 +216,13 @@
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Histórico</h2>
 
       <%= form_with url: silo_stock_entries_path, method: :get, local: true,
-            class: "flex flex-wrap items-end gap-2" do %>
+            class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
         <div class="w-36">
           <%= label_tag :silo_id, "Silo", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
           <%= select_tag :silo_id,
             options_from_collection_for_select(@silos, :id, :name, @q_silo_id),
             prompt: "Todos",
-            onchange: "this.form.submit()",
+            data: { action: "change->auto-submit#submit" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
@@ -231,7 +231,7 @@
           <%= select_tag :batch_id,
             options_from_collection_for_select(@batches, :id, :name, @q_batch_id),
             prompt: "Todos",
-            onchange: "this.form.submit()",
+            data: { action: "change->auto-submit#submit" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
@@ -240,7 +240,7 @@
           <%= select_tag :feeding_brand_id,
             options_from_collection_for_select(@feeding_brands, :id, :name, @q_feeding_brand_id),
             prompt: "Todas",
-            onchange: "this.form.submit()",
+            data: { action: "change->auto-submit#submit" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 
@@ -249,7 +249,7 @@
           <%= select_tag :feeding_type_id,
             options_from_collection_for_select(@filter_feeding_types, :id, :name, @q_feeding_type_id),
             prompt: "Todos",
-            onchange: "this.form.submit()",
+            data: { action: "change->auto-submit#submit" },
             class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
         </div>
 

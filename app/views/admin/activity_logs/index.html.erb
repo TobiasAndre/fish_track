@@ -7,13 +7,13 @@
   </div>
 
   <%= form_with url: admin_activity_logs_path, method: :get, local: true,
-        class: "flex flex-wrap items-end gap-2" do %>
+        class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
     <div class="w-48">
       <%= label_tag :company_id, "Empresa", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
       <%= select_tag :company_id,
         options_from_collection_for_select(@companies, :id, :name, params[:company_id]),
         prompt: "Todas",
-        onchange: "this.form.submit()",
+        data: { action: "change->auto-submit#submit" },
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
                 border-gray-300 dark:border-gray-700
@@ -26,7 +26,7 @@
       <%= select_tag :user_id,
         options_from_collection_for_select(@users, :id, ->(u) { u.name.presence || u.email }, params[:user_id]),
         prompt: "Todos",
-        onchange: "this.form.submit()",
+        data: { action: "change->auto-submit#submit" },
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
                 border-gray-300 dark:border-gray-700
@@ -42,7 +42,7 @@
           params[:action_type]
         ),
         prompt: "Todas",
-        onchange: "this.form.submit()",
+        data: { action: "change->auto-submit#submit" },
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
                 border-gray-300 dark:border-gray-700
@@ -63,7 +63,7 @@
           params[:event_type]
         ),
         prompt: "Todos",
-        onchange: "this.form.submit()",
+        data: { action: "change->auto-submit#submit" },
         class: "w-full rounded-lg border px-3 py-2 text-sm
                 bg-white dark:bg-gray-950
                 border-gray-300 dark:border-gray-700

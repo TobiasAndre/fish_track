@@ -210,14 +210,14 @@
         </div>
 
         <%= form_with url: mortality_events_path, method: :get, local: true,
-              class: "flex flex-wrap items-end gap-2" do %>
+              class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
           <div class="w-40">
             <%= label_tag :unit_id, "Unidade", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
 
             <%= select_tag :unit_id,
               options_from_collection_for_select(@units, :id, :name, @selected_unit_id),
               prompt: "Todas",
-              onchange: "this.form.submit()",
+              data: { action: "change->auto-submit#submit" },
               class: "w-full rounded-lg border px-3 py-2 text-sm
                       bg-white dark:bg-gray-950
                       border-gray-300 dark:border-gray-700
@@ -231,7 +231,7 @@
             <%= select_tag :pond_id,
               options_from_collection_for_select(@ponds, :id, :name, @selected_pond_id),
               prompt: "Todos",
-              onchange: "this.form.submit()",
+              data: { action: "change->auto-submit#submit" },
               class: "w-full rounded-lg border px-3 py-2 text-sm
                       bg-white dark:bg-gray-950
                       border-gray-300 dark:border-gray-700
