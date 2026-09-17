@@ -282,7 +282,7 @@
                   </td>
 
                   <td class="py-2 pr-4">
-                    <%= event.customer&.name.present? ? truncate(event.customer.name.to_s, length: 10, omission: "") : "—" %>
+                    <%= event.customer&.name.present? ? truncate(event.customer.name.to_s, length: 30, omission: "") : "—" %>
                   </td>
 
                   <td class="py-2 pr-4">
@@ -513,7 +513,7 @@
                         </td>
 
                         <td class="py-2 pr-4">
-                          <%= event.customer&.name || "—" %>
+                          <%= event.customer&.name.present? ? truncate(event.customer.name.to_s, length: 30, omission: "") : "—" %>
                         </td>
 
                         <td class="py-2 pr-4">
