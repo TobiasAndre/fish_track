@@ -16,13 +16,42 @@ export default class extends Controller {
     "loadingCostCents",
     "taxPercentage",
     "grandTotal",
-    "totalCents"
+    "totalCents",
+    "occurredOn",
+    "paymentTerm",
+    "paymentDate",
+    "dueHintManual"
   ]
 
   connect() {
     console.log("LoadingFormController connected")
     this.formatInitialCurrencyValues()
     this.recalculate()
+    this.applyDueDate()
+  }
+
+  // Com uma condição de pagamento, o vencimento é a data do lançamento + dias
+  // da 1ª parcela e o campo fica somente leitura; sem condição, é manual.
+  applyDueDate() {
+    if (!this.hasPaymentDateTarget || !this.hasPaymentTermTarget || !this.hasOccurredOnTarget) return
+
+    const option = this.paymentTermTarget.options[this.paymentTermTarget.selectedIndex]
+    const offset = option ? parseInt(option.dataset.firstOffset ?? "", 10) : NaN
+    const baseDate = this.occurredOnTarget.value
+    const usesTerm = Boolean(this.paymentTermTarget.value) && !Number.isNaN(offset) && Boolean(baseDate)
+
+    if (usesTerm) {
+      const [year, month, day] = baseDate.split("-").map(Number)
+      const date = new Date(year, month - 1, day + offset)
+      const pad = (n) => String(n).padStart(2, "0")
+      this.paymentDateTarget.value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+    }
+
+    this.paymentDateTarget.readOnly = usesTerm
+    this.paymentDateTarget.classList.toggle("bg-gray-50", usesTerm)
+    this.paymentDateTarget.classList.toggle("dark:bg-gray-900", usesTerm)
+
+    if (this.hasDueHintManualTarget) this.dueHintManualTarget.hidden = usesTerm
   }
 
   formatDecimalInput(event) {

@@ -5,6 +5,7 @@ class StockingEvent < ApplicationRecord
   belongs_to :customer, optional: true
   belongs_to :integrated, optional: true
   belongs_to :payment_method, optional: true
+  belongs_to :payment_term, optional: true
   belongs_to :supplier, optional: true
   belongs_to :feeding_type, optional: true
   belongs_to :feeding_brand, optional: true
@@ -84,6 +85,15 @@ class StockingEvent < ApplicationRecord
 
     calculate_loading_quantity
     calculate_total_cents
+    apply_payment_term_due_date
+  end
+
+  # Com uma condição de pagamento, o vencimento é a data do lançamento + dias
+  # da 1ª parcela. Sem condição, respeita a data informada pelo usuário.
+  def apply_payment_term_due_date
+    return if payment_term.blank? || occurred_on.blank?
+
+    self.payment_date = occurred_on + payment_term.installment_offsets.first.to_i
   end
 
   def calculate_loading_quantity

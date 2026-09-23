@@ -88,6 +88,22 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response.body).to include("800")
     end
 
+    it "shows payment term, due date and payment method on one row, with notes on the row below" do
+      create(:payment_term, name: "30 dias", days: 30)
+
+      get loading_events_path, params: { batch_stocking_id: batch_stocking.id }
+
+      doc = Nokogiri::HTML(response.body)
+      row = doc.at_css("#stocking_event_payment_term_id").ancestors("div.grid").first
+      ids = row.css("select, input, textarea").map { |el| el["id"] }
+
+      expect(ids).to eq(%w[stocking_event_payment_term_id stocking_event_payment_date stocking_event_payment_method_id])
+      expect(row.at_css("#stocking_event_notes")).to be_nil
+      expect(doc.at_css("#stocking_event_notes")).to be_present
+      expect(doc.css("label[for=stocking_event_payment_date]").text).to eq("Data de vencimento")
+      expect(doc.css("#stocking_event_payment_term_id option").map(&:text)).to include("30 dias")
+    end
+
     it "shows a print action for each event in the history" do
       event = create(:stocking_event, :loading, batch_stocking: batch_stocking)
 
@@ -158,6 +174,45 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(event.gta_number).to eq("123456")
       expect(event.invoice_number).to eq("987654")
       expect(event.supplier).to eq(supplier)
+    end
+
+    it "computes the due date from the payment term (loading date + first installment days)" do
+      term = create(:payment_term, days: 30)
+
+      post loading_events_path, params: {
+        stocking_event: {
+          batch_stocking_id: batch_stocking.id,
+          occurred_on: Date.new(2026, 9, 1),
+          customer_id: customer.id,
+          payment_method_id: payment_method.id,
+          payment_term_id: term.id,
+          payment_date: Date.new(2026, 1, 1),
+          total_weight_kg: 100,
+          avg_weight_g: 500
+        }
+      }
+
+      event = batch_stocking.stocking_events.where(event_type: "loading").last
+      expect(event.payment_term).to eq(term)
+      expect(event.payment_date).to eq(Date.new(2026, 10, 1))
+    end
+
+    it "keeps the manual due date when no payment term is selected" do
+      post loading_events_path, params: {
+        stocking_event: {
+          batch_stocking_id: batch_stocking.id,
+          occurred_on: Date.new(2026, 9, 1),
+          customer_id: customer.id,
+          payment_method_id: payment_method.id,
+          payment_date: Date.new(2026, 9, 20),
+          total_weight_kg: 100,
+          avg_weight_g: 500
+        }
+      }
+
+      event = batch_stocking.stocking_events.where(event_type: "loading").last
+      expect(event.payment_term).to be_nil
+      expect(event.payment_date).to eq(Date.new(2026, 9, 20))
     end
 
     it "does not attempt to open WhatsApp when the user has no tenant selected in session" do

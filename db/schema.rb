@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -475,6 +475,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220000) do
     t.date "payment_date"
     t.string "payment_method"
     t.bigint "payment_method_id"
+    t.bigint "payment_term_id"
     t.integer "price_per_kg_cents"
     t.integer "quantity"
     t.string "share_token"
@@ -495,6 +496,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220000) do
     t.index ["integrated_id"], name: "index_stocking_events_on_integrated_id"
     t.index ["occurred_on"], name: "index_stocking_events_on_occurred_on"
     t.index ["payment_method_id"], name: "index_stocking_events_on_payment_method_id"
+    t.index ["payment_term_id"], name: "index_stocking_events_on_payment_term_id"
     t.index ["share_token"], name: "index_stocking_events_on_share_token", unique: true
     t.index ["supplier_id"], name: "index_stocking_events_on_supplier_id"
   end
@@ -589,5 +591,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220000) do
   add_foreign_key "stocking_events", "feeding_types"
   add_foreign_key "stocking_events", "integrateds"
   add_foreign_key "stocking_events", "payment_methods"
+  add_foreign_key "stocking_events", "payment_terms"
   add_foreign_key "stocking_events", "suppliers"
 end

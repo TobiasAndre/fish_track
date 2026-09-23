@@ -41,7 +41,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
             <%= f.label :occurred_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-            <%= f.date_field :occurred_on, required: true, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            <%= f.date_field :occurred_on, required: true,
+              data: { "loading-form-target": "occurredOn", action: "change->loading-form#applyDueDate" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
           </div>
 
           <div>
@@ -209,8 +211,23 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <%= f.label :payment_date, "Data de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-            <%= f.date_field :payment_date, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            <%= f.label :payment_term_id, "Condição de pagamento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.select :payment_term_id,
+              options_for_select(
+                (@payment_terms || []).map { |term| [term.name, term.id, { "data-first-offset": term.installment_offsets.first.to_i }] },
+                @stocking_event.payment_term_id
+              ),
+              { include_blank: "Não informada" },
+              { data: { "loading-form-target": "paymentTerm", action: "change->loading-form#applyDueDate" },
+                class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" } %>
+          </div>
+
+          <div>
+            <%= f.label :payment_date, "Data de vencimento", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= f.date_field :payment_date,
+              data: { "loading-form-target": "paymentDate" },
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-loading-form-target="dueHintManual">Usada apenas quando nenhuma condição de pagamento é selecionada.</p>
           </div>
 
           <div>
@@ -220,11 +237,11 @@
               required: true,
               class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
           </div>
+        </div>
 
-          <div>
-            <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-            <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
-          </div>
+        <div>
+          <%= f.label :notes, "Observações", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_area :notes, rows: 1, class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" %>
         </div>
 
         <div class="flex justify-end gap-2 pt-1">

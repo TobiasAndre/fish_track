@@ -136,6 +136,7 @@ class LoadingEventsController < StockingEventPagesController
       :freight_cost_cents,
       :loading_cost_cents,
       :payment_method_id,
+      :payment_term_id,
       :tax_percentage,
       :loading_destination,
       :gta_number,

@@ -78,6 +78,7 @@ class StockingEventPagesController < ApplicationController
     @customers = Customer.order(:name)
     @integrateds = Integrated.order(:name)
     @payment_methods = PaymentMethod.order(:name)
+    @payment_terms = PaymentTerm.where(active: true).order(:name)
     @suppliers = Supplier.order(:name)
   end
 
@@ -151,7 +152,8 @@ class StockingEventPagesController < ApplicationController
       :thousand_value_cents,
       :freight_cost_cents,
       :loading_cost_cents,
-      :payment_method_id
+      :payment_method_id,
+      :payment_term_id
     )
   end
 end
