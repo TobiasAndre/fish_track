@@ -12,6 +12,9 @@ class StockingEvent < ApplicationRecord
 
   has_secure_token :share_token
 
+  # Um carregamento parcelado gera uma conta a receber por parcela.
+  has_many :financial_entries, dependent: :destroy
+
   before_validation :normalize_numeric_fields
   before_validation :calculate_biometry_fields
   before_validation :calculate_loading_fields
@@ -24,6 +27,7 @@ class StockingEvent < ApplicationRecord
 
   after_commit :update_batch_avg_weight, on: %i[create update destroy]
   after_commit :recalculate_batch_stocking_balance, on: %i[create update destroy]
+  after_commit :sync_financial_entries, on: %i[create update], if: :loading?
 
   with_options if: :biometrics? do
     validates :volume, presence: true, numericality: { greater_than: 0 }
@@ -94,6 +98,56 @@ class StockingEvent < ApplicationRecord
     return if payment_term.blank? || occurred_on.blank?
 
     self.payment_date = occurred_on + payment_term.installment_offsets.first.to_i
+  end
+
+  # Cronograma de parcelas: usa a condição de pagamento quando houver, senão
+  # uma parcela única no vencimento informado (ou na data do carregamento).
+  def receivable_schedule
+    schedule =
+      if payment_term.present?
+        payment_term.installment_schedule(occurred_on, total_cents.to_i)
+      else
+        [{ number: 1, of: 1, due_on: payment_date.presence || occurred_on, amount_cents: total_cents.to_i }]
+      end
+
+    schedule.select { |installment| installment[:amount_cents].to_i.positive? }
+  end
+
+  # Reaproveita as contas já geradas, na ordem das parcelas, para não perder a
+  # baixa (settled_on) de uma parcela ao editar o carregamento; cria as que
+  # faltam e remove as que sobram. Total zero não gera conta a receber.
+  def sync_financial_entries
+    schedule = receivable_schedule
+    existing = financial_entries.order(:id).to_a
+
+    schedule.each_with_index do |installment, index|
+      attrs = receivable_attributes(installment)
+      entry = existing[index]
+      entry ? entry.update!(attrs) : financial_entries.create!(attrs)
+    end
+
+    existing.drop(schedule.size).each(&:destroy!)
+  end
+
+  def receivable_attributes(installment)
+    batch = batch_stocking.batch
+
+    {
+      entry_type: "income",
+      stage: batch.stage.presence || "general",
+      occurred_on: occurred_on,
+      due_on: installment[:due_on],
+      amount_cents: installment[:amount_cents].to_i,
+      description: receivable_description(batch, installment),
+      unit_id: batch_stocking.pond.unit_id,
+      batch_id: batch.id
+    }
+  end
+
+  def receivable_description(batch, installment)
+    label = ["Carregamento", customer&.name, batch.name].compact.join(" - ")
+
+    installment[:of].to_i > 1 ? "#{label} (#{installment[:number]}/#{installment[:of]})" : label
   end
 
   def calculate_loading_quantity

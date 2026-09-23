@@ -4,6 +4,7 @@ class FinancialEntry < ApplicationRecord
   belongs_to :batch, optional: true
   belongs_to :unit, optional: true # útil quando é "Geral Sede" sem lote
   belongs_to :silo_stock_entry, optional: true
+  belongs_to :stocking_event, optional: true
 
   enum :entry_type, {
     expense: "expense",

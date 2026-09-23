@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_130100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -223,6 +223,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
     t.date "settled_on"
     t.bigint "silo_stock_entry_id"
     t.string "stage", default: "general", null: false
+    t.bigint "stocking_event_id"
     t.bigint "unit_id"
     t.datetime "updated_at", null: false
     t.index ["batch_id"], name: "index_financial_entries_on_batch_id"
@@ -232,6 +233,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
     t.index ["settled_on"], name: "index_financial_entries_on_settled_on"
     t.index ["silo_stock_entry_id"], name: "index_financial_entries_on_silo_stock_entry_id"
     t.index ["stage"], name: "index_financial_entries_on_stage"
+    t.index ["stocking_event_id"], name: "index_financial_entries_on_stocking_event_id"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
   end
 
@@ -563,6 +565,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
   add_foreign_key "financial_entries", "batches"
   add_foreign_key "financial_entries", "payroll_items"
   add_foreign_key "financial_entries", "silo_stock_entries"
+  add_foreign_key "financial_entries", "stocking_events"
   add_foreign_key "financial_entries", "units"
   add_foreign_key "integrateds", "customers"
   add_foreign_key "memberships", "companies"

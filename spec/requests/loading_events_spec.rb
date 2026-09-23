@@ -187,6 +187,7 @@ RSpec.describe "LoadingEvents", type: :request do
           payment_method_id: payment_method.id,
           payment_term_id: term.id,
           payment_date: Date.new(2026, 1, 1),
+          price_per_kg_cents: 1_000,
           total_weight_kg: 100,
           avg_weight_g: 500
         }
@@ -195,6 +196,7 @@ RSpec.describe "LoadingEvents", type: :request do
       event = batch_stocking.stocking_events.where(event_type: "loading").last
       expect(event.payment_term).to eq(term)
       expect(event.payment_date).to eq(Date.new(2026, 10, 1))
+      expect(event.financial_entries.sole).to have_attributes(entry_type: "income", due_on: Date.new(2026, 10, 1))
     end
 
     it "keeps the manual due date when no payment term is selected" do

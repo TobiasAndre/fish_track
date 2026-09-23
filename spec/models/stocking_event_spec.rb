@@ -506,4 +506,79 @@ RSpec.describe StockingEvent, type: :model do
       expect(mortality_ids).to eq([newer.id, older.id])
     end
   end
+
+  describe "financial entries for loading events" do
+    let(:customer) { create(:customer, name: "Peixaria Azul") }
+
+    def loading(**attrs)
+      create(:stocking_event, :loading, customer: customer, price_per_kg_cents: 1_000,
+        occurred_on: Date.new(2026, 9, 1), **attrs)
+    end
+
+    it "creates a single income entry due on the informed due date when there is no payment term" do
+      event = loading(payment_date: Date.new(2026, 9, 20)) # 100 kg * R$10,00 = R$1.000,00
+
+      entry = event.financial_entries.sole
+      expect(entry).to have_attributes(
+        entry_type: "income", amount_cents: 100_000,
+        occurred_on: Date.new(2026, 9, 1), due_on: Date.new(2026, 9, 20)
+      )
+      expect(entry.settled_on).to be_nil
+      expect(entry.batch_id).to eq(event.batch_stocking.batch_id)
+      expect(entry.unit_id).to eq(event.batch_stocking.pond.unit_id)
+      expect(entry.description).to eq("Carregamento - Peixaria Azul - #{event.batch_stocking.batch.name}")
+    end
+
+    it "falls back to the loading date when there is no term and no due date" do
+      expect(loading.financial_entries.sole.due_on).to eq(Date.new(2026, 9, 1))
+    end
+
+    it "generates one entry per installment of the payment term, splitting the total" do
+      term = create(:payment_term, day_offsets: [0, 30, 60])
+
+      event = loading(payment_term: term)
+
+      entries = event.financial_entries.order(:due_on)
+      expect(entries.map(&:due_on)).to eq([Date.new(2026, 9, 1), Date.new(2026, 10, 1), Date.new(2026, 10, 31)])
+      expect(entries.sum(&:amount_cents)).to eq(100_000)
+      expect(entries.map(&:description).last).to end_with("(3/3)")
+    end
+
+    it "does not generate entries when the total is zero" do
+      expect(loading(price_per_kg_cents: 0).financial_entries).to be_empty
+    end
+
+    it "does not generate entries for other event types" do
+      expect(create(:stocking_event, :feeding).financial_entries).to be_empty
+    end
+
+    it "updates the entries in place on edit, keeping the settlement of an installment" do
+      term = create(:payment_term, day_offsets: [0, 30])
+      event = loading(payment_term: term)
+      first = event.financial_entries.order(:id).first
+      first.update!(settled_on: Date.new(2026, 9, 2))
+
+      event.update!(price_per_kg_cents: 2_000)
+
+      entries = event.financial_entries.order(:id)
+      expect(entries.map(&:id).first).to eq(first.id)
+      expect(entries.first.settled_on).to eq(Date.new(2026, 9, 2))
+      expect(entries.sum(&:amount_cents)).to eq(200_000)
+    end
+
+    it "drops the extra installments when the term changes to a single payment" do
+      event = loading(payment_term: create(:payment_term, day_offsets: [0, 30, 60]))
+
+      event.update!(payment_term: nil, payment_date: Date.new(2026, 9, 15))
+
+      expect(event.financial_entries.count).to eq(1)
+      expect(event.financial_entries.sole.due_on).to eq(Date.new(2026, 9, 15))
+    end
+
+    it "removes the entries when the loading is destroyed" do
+      event = loading
+
+      expect { event.destroy }.to change(FinancialEntry, :count).by(-1)
+    end
+  end
 end
