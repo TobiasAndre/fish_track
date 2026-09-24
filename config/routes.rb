@@ -73,6 +73,7 @@ Rails.application.routes.draw do
     resources :loading_reports, only: [:index] do
       collection { post :create_share }
     end
+    resources :batch_results, only: [:index]
     resources :biometry_events, only: %i[index new create edit update destroy]
     resources :mortality_events, only: %i[index new create edit update destroy]
     resources :feeding_events, only: %i[index new create edit update destroy]

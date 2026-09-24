@@ -1,0 +1,149 @@
+<% money = ->(cents) { number_to_currency(cents.to_i / 100.0) } %>
+<% margin = ->(row) { row.margin_percent ? "#{number_with_precision(row.margin_percent, precision: 1, separator: ',', delimiter: '.')}%" : "—" } %>
+<% tone = ->(cents) { cents.to_i.negative? ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300" } %>
+<% total = @result.total %>
+<% input_class = "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Resultado por Lote</h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Receita (entradas) x custo (saídas) dos lançamentos do Financeiro vinculados a cada lote.
+      </p>
+    </div>
+
+    <%= link_to "Gerar PDF", batch_results_path(format: :pdf, status: @q_status, from: @q_from, to: @q_to),
+      target: "_blank",
+      class: "px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition" %>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <%= form_with url: batch_results_path, method: :get, local: true, class: "grid grid-cols-1 sm:grid-cols-4 gap-3 items-end" do %>
+      <div>
+        <%= label_tag :status, "Situação do lote", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= select_tag :status,
+          options_for_select([["Todos", ""], ["Ativos", "active"], ["Encerrados", "closed"]], @q_status),
+          class: input_class %>
+      </div>
+
+      <div>
+        <%= label_tag :from, "Competência de", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= date_field_tag :from, @q_from, class: input_class %>
+      </div>
+
+      <div>
+        <%= label_tag :to, "Competência até", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= date_field_tag :to, @q_to, class: input_class %>
+      </div>
+
+      <div class="flex gap-2">
+        <%= submit_tag "Filtrar",
+          class: "px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition cursor-pointer" %>
+        <%= link_to "Limpar", batch_results_path,
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Receita</p>
+      <p class="mt-1 text-2xl font-semibold text-green-700 dark:text-green-300"><%= money.call(total.revenue_cents) %></p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Custo</p>
+      <p class="mt-1 text-2xl font-semibold text-red-700 dark:text-red-300"><%= money.call(total.cost_cents) %></p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Resultado</p>
+      <p class="mt-1 text-2xl font-semibold <%= tone.call(total.result_cents) %>"><%= money.call(total.result_cents) %></p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Margem</p>
+      <p class="mt-1 text-2xl font-semibold <%= tone.call(total.result_cents) %>"><%= margin.call(total) %></p>
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+          <tr>
+            <th class="text-left px-3 py-3 font-medium">Lote</th>
+            <th class="text-right px-3 py-3 font-medium">Receita</th>
+            <th class="text-right px-3 py-3 font-medium">Custo</th>
+            <th class="text-right px-3 py-3 font-medium">Resultado</th>
+            <th class="text-right px-3 py-3 font-medium">Margem</th>
+            <th class="text-right px-3 py-3 font-medium">Recebido</th>
+            <th class="text-right px-3 py-3 font-medium">Pago</th>
+            <th class="text-right px-3 py-3 font-medium">Caixa</th>
+            <th class="text-right px-3 py-3 font-medium"></th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
+          <% @result.rows.each do |row| %>
+            <tr>
+              <td class="px-3 py-3">
+                <div class="font-medium text-gray-900 dark:text-gray-100"><%= row.batch.name %></div>
+                <div class="text-xs text-gray-500 dark:text-gray-400"><%= row.batch.active_status? ? "Ativo" : "Encerrado" %></div>
+              </td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(row.revenue_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(row.cost_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right font-medium <%= tone.call(row.result_cents) %>"><%= money.call(row.result_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right <%= tone.call(row.result_cents) %>"><%= margin.call(row) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(row.received_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(row.paid_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right <%= tone.call(row.cash_result_cents) %>"><%= money.call(row.cash_result_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right">
+                <%= link_to "Lançamentos", financial_entries_path(batch_id: row.batch.id, from: @q_from, to: @q_to),
+                  class: "text-indigo-600 dark:text-indigo-400 hover:underline whitespace-nowrap" %>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @result.rows.empty? %>
+            <tr>
+              <td colspan="9" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                Nenhum lote com lançamentos financeiros neste filtro.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+
+        <% if @result.rows.any? %>
+          <tfoot class="bg-gray-50 dark:bg-gray-950/40 font-semibold text-gray-900 dark:text-gray-100">
+            <tr>
+              <td class="px-3 py-3">Total</td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(total.revenue_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(total.cost_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right <%= tone.call(total.result_cents) %>"><%= money.call(total.result_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right <%= tone.call(total.result_cents) %>"><%= margin.call(total) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(total.received_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right"><%= money.call(total.paid_cents) %></td>
+              <td class="px-3 py-3 whitespace-nowrap text-right <%= tone.call(total.cash_result_cents) %>"><%= money.call(total.cash_result_cents) %></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        <% end %>
+      </table>
+    </div>
+  </div>
+
+  <% unallocated = @result.unallocated %>
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-4 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+    <p>
+      <strong class="text-gray-700 dark:text-gray-300">Receita</strong> e <strong class="text-gray-700 dark:text-gray-300">custo</strong> somam os lançamentos por data de competência.
+      <strong class="text-gray-700 dark:text-gray-300">Recebido</strong>, <strong class="text-gray-700 dark:text-gray-300">pago</strong> e <strong class="text-gray-700 dark:text-gray-300">caixa</strong> consideram só o que já foi liquidado.
+      Margem = resultado ÷ receita.
+    </p>
+    <p>
+      Lançamentos sem lote (ex.: folha e despesas gerais) não entram no resultado dos lotes:
+      receita <%= money.call(unallocated.revenue_cents) %> · custo <%= money.call(unallocated.cost_cents) %>.
+    </p>
+    <% if @result.batches_without_entries_count.positive? %>
+      <p><%= pluralize(@result.batches_without_entries_count, "lote") %> sem lançamentos financeiros neste filtro.</p>
+    <% end %>
+  </div>
+</div>
