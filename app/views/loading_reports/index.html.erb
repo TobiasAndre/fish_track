@@ -241,9 +241,8 @@
         share_token: report_share.share_token,
         format: :pdf
       ) %>
-      <script>
-        window.open("<%= j whatsapp_share_url(message: mensagem, url: pdf_url) %>", "_blank");
-      </script>
+      <div hidden data-turbo-temporary data-controller="open-url"
+           data-open-url-url-value="<%= whatsapp_share_url(message: mensagem, url: pdf_url) %>"></div>
     <% end %>
   <% end %>
 </div>

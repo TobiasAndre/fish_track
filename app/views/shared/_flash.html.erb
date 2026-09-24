@@ -1,31 +1,8 @@
+<%# data-turbo-temporary: fora do cache do Turbo, para não repetir o toast ao voltar. %>
 <% if notice.present? %>
-  <script>
-    document.addEventListener("turbo:load", function () {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "<%= j notice %>",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true
-      })
-    })
-  </script>
+  <div hidden data-turbo-temporary data-controller="flash" data-flash-type-value="success" data-flash-message-value="<%= notice %>"></div>
 <% end %>
 
 <% if alert.present? %>
-  <script>
-    document.addEventListener("turbo:load", function () {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "error",
-        title: "<%= j alert %>",
-        showConfirmButton: false,
-        timer: 4000,
-        timerProgressBar: true
-      })
-    })
-  </script>
+  <div hidden data-turbo-temporary data-controller="flash" data-flash-type-value="error" data-flash-message-value="<%= alert %>"></div>
 <% end %>

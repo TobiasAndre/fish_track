@@ -260,8 +260,10 @@ RSpec.describe "LoadingEvents", type: :request do
       follow_redirect!
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("window.open")
-      expect(response.body).to include("https://wa.me/?text=")
+      opener = Nokogiri::HTML(response.body).at_css('[data-controller="open-url"]')
+      expect(opener).to be_present
+      expect(opener["data-open-url-url-value"]).to start_with("https://wa.me/?text=")
+      expect(response.body).not_to match(/<script(?![^>]*\b(?:nonce|src)\b)/)
 
       event.reload
       expect(event.share_token).to be_present

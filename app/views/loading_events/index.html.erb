@@ -632,9 +632,8 @@
         share_token: printed_event.share_token,
         format: :pdf
       ) %>
-      <script>
-        window.open("https://wa.me/?text=<%= j CGI.escape("#{mensagem} #{pdf_url}") %>", "_blank");
-      </script>
+      <div hidden data-turbo-temporary data-controller="open-url"
+           data-open-url-url-value="https://wa.me/?text=<%= CGI.escape("#{mensagem} #{pdf_url}") %>"></div>
     <% end %>
   <% end %>
 </div>
