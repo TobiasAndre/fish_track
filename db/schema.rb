@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_130100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_24_100100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_130100) do
     t.string "entry_type", null: false
     t.text "notes"
     t.date "occurred_on", null: false
+    t.bigint "paid_cents", default: 0, null: false
     t.bigint "payroll_item_id"
     t.date "settled_on"
     t.bigint "silo_stock_entry_id"
@@ -235,6 +236,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_130100) do
     t.index ["stage"], name: "index_financial_entries_on_stage"
     t.index ["stocking_event_id"], name: "index_financial_entries_on_stocking_event_id"
     t.index ["unit_id"], name: "index_financial_entries_on_unit_id"
+  end
+
+  create_table "financial_payments", force: :cascade do |t|
+    t.bigint "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.bigint "financial_entry_id", null: false
+    t.text "notes"
+    t.date "paid_on", null: false
+    t.datetime "updated_at", null: false
+    t.index ["financial_entry_id"], name: "index_financial_payments_on_financial_entry_id"
+    t.index ["paid_on"], name: "index_financial_payments_on_paid_on"
   end
 
   create_table "integrateds", force: :cascade do |t|
@@ -567,6 +579,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_130100) do
   add_foreign_key "financial_entries", "silo_stock_entries"
   add_foreign_key "financial_entries", "stocking_events"
   add_foreign_key "financial_entries", "units"
+  add_foreign_key "financial_payments", "financial_entries", on_delete: :cascade
   add_foreign_key "integrateds", "customers"
   add_foreign_key "memberships", "companies"
   add_foreign_key "memberships", "users"

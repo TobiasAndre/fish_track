@@ -120,4 +120,88 @@ RSpec.describe FinancialEntry, type: :model do
       end
     end
   end
+
+  describe "payments" do
+    it "creates a full payment when born with a settled_on (e.g. payroll)" do
+      entry = create(:financial_entry, amount_cents: 20_000, settled_on: Date.current.prev_day)
+
+      expect(entry.payments.sole).to have_attributes(amount_cents: 20_000, paid_on: Date.current.prev_day)
+      expect(entry.reload).to have_attributes(paid_cents: 20_000, settled_on: Date.current.prev_day)
+    end
+
+    it "#settle! pays only the remaining balance of a partially paid entry" do
+      entry = create(:financial_entry, amount_cents: 100_000)
+      entry.payments.create!(paid_on: Date.current.prev_day, amount_cents: 40_000)
+
+      entry.settle!(Date.current)
+
+      expect(entry.payments.order(:id).map(&:amount_cents)).to eq([40_000, 60_000])
+      expect(entry.reload).to be_settled
+    end
+
+    it "#unsettle! removes every payment and reopens the entry" do
+      entry = create(:financial_entry, amount_cents: 100_000)
+      entry.payments.create!(paid_on: Date.current, amount_cents: 40_000)
+      entry.settle!
+
+      entry.unsettle!
+
+      expect(entry.payments).to be_empty
+      expect(entry.reload).to have_attributes(paid_cents: 0, settled_on: nil)
+    end
+
+    it "reopens a settled entry when its amount increases, leaving the difference as balance" do
+      entry = create(:financial_entry, amount_cents: 100_000)
+      entry.settle!
+
+      entry.update!(amount_cents: 150_000)
+
+      entry.reload
+      expect(entry).to be_pending
+      expect(entry).to be_partially_paid
+      expect(entry.balance_cents).to eq(50_000)
+    end
+
+    it "settles a partially paid entry when its amount drops to what was already paid" do
+      entry = create(:financial_entry, amount_cents: 100_000)
+      entry.payments.create!(paid_on: Date.current, amount_cents: 60_000)
+
+      entry.update!(amount_cents: 60_000)
+
+      expect(entry.reload).to be_settled
+    end
+
+    it "removes its payments when destroyed" do
+      entry = create(:financial_entry)
+      entry.settle!
+
+      expect { entry.destroy! }.to change(FinancialPayment, :count).by(-1)
+    end
+
+    it "removes its payments even when deleted without callbacks (delete_all flows)" do
+      entry = create(:financial_entry)
+      entry.settle!
+
+      expect { FinancialEntry.where(id: entry.id).delete_all }.to change(FinancialPayment, :count).by(-1)
+    end
+
+    it ".partially_paid only returns pending entries with something paid" do
+      partial = create(:financial_entry, amount_cents: 100_000)
+      partial.payments.create!(paid_on: Date.current, amount_cents: 10_000)
+      settled = create(:financial_entry).tap(&:settle!)
+      untouched = create(:financial_entry)
+
+      expect(FinancialEntry.partially_paid).to contain_exactly(partial)
+      expect(FinancialEntry.pending).to include(partial, untouched)
+      expect(FinancialEntry.pending).not_to include(settled)
+    end
+
+    it ".open_balance_cents sums what is still owed, not the full amounts" do
+      partial = create(:financial_entry, amount_cents: 100_000)
+      partial.payments.create!(paid_on: Date.current, amount_cents: 30_000)
+      create(:financial_entry, amount_cents: 20_000)
+
+      expect(FinancialEntry.pending.open_balance_cents).to eq(70_000 + 20_000)
+    end
+  end
 end

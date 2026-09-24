@@ -94,7 +94,7 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Situação</label>
         <%= select_tag :status,
-          options_for_select([["Todas", ""], ["Em aberto", "pending"], ["Vencidas", "overdue"], ["Liquidadas", "settled"]], @q_status),
+          options_for_select([["Todas", ""], ["Em aberto", "pending"], ["Parciais", "partial"], ["Vencidas", "overdue"], ["Liquidadas", "settled"]], @q_status),
           class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950
                   border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
       </div>
@@ -166,7 +166,11 @@
                 </span>
               <% elsif e.overdue? %>
                 <span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
-                  Vencido
+                  Vencido<%= " (parcial)" if e.partially_paid? %>
+                </span>
+              <% elsif e.partially_paid? %>
+                <span class="inline-flex items-center rounded-full bg-sky-100 dark:bg-sky-900/40 px-2 py-0.5 text-xs font-medium text-sky-800 dark:text-sky-300">
+                  Parcial
                 </span>
               <% else %>
                 <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -195,18 +199,27 @@
               <span class="<%= css %>">
                 <%= number_to_currency(e.amount_cents.to_i / 100.0) %>
               </span>
+              <% if e.partially_paid? %>
+                <div class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                  <%= e.receivable? ? "Recebido" : "Pago" %> <%= number_to_currency(e.paid_cents / 100.0) %>
+                  · Saldo <%= number_to_currency(e.balance_cents / 100.0) %>
+                </div>
+              <% end %>
             </td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
                 <% if e.settled? %>
                   <%= button_to "Reabrir", unsettle_financial_entry_path(e), method: :patch,
-                    data: { turbo_confirm: "Reabrir este lançamento (voltar para em aberto)?" },
+                    data: { turbo_confirm: "Reabrir este lançamento? Os pagamentos registrados serão removidos e ele volta para em aberto." },
                     class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                             hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
                 <% else %>
-                  <%= button_to "Liquidar", settle_financial_entry_path(e), method: :patch,
+                  <%= button_to (e.partially_paid? ? "Liquidar saldo" : "Liquidar"), settle_financial_entry_path(e), method: :patch,
                     class: "px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white transition" %>
                 <% end %>
+                <%= link_to (e.receivable? ? "Recebimentos" : "Pagamentos"), financial_entry_payments_path(e),
+                  class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
                 <%= link_to "Editar", edit_financial_entry_path(e),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>

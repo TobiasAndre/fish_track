@@ -40,6 +40,17 @@ RSpec.describe PayrollItem, type: :model do
       expect(item.financial_entry.reload.amount_cents).to eq(75_000)
     end
 
+    it "keeps the financial entry settled when the item amount changes, paying the difference" do
+      item = create(:payroll_item, item_type: "advance", amount_cents: 50_000)
+
+      item.update!(amount_cents: 75_000)
+
+      entry = item.financial_entry.reload
+      expect(entry).to be_settled
+      expect(entry.paid_cents).to eq(75_000)
+      expect(entry.payments.order(:id).map(&:amount_cents)).to eq([50_000, 25_000])
+    end
+
     it "removes the financial entry when the item is destroyed" do
       item = create(:payroll_item, item_type: "advance")
       financial_entry = item.financial_entry

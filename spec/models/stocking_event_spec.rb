@@ -552,18 +552,32 @@ RSpec.describe StockingEvent, type: :model do
       expect(create(:stocking_event, :feeding).financial_entries).to be_empty
     end
 
-    it "updates the entries in place on edit, keeping the settlement of an installment" do
+    it "updates the entries in place on edit, keeping the payments of an installment" do
       term = create(:payment_term, day_offsets: [0, 30])
       event = loading(payment_term: term)
       first = event.financial_entries.order(:id).first
-      first.update!(settled_on: Date.new(2026, 9, 2))
+      first.settle!(Date.new(2026, 9, 2))
 
-      event.update!(price_per_kg_cents: 2_000)
+      event.update!(customer: create(:customer, name: "Outra Peixaria"))
 
       entries = event.financial_entries.order(:id)
       expect(entries.map(&:id).first).to eq(first.id)
       expect(entries.first.settled_on).to eq(Date.new(2026, 9, 2))
-      expect(entries.sum(&:amount_cents)).to eq(200_000)
+      expect(entries.first.description).to include("Outra Peixaria")
+    end
+
+    it "turns a settled installment into a partial one when the loading value increases" do
+      term = create(:payment_term, day_offsets: [0, 30])
+      event = loading(payment_term: term) # 2 x R$500,00
+      first = event.financial_entries.order(:id).first
+      first.settle!(Date.new(2026, 9, 2))
+
+      event.update!(price_per_kg_cents: 2_000) # 2 x R$1.000,00
+
+      first.reload
+      expect(first).to have_attributes(amount_cents: 100_000, paid_cents: 50_000)
+      expect(first).to be_partially_paid
+      expect(event.financial_entries.sum(&:amount_cents)).to eq(200_000)
     end
 
     it "drops the extra installments when the term changes to a single payment" do

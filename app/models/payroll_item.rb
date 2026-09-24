@@ -63,6 +63,9 @@ class PayrollItem < ApplicationRecord
       description: financial_description,
       notes: notes
     )
+
+    # Folha só é lançada depois de paga: se o valor mudou, quita a diferença.
+    financial_entry.settle!([occurred_on, Date.current].min)
   end
 
   def remove_financial_entry!

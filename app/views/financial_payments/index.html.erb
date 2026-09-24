@@ -1,0 +1,110 @@
+<% verb = @entry.receivable? ? "Recebimento" : "Pagamento" %>
+<% money = ->(cents) { number_to_currency(cents.to_i / 100.0) } %>
+
+<div class="max-w-3xl mx-auto space-y-6">
+  <div>
+    <%= link_to financial_entries_path,
+      class: "inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" do %>
+      &larr; Voltar ao Financeiro
+    <% end %>
+    <h1 class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+      <%= @entry.receivable? ? "Recebimentos" : "Pagamentos" %>
+    </h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300"><%= @entry.description %></p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Valor</p>
+      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= money.call(@entry.amount_cents) %></p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400"><%= @entry.receivable? ? "Recebido" : "Pago" %></p>
+      <p class="mt-1 text-lg font-semibold text-green-700 dark:text-green-300"><%= money.call(@entry.paid_cents) %></p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Saldo</p>
+      <p class="mt-1 text-lg font-semibold <%= @entry.balance_cents.positive? ? "text-amber-700 dark:text-amber-300" : "text-gray-900 dark:text-gray-100" %>">
+        <%= money.call(@entry.balance_cents) %>
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Vencimento</p>
+      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= l(@entry.due_on) %></p>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Registrar <%= verb.downcase %></h2>
+
+    <% if @entry.balance_cents.zero? %>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Este lançamento está liquidado. Remova um <%= verb.downcase %> abaixo para reabrir o saldo.</p>
+    <% else %>
+      <%= form_with model: @payment, url: financial_entry_payments_path(@entry), class: "mt-3 space-y-4" do |f| %>
+        <%= render "shared/form_errors", resource: @payment %>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <%= f.label :paid_on, "Data", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+            <%= f.date_field :paid_on, max: Date.current, required: true,
+              class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+          </div>
+
+          <div data-controller="money-input">
+            <%= f.label :amount_cents, "Valor (R$)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+            <input type="text" inputmode="decimal" autocomplete="off" placeholder="Ex: 1.500,00"
+              data-money-input-target="display"
+              data-action="input->money-input#input blur->money-input#blur"
+              class="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <%= f.hidden_field :amount_cents, data: { "money-input-target": "cents" } %>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Já vem com o saldo (<%= money.call(@entry.balance_cents) %>); reduza para um <%= verb.downcase %> parcial.</p>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :notes, "Observações (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" %>
+          <%= f.text_field :notes,
+            class: "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" %>
+        </div>
+
+        <%= f.submit "Registrar #{verb.downcase}",
+          class: "px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition cursor-pointer" %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-950/40 text-gray-600 dark:text-gray-300">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium">Data</th>
+          <th class="text-right px-4 py-3 font-medium">Valor</th>
+          <th class="text-left px-4 py-3 font-medium">Observações</th>
+          <th class="text-right px-4 py-3 font-medium">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
+        <% @payments.each do |payment| %>
+          <tr>
+            <td class="px-4 py-3"><%= l(payment.paid_on) %></td>
+            <td class="px-4 py-3 text-right font-medium"><%= money.call(payment.amount_cents) %></td>
+            <td class="px-4 py-3"><%= payment.notes.presence || "—" %></td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end">
+                <%= button_to "Excluir", financial_entry_payment_path(@entry, payment), method: :delete,
+                  data: { turbo_confirm: "Remover este #{verb.downcase}?" },
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition cursor-pointer" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @payments.empty? %>
+          <tr>
+            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Nenhum <%= verb.downcase %> registrado.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -107,7 +107,7 @@
   }
 </style>
 
-<% status_labels = { "pending" => "Em aberto", "overdue" => "Vencidas", "settled" => "Liquidadas" } %>
+<% status_labels = { "pending" => "Em aberto", "partial" => "Parciais", "overdue" => "Vencidas", "settled" => "Liquidadas" } %>
 <% stage_labels = { "nursery" => "Berçário", "juvenile" => "Juvenil", "growout" => "Engorda", "general" => "Geral Sede" } %>
 <% type_labels = { "income" => "Entrada", "expense" => "Saída" } %>
 
@@ -196,7 +196,9 @@
             <% if e.settled? %>
               <span class="badge badge-settled">Liquidado <%= l(e.settled_on) if e.settled_on %></span>
             <% elsif e.overdue? %>
-              <span class="badge badge-overdue">Vencido</span>
+              <span class="badge badge-overdue">Vencido<%= " (parcial)" if e.partially_paid? %></span>
+            <% elsif e.partially_paid? %>
+              <span class="badge">Parcial</span>
             <% else %>
               <span class="badge">Em aberto</span>
             <% end %>
@@ -219,6 +221,9 @@
           </td>
           <td class="text-right <%= e.income? ? "income" : "expense" %>">
             <%= number_to_currency(e.amount_cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
+            <% if e.partially_paid? %>
+              <div class="muted"><%= e.income? ? "Recebido" : "Pago" %> <%= number_to_currency(e.paid_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %> · Saldo <%= number_to_currency(e.balance_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %></div>
+            <% end %>
           </td>
         </tr>
       <% end %>

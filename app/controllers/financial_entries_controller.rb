@@ -3,7 +3,7 @@ class FinancialEntriesController < ApplicationController
   before_action :set_entry, only: [:edit, :update, :destroy, :settle, :unsettle]
 
   PER_PAGE_OPTIONS = [10, 20, 30, 50].freeze
-  STATUS_OPTIONS = %w[pending settled overdue].freeze
+  STATUS_OPTIONS = %w[pending partial settled overdue].freeze
 
   def index
     @q_stage = params[:stage].presence
@@ -27,6 +27,7 @@ class FinancialEntriesController < ApplicationController
     scope =
       case @q_status
       when "pending" then base.pending
+      when "partial" then base.partially_paid
       when "settled" then base.settled
       when "overdue" then base.overdue
       else base
@@ -41,9 +42,10 @@ class FinancialEntriesController < ApplicationController
 
     # Contas em aberto / vencidas — ignoram o filtro de situação para dar a
     # visão de fluxo futuro dentro dos demais filtros.
-    @pending_payable_cents    = base.pending.payable.sum(:amount_cents)
-    @pending_receivable_cents = base.pending.receivable.sum(:amount_cents)
-    @overdue_cents            = base.overdue.sum(:amount_cents)
+    # (saldo em aberto: o que já foi pago parcialmente não conta como devido)
+    @pending_payable_cents    = base.pending.payable.open_balance_cents
+    @pending_receivable_cents = base.pending.receivable.open_balance_cents
+    @overdue_cents            = base.overdue.open_balance_cents
     @overdue_count            = base.overdue.count
 
     respond_to do |format|
@@ -68,6 +70,7 @@ class FinancialEntriesController < ApplicationController
     @entry = FinancialEntry.new(financial_entry_params)
 
     if @entry.save
+      settle_on_create(@entry)
       redirect_to financial_entries_path, notice: "Lançamento criado!"
     else
       render :new, status: :unprocessable_content
@@ -77,7 +80,14 @@ class FinancialEntriesController < ApplicationController
   def edit; end
 
   def update
-    if @entry.update(financial_entry_params)
+    @entry.assign_attributes(financial_entry_params)
+
+    if @entry.amount_cents.to_i < @entry.paid_cents
+      @entry.errors.add(:amount_cents, "não pode ser menor que o já pago (#{helpers.number_to_currency(@entry.paid_cents / 100.0)})")
+      return render :edit, status: :unprocessable_content
+    end
+
+    if @entry.save
       redirect_to financial_entries_path, notice: "Lançamento atualizado!"
     else
       render :edit, status: :unprocessable_content
@@ -126,8 +136,16 @@ class FinancialEntriesController < ApplicationController
     entry.receivable? ? "Baixa (recebimento)" : "Baixa (pagamento)"
   end
 
+  # Checkbox "já liquidado" (só na criação) registra o pagamento integral.
+  # Depois de criado, a liquidação é feita pelos pagamentos do lançamento.
+  def settle_on_create(entry)
+    return unless params.dig(:financial_entry, :mark_settled) == "1"
+
+    entry.settle!(params.dig(:financial_entry, :settled_on).presence || entry.occurred_on)
+  end
+
   def financial_entry_params
-    attrs = params.require(:financial_entry).permit(
+    params.require(:financial_entry).permit(
       :entry_type,   # income/expense
       :stage,        # juvenile/growout/general
       :occurred_on,
@@ -136,19 +154,7 @@ class FinancialEntriesController < ApplicationController
       :description,
       :notes,
       :unit_id,
-      :batch_id,
-      :settled_on
+      :batch_id
     )
-
-    # Checkbox "já liquidado" controla se o lançamento nasce/fica com baixa.
-    if params.dig(:financial_entry, :mark_settled) == "1"
-      attrs[:settled_on] = attrs[:settled_on].presence ||
-                           attrs[:occurred_on].presence ||
-                           Date.current
-    else
-      attrs[:settled_on] = nil
-    end
-
-    attrs
   end
 end

@@ -88,6 +88,8 @@ Rails.application.routes.draw do
         patch :settle
         patch :unsettle
       end
+
+      resources :payments, controller: "financial_payments", only: %i[index create destroy]
     end
     resources :employees do
       member do
