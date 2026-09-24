@@ -9,3 +9,4 @@ pin "chartkick", to: "chartkick.js"
 pin "Chart.bundle", to: "Chart.bundle.js"
 pin "sweetalert2" # @11.26.20
 pin "confirmations", to: "confirmations.js", preload: true
+pin "pwa", to: "pwa.js", preload: true

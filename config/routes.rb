@@ -7,6 +7,11 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # PWA: manifest e service worker (o service worker precisa ser servido da raiz
+  # para controlar o app inteiro).
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker, defaults: { format: :js }
+
   get "shared/:tenant_name/simulations/:id/:share_token",
     to: "simulations#share_pdf",
     as: :shared_simulation_pdf

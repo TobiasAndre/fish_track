@@ -3,6 +3,15 @@
   <head>
     <title>Fish Track</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="application-name" content="Fish Track">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Fish Track">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <link rel="icon" href="/icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
