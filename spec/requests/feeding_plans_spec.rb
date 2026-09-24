@@ -22,6 +22,14 @@ RSpec.describe "FeedingPlans", type: :request do
     sign_in user
   end
 
+  def pond_rows(doc)
+    doc.css("h2:contains('Trato (Kg)')").first.ancestors("div").first.css("tbody tr").map { |tr| tr.at_css("td").text.strip }
+  end
+
+  def time_rows(doc)
+    doc.css("h2:contains('Tempo (min)')").first.ancestors("div").first.css("tbody tr").map { |tr| tr.at_css("td").text.strip }
+  end
+
   describe "GET /feeding_plans" do
     it "redirects to sign in when not authenticated" do
       sign_out user
@@ -31,51 +39,127 @@ RSpec.describe "FeedingPlans", type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it "asks the user to pick the unit, the batch and the pond before showing the plan" do
-      batch = stock(pond, biomass_kg: 6_900, quantity: 900_000)
+    it "asks for the unit before showing the tables" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000)
 
       get feeding_plans_path
 
       expect(response.body).not_to include("Trato (Kg) por temperatura")
-      expect(response.body).to include("Selecione a unidade, o lote e o tanque")
+      expect(response.body).to include("Selecione a unidade acima")
+    end
+
+    it "shows the trato (kg) and the time (min) tables for every tank of the unit once it is selected" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000)
+      stock(create(:pond, unit: unit, name: "Tanque 7"), biomass_kg: 3_000, quantity: 400_000)
 
       get feeding_plans_path, params: { unit_id: unit.id }
 
-      expect(response.body).not_to include("Trato (Kg) por temperatura")
-      expect(response.body).to include("Selecione a unidade, o lote e o tanque")
-
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id }
-
-      expect(response.body).not_to include("Trato (Kg) por temperatura")
-      expect(response.body).to include("Selecione a unidade, o lote e o tanque")
+      doc = Nokogiri::HTML(response.body)
+      expect(pond_rows(doc)).to eq(["Tanque 4", "Tanque 7"])
+      expect(time_rows(doc)).to eq(["Tanque 4", "Tanque 7"])
     end
 
-    it "renders the tank row with quantity, average weight, biomass and the computed ration once the unit, batch and pond are selected" do
-      batch = stock(pond, biomass_kg: 6_900, quantity: 900_000) # avg 7,67 g -> faixa 3-9,9
+    it "renders the tank row with quantity, average weight, biomass and the computed ration" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000) # avg 7,67 g -> faixa 3-9,9
 
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_id: pond.id }
+      get feeding_plans_path, params: { unit_id: unit.id }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Trato (Kg) por temperatura")
+      expect(response.body).to include("Tempo (min) por temperatura")
       expect(response.body).to include("Qtde. peixes")
-      expect(response.body).to include("Tanque 4")
       expect(response.body).to include("900.000") # quantidade de peixes
       expect(response.body).to include("6.900")   # biomassa (kg)
       expect(response.body).to include("7,67")    # peso médio (g)
       expect(response.body).to include("414")     # 6900 kg * 6% = 414 kg
     end
 
+    describe "tank selection" do
+      let!(:pond_7) { create(:pond, unit: unit, name: "Tanque 7", order_number: 2) }
+      let!(:pond_9) { create(:pond, unit: unit, name: "Tanque 9", order_number: 3) }
+      let!(:pond_11) { create(:pond, unit: unit, name: "Tanque 11", order_number: 4) }
+      let!(:batch) { stock(pond, biomass_kg: 6_900, quantity: 900_000) }
+
+      before do
+        stock(pond_7, biomass_kg: 3_000, quantity: 400_000)
+        stock(pond_9, biomass_kg: 2_000, quantity: 300_000)
+        stock(pond_11, biomass_kg: 1_000, quantity: 100_000)
+        pond.update!(order_number: 1)
+      end
+
+      it "reduces both tables to the checked tanks (e.g. 4, 7 and 9)" do
+        get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond.id, pond_7.id, pond_9.id] }
+
+        doc = Nokogiri::HTML(response.body)
+        expect(pond_rows(doc)).to eq(["Tanque 4", "Tanque 7", "Tanque 9"])
+        expect(time_rows(doc)).to eq(["Tanque 4", "Tanque 7", "Tanque 9"])
+        expect(response.body).not_to include("Tanque 11</td>")
+      end
+
+      it "lists every tank as a checkbox and marks the selected ones" do
+        get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond_7.id] }
+
+        boxes = Nokogiri::HTML(response.body).css("input[type=checkbox][name='pond_ids[]']")
+        expect(boxes.size).to eq(4)
+        expect(boxes.select { |b| b["checked"] }.map { |b| b["value"] }).to eq([pond_7.id.to_s])
+      end
+
+      it "shows all tanks again when none is checked" do
+        get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [""] }
+
+        expect(pond_rows(Nokogiri::HTML(response.body)).size).to eq(4)
+      end
+
+      it "ignores tanks that don't belong to the selected unit" do
+        foreign = create(:pond, unit: create(:unit, name: "Experimental"), name: "Tanque X")
+
+        get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond_7.id, foreign.id] }
+
+        expect(pond_rows(Nokogiri::HTML(response.body))).to eq(["Tanque 7"])
+        expect(response.body).not_to include("Tanque X")
+      end
+
+      it "offers a link back to all tanks only while a selection is active" do
+        get feeding_plans_path, params: { unit_id: unit.id }
+        expect(response.body).not_to include("Todos os tanques")
+
+        get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond_7.id] }
+        expect(response.body).to include("Todos os tanques")
+      end
+
+      it "narrows the tank list and the ration to the selected lote" do
+        other_batch = create(:batch, pond: pond_7, stocking_quantity: 100, stocking_avg_weight_g: 7.0)
+        other_batch.batch_stockings.first.update_columns(current_biomass_kg: 500, current_quantity: 100)
+
+        get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id }
+
+        doc = Nokogiri::HTML(response.body)
+        expect(pond_rows(doc)).to eq(["Tanque 4"])
+        expect(doc.css("input[type=checkbox][name='pond_ids[]']").map { |b| b["value"] }).to eq([pond.id.to_s])
+      end
+    end
+
+    it "sums every active lote of a tank when no lote is selected" do
+      stock(pond, biomass_kg: 3_000, quantity: 400_000)
+      stock(pond, biomass_kg: 900, quantity: 100_000)
+
+      get feeding_plans_path, params: { unit_id: unit.id }
+
+      expect(response.body).to include("500.000") # 400.000 + 100.000 peixes
+      expect(response.body).to include("3.900")   # 3.000 + 900 kg
+    end
+
     it "renders one column per registered temperature range, dynamically" do
-      batch = stock(pond, biomass_kg: 6_900, quantity: 900_000)
+      stock(pond, biomass_kg: 6_900, quantity: 900_000)
       other = create(:feeding_temperature_range, temperature_from: 30, temperature_to: 31)
 
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_id: pond.id }
+      get feeding_plans_path, params: { unit_id: unit.id }
 
       expect(response.body).to include("24–26°C")
       expect(response.body).to include("30–31°C")
 
       other.destroy
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_id: pond.id }
+      get feeding_plans_path, params: { unit_id: unit.id }
       expect(response.body).to include("24–26°C")
       expect(response.body).not_to include("30–31°C")
     end
@@ -83,9 +167,9 @@ RSpec.describe "FeedingPlans", type: :request do
     it "shows an unavailable marker (not zero) when there is no rate for a weight/temperature cell" do
       pond_no_rate = create(:pond, unit: unit, name: "Tanque 9")
       create(:feeding_weight_range, weight_from: 100, weight_to: 199.9) # faixa sem strategy items
-      batch = stock(pond_no_rate, biomass_kg: 15_000, quantity: 100_000) # avg 150 g
+      stock(pond_no_rate, biomass_kg: 15_000, quantity: 100_000) # avg 150 g
 
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_id: pond_no_rate.id }
+      get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond_no_rate.id] }
 
       row = Nokogiri::HTML(response.body).css("tr").find { |tr| tr.text.include?("Tanque 9") }
       temp_cell = row.css("td").last
@@ -102,30 +186,15 @@ RSpec.describe "FeedingPlans", type: :request do
       get feeding_plans_path, params: { unit_id: unit.id }
 
       options = Nokogiri::HTML(response.body).css("select#batch_id option").map(&:text)
+      expect(options).to include("Todos os lotes")
       expect(options.join).to include(pond.batches.first.name)
       expect(options.join).not_to include(other_pond.batches.first.name)
     end
 
-    it "only lists ponds stocked with the selected batch in the pond dropdown" do
-      other_pond = create(:pond, unit: unit, name: "Tanque X")
-      batch = stock(pond, biomass_kg: 6_900, quantity: 900_000)
-      stock(other_pond, biomass_kg: 1_000, quantity: 50_000)
+    it "tells when the unit has no tank" do
+      get feeding_plans_path, params: { unit_id: create(:unit, name: "Vazia").id }
 
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id }
-
-      options = Nokogiri::HTML(response.body).css("select#pond_id option").map(&:text)
-      expect(options).to include("Tanque 4")
-      expect(options).not_to include("Tanque X")
-    end
-
-    it "ignores a pond_id that isn't stocked with the selected batch" do
-      other_pond = create(:pond, unit: unit, name: "Tanque X")
-      batch = stock(pond, biomass_kg: 6_900, quantity: 900_000)
-
-      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_id: other_pond.id }
-
-      expect(response.body).not_to include("Trato (Kg) por temperatura")
-      expect(response.body).to include("Selecione a unidade, o lote e o tanque")
+      expect(response.body).to include("Nenhum tanque encontrado")
     end
   end
 
@@ -137,12 +206,12 @@ RSpec.describe "FeedingPlans", type: :request do
         feeding_table_id: feeding_table.id,
         unit_id: unit.id,
         batch_id: batch.id,
-        pond_id: pond.id,
+        pond_ids: [pond.id],
         calibrations: { pond.id.to_s => { feed_sample_kg: "650", feed_sample_seconds: "964" } }
       }
 
       expect(response).to redirect_to(
-        feeding_plans_path(feeding_table_id: feeding_table.id, unit_id: unit.id, batch_id: batch.id, pond_id: pond.id)
+        feeding_plans_path(feeding_table_id: feeding_table.id, unit_id: unit.id, batch_id: batch.id, pond_ids: [pond.id])
       )
       expect(pond.reload).to have_attributes(feed_sample_kg: 650, feed_sample_seconds: 964)
 

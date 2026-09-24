@@ -20,25 +20,23 @@ class FeedingPlansController < ApplicationController
         []
       end
 
+    # Lote é opcional: sem ele, cada tanque soma os lotes ativos que tem.
     @selected_batch_id = params[:batch_id].presence
     @selected_batch = @batches_for_select.find { |b| b.id.to_s == @selected_batch_id }
 
     @ponds_for_select =
-      if @selected_batch
-        Pond
-          .joins(:batch_stockings)
-          .where(unit_id: @selected_unit_id, batch_stockings: { batch_id: @selected_batch.id })
-          .ordered
-          .distinct
-          .to_a
+      if @selected_unit_id.present?
+        ponds = Pond.where(unit_id: @selected_unit_id)
+        ponds = ponds.joins(:batch_stockings).where(batch_stockings: { batch_id: @selected_batch.id }) if @selected_batch
+        ponds.ordered.distinct.to_a
       else
         []
       end
 
-    @selected_pond_id = params[:pond_id].presence
-    @selected_pond = @ponds_for_select.find { |p| p.id.to_s == @selected_pond_id }
-
-    @ponds = @selected_pond ? [@selected_pond] : []
+    # Tanques marcados reduzem a tabela; nenhum marcado = todos os tanques do filtro.
+    requested_ids = Array(params[:pond_ids]).map(&:to_s).compact_blank
+    @selected_pond_ids = @ponds_for_select.map { |p| p.id.to_s } & requested_ids
+    @ponds = @selected_pond_ids.any? ? @ponds_for_select.select { |p| @selected_pond_ids.include?(p.id.to_s) } : @ponds_for_select
 
     @plan = FeedingPlan.new(feeding_table: @feeding_table, ponds: @ponds, batch_id: @selected_batch&.id)
   end
@@ -58,7 +56,7 @@ class FeedingPlansController < ApplicationController
       feeding_table_id: params[:feeding_table_id].presence,
       unit_id: params[:unit_id].presence,
       batch_id: params[:batch_id].presence,
-      pond_id: params[:pond_id].presence
+      pond_ids: Array(params[:pond_ids]).compact_blank.presence
     ), notice: "Calibração salva."
   end
 
