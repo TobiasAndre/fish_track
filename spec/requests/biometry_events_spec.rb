@@ -47,6 +47,53 @@ RSpec.describe "BiometryEvents", type: :request do
       expect(response.body).to include("Histórico")
     end
 
+    describe "history order" do
+      let(:oldest) { Date.current - 20 }
+      let(:middle) { Date.current - 10 }
+
+      before do
+        create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: middle)
+        create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: oldest)
+        # a lotação já gera uma biometria inicial na data de hoje (a mais nova)
+      end
+
+      def rows(doc)
+        doc.css("table tbody tr").select { |tr| tr.at_css("td")&.text.to_s.strip.match?(%r{\A\d{2}/\d{2}/\d{4}\z}) }
+      end
+
+      def dates(rows)
+        rows.map { |tr| tr.at_css("td").text.strip }
+      end
+
+      it "lists the selected batch stocking's biometries from the oldest to the newest, with the newest in bold" do
+        get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+        rows = rows(Nokogiri::HTML(response.body))
+        expect(dates(rows)).to eq([oldest, middle, Date.current].map { |d| I18n.l(d) })
+        expect(rows.last["class"]).to include("font-bold")
+        expect(rows[0..-2].map { |tr| tr["class"].to_s }).to all(satisfy { |c| !c.include?("font-bold") })
+      end
+
+      it "lists the overview of each active batch from the oldest to the newest, with the newest in bold" do
+        get biometry_events_path
+
+        rows = rows(Nokogiri::HTML(response.body))
+        expect(dates(rows)).to eq([oldest, middle, Date.current].map { |d| I18n.l(d) })
+        expect(rows.last["class"]).to include("font-bold")
+        expect(rows[0..-2].map { |tr| tr["class"].to_s }).to all(satisfy { |c| !c.include?("font-bold") })
+      end
+
+      it "keeps the same order when a same-day biometry was created later" do
+        create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: middle, volume: 777)
+
+        get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+        rows = rows(Nokogiri::HTML(response.body))
+        expect(dates(rows)).to eq([oldest, middle, middle, Date.current].map { |d| I18n.l(d) })
+        expect(rows[2].text).to include("777")
+      end
+    end
+
     it "shows the running balance (stocked minus mortalities/loadings), not just the stocked amount" do
       create(:stocking_event, :mortality, batch_stocking: batch_stocking, quantity: 150, occurred_on: Date.current)
 

@@ -255,8 +255,9 @@
               </tr>
             </thead>
             <tbody>
-              <% @events.each do |event| %>
-                <tr class="border-b border-gray-100 dark:border-gray-800">
+              <% history_events = @events.reorder(occurred_on: :asc, created_at: :asc, id: :asc).to_a %>
+              <% history_events.each do |event| %>
+                <tr class="border-b border-gray-100 dark:border-gray-800 <%= "font-bold" if event.equal?(history_events.last) %>">
                   <td class="py-2 pr-4">
                     <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
                   </td>
@@ -434,8 +435,9 @@
                   </thead>
 
                   <tbody>
-                    <% events.sort_by { |event| event.occurred_on || Date.new(1900, 1, 1) }.reverse.each do |event| %>
-                      <tr class="border-b border-gray-100 dark:border-gray-800">
+                    <% sorted_events = events.sort_by { |event| [event.occurred_on || Date.new(1900, 1, 1), event.created_at || Time.at(0), event.id] } %>
+                    <% sorted_events.each do |event| %>
+                      <tr class="border-b border-gray-100 dark:border-gray-800 <%= "font-bold" if event.equal?(sorted_events.last) %>">
                         <td class="py-2 pl-4 pr-4">
                           <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>
                         </td>
