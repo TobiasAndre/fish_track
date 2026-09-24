@@ -220,12 +220,17 @@
                 <%= link_to (e.receivable? ? "Recebimentos" : "Pagamentos"), financial_entry_payments_path(e),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
-                <%= link_to "Editar", edit_financial_entry_path(e),
+                <%= link_to edit_financial_entry_path(e), title: "Editar", aria: { label: "Editar" },
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
-                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
-                <%= button_to "Excluir", financial_entry_path(e), method: :delete,
+                          hover:bg-gray-50 dark:hover:bg-gray-800 transition" do %>
+                  <i class="fa-solid fa-pen-to-square"></i>
+                <% end %>
+                <%= button_to financial_entry_path(e), method: :delete,
+                  title: "Excluir", aria: { label: "Excluir" },
                   data: { turbo_confirm: "Excluir lançamento?" },
-                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                  class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition cursor-pointer" do %>
+                  <i class="fa-solid fa-trash-can"></i>
+                <% end %>
               </div>
             </td>
           </tr>

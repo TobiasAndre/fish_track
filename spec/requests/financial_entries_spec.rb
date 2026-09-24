@@ -52,7 +52,7 @@ RSpec.describe "FinancialEntries", type: :request do
 
       get financial_entries_path
 
-      expect(response.body.scan("Editar").size).to eq(10)
+      expect(Nokogiri::HTML(response.body).css("a[title=Editar]").size).to eq(10)
     end
 
     it "honours a valid per_page selection" do
@@ -60,7 +60,7 @@ RSpec.describe "FinancialEntries", type: :request do
 
       get financial_entries_path, params: { per_page: 20 }
 
-      expect(response.body.scan("Editar").size).to eq(20)
+      expect(Nokogiri::HTML(response.body).css("a[title=Editar]").size).to eq(20)
     end
 
     it "falls back to the default for an invalid per_page" do
@@ -68,7 +68,7 @@ RSpec.describe "FinancialEntries", type: :request do
 
       get financial_entries_path, params: { per_page: 999 }
 
-      expect(response.body.scan("Editar").size).to eq(10)
+      expect(Nokogiri::HTML(response.body).css("a[title=Editar]").size).to eq(10)
     end
   end
 
