@@ -198,6 +198,46 @@ RSpec.describe "FeedingPlans", type: :request do
     end
   end
 
+  describe "Turbo Frame (only the content reloads when a filter changes)" do
+    before { stock(pond, biomass_kg: 6_900, quantity: 900_000) }
+
+    it "wraps the filters and the tables in a frame that advances the URL" do
+      get feeding_plans_path, params: { unit_id: unit.id }
+
+      frame = Nokogiri::HTML(response.body).at_css("turbo-frame#feeding_plan")
+      expect(frame["data-turbo-action"]).to eq("advance")
+      expect(frame.at_css("form select#unit_id")).to be_present
+      expect(frame.text).to include("Trato (Kg) por temperatura", "Tempo (min) por temperatura")
+    end
+
+    it "keeps the page title and heading outside the frame, so they aren't re-rendered" do
+      get feeding_plans_path, params: { unit_id: unit.id }
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("h1").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "answers a frame request with just the frame, without the app layout" do
+      get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond.id] }, headers: { "Turbo-Frame" => "feeding_plan" }
+
+      expect(response).to have_http_status(:ok)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-frame#feeding_plan")).to be_present
+      expect(response.body).not_to include("Fish Track</span>") # sidebar/topbar
+      expect(doc.css("nav")).to be_empty
+    end
+
+    it "sends the calibration form and the link to register a table out of the frame (full visit)" do
+      FeedingTable.destroy_all
+
+      get feeding_plans_path, params: { unit_id: unit.id }
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("form[action='#{calibrations_feeding_plans_path}']")["data-turbo-frame"]).to eq("_top")
+      expect(doc.at_css("a[href='#{new_feeding_table_path}']")["data-turbo-frame"]).to eq("_top")
+    end
+  end
+
   describe "PATCH /feeding_plans/calibrations" do
     it "stores the calibration sample on the pond and feeds the time table" do
       batch = stock(pond, biomass_kg: 6_000, quantity: 800_000)
