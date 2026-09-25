@@ -106,6 +106,88 @@ RSpec.describe "BiometryEvents", type: :request do
     end
   end
 
+  describe "Turbo Frames (only the affected area reloads)" do
+    def frame(id)
+      Nokogiri::HTML(response.body).at_css("turbo-frame##{id}")
+    end
+
+    it "wraps the summary, form and history of a batch stocking in one frame, keeping the back link outside" do
+      get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("biometry_workspace")
+      expect(workspace["data-turbo-action"]).to eq("advance")
+      expect(workspace.at_css("form[action='#{biometry_events_path}']")).to be_present
+      expect(workspace.text).to include("Novo lançamento", "Histórico")
+      expect(Nokogiri::HTML(response.body).at_css("a[href='#{biometry_events_path}']").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "makes saving and deleting replace the history entry instead of stacking the same URL" do
+      create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.current - 3)
+
+      get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("biometry_workspace")
+      expect(workspace.at_css("form[action='#{biometry_events_path}']")["data-turbo-action"]).to eq("replace")
+      expect(workspace.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-action"] }.uniq).to eq(["replace"])
+    end
+
+    it "renders the flash toast inside the frame (once), so it shows when only the frame updates" do
+      post biometry_events_path, params: {
+        stocking_event: { batch_stocking_id: batch_stocking.id, occurred_on: Date.current + 0, volume: 900, quantity: 900, total_weight_kg: 5.0 }
+      }
+      follow_redirect!
+
+      toasts = Nokogiri::HTML(response.body).css('[data-controller="flash"]')
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole["data-flash-message-value"]).to eq("Biometria lançada com sucesso.")
+      expect(toasts.sole.ancestors("turbo-frame").map { |f| f["id"] }).to include("biometry_workspace")
+    end
+
+    it "answers the frame request that follows a save with just the frame and the toast, without the app layout" do
+      post biometry_events_path, params: {
+        stocking_event: { batch_stocking_id: batch_stocking.id, occurred_on: Date.current, volume: 900, quantity: 900, total_weight_kg: 5.0 }
+      }, headers: { "Turbo-Frame" => "biometry_workspace" }
+      follow_redirect!(headers: { "Turbo-Frame" => "biometry_workspace" }) if response.redirect?
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-frame#biometry_workspace")).to be_present
+      expect(doc.css("nav")).to be_empty
+      expect(doc.css('[data-controller="flash"]').size).to eq(1)
+      expect(doc.css("tbody tr").last["class"]).to include("font-bold")
+    end
+
+    it "re-renders the form with the errors inside the frame on a validation failure" do
+      post biometry_events_path, params: {
+        stocking_event: { batch_stocking_id: batch_stocking.id, occurred_on: Date.current, volume: "", quantity: "", total_weight_kg: "" }
+      }, headers: { "Turbo-Frame" => "biometry_workspace" }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      workspace = frame("biometry_workspace")
+      expect(workspace.text).to include("Não foi possível salvar")
+    end
+
+    it "opens an edit inside the frame" do
+      event = create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.current - 2)
+
+      get edit_biometry_event_path(event), headers: { "Turbo-Frame" => "biometry_workspace" }
+
+      expect(frame("biometry_workspace").text).to include("Editar biometria")
+    end
+
+    it "keeps the overview filters and list in their own frame, and sends the row actions to a full visit" do
+      create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.current - 4)
+
+      get biometry_events_path
+
+      overview = frame("biometry_overview")
+      expect(overview["data-turbo-action"]).to eq("advance")
+      expect(overview.at_css("select#unit_id")).to be_present
+      expect(overview.at_css("a[href='#{biometry_events_path(batch_stocking_id: batch_stocking.id)}']")["data-turbo-frame"]).to eq("_top")
+      expect(overview.css("a[title=Editar]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+      expect(overview.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+  end
+
   describe "POST /biometry_events" do
     it "creates a biometry stocking event with valid params" do
       expect do
