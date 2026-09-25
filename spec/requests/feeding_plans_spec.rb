@@ -74,6 +74,19 @@ RSpec.describe "FeedingPlans", type: :request do
       expect(response.body).to include("414")     # 6900 kg * 6% = 414 kg
     end
 
+    it "repeats the tank name after the biomass column (5th column) instead of the weight range, so the row is easy to follow" do
+      stock(pond, biomass_kg: 6_900, quantity: 900_000)
+
+      get feeding_plans_path, params: { unit_id: unit.id }
+
+      table = Nokogiri::HTML(response.body).css("h2:contains('Trato (Kg)')").first.ancestors("div").first.at_css("table")
+      headers = table.css("thead th").map { |th| th.text.strip }
+      expect(headers.first(5)).to eq(["Tanque", "Qtde. peixes", "Peso médio (g)", "Biomassa (kg)", "Tanque"])
+      expect(headers).not_to include("Faixa")
+      cells = table.css("tbody tr").first.css("td").map { |td| td.text.strip }
+      expect([cells[0], cells[4]]).to eq(["Tanque 4", "Tanque 4"])
+    end
+
     describe "tank selection" do
       let!(:pond_7) { create(:pond, unit: unit, name: "Tanque 7", order_number: 2) }
       let!(:pond_9) { create(:pond, unit: unit, name: "Tanque 9", order_number: 3) }

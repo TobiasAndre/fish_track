@@ -54,6 +54,20 @@ RSpec.describe "feeding_plans/index.pdf.erb", type: :view do
     expect(rendered).to include("<td>Tanque 7</td>", "Tanques")
   end
 
+  it "repeats the tank as the 5th column of the trato table, replacing the weight range column" do
+    render_pdf(ponds: [pond_4, pond_7])
+
+    doc = Nokogiri::HTML(rendered)
+    trato = doc.css("table").find { |t| t.at_css("th")&.text == "Tanque" && t.css("th").map(&:text).include?("Biomassa (kg)") }
+    headers = trato.css("thead th").map(&:text)
+    expect(headers.first(5)).to eq(["Tanque", "Qtde. peixes", "Peso médio (g)", "Biomassa (kg)", "Tanque"])
+    expect(headers).not_to include("Faixa")
+
+    rows = trato.css("tbody tr").map { |tr| tr.css("td").map(&:text) }
+    expect(rows.map { |cells| [cells[0], cells[4]] }).to eq([["Tanque 4", "Tanque 4"], ["Tanque 7", "Tanque 7"]])
+    expect(rendered).not_to include("Faixa")
+  end
+
   it "starts the time table on a new page, so it is always the second page" do
     render_pdf(ponds: [pond_4, pond_7])
 

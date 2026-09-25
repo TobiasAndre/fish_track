@@ -121,9 +121,6 @@
   kg = ->(value) { value ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "-" }
   mins = ->(value) { value ? number_with_precision(value, precision: 1, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "-" }
   temp_label = ->(range) { "#{range.temperature_from.to_i}-#{range.temperature_to.to_i}°C" }
-  weight_label = ->(range) {
-    range ? "#{number_with_precision(range.weight_from, precision: 1, strip_insignificant_zeros: true, separator: ",")}-#{number_with_precision(range.weight_to, precision: 1, strip_insignificant_zeros: true, separator: ",")} g" : "-"
-  }
   temperature_ranges = @plan.temperature_ranges
   unit = @units.find { |u| u.id.to_s == @selected_unit_id.to_s }
   selected_ponds = @selected_pond_ids.any? ? @ponds.map(&:name).join(", ") : "Todos"
@@ -171,7 +168,7 @@
         <th>Qtde. peixes</th>
         <th>Peso médio (g)</th>
         <th>Biomassa (kg)</th>
-        <th>Faixa</th>
+        <th>Tanque</th>
         <% temperature_ranges.each do |range| %>
           <th><%= temp_label.call(range) %></th>
         <% end %>
@@ -185,7 +182,7 @@
           <td class="text-right"><%= row.quantity.positive? ? number_with_delimiter(row.quantity, delimiter: ".") : "-" %></td>
           <td class="text-right"><%= row.avg_weight_g.positive? ? number_with_precision(row.avg_weight_g, precision: 2, separator: ",", delimiter: ".") : "-" %></td>
           <td class="text-right"><%= row.biomass_kg.positive? ? kg.call(row.biomass_kg) : "-" %></td>
-          <td><%= weight_label.call(row.weight_range) %></td>
+          <td><%= row.pond.name %></td>
           <% temperature_ranges.each do |range| %>
             <td class="text-right"><%= kg.call(row.feed_kg_by_temp[range.id]) %></td>
           <% end %>
