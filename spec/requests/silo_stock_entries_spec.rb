@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "SiloStockEntries", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:unit) { create(:unit) }
   let(:silo) { create(:silo, unit: unit, name: "Silo Norte") }
   let(:feeding_brand) { create(:feeding_brand, name: "Guabi") }
@@ -53,6 +53,33 @@ RSpec.describe "SiloStockEntries", type: :request do
       expect(section.css("tbody tr").count).to eq(1)
       expect(section.text).to include(silo.name)
       expect(section.text).to include("500kg")
+    end
+
+    it "shows the lote instead of the unit in the current stock, one row per lote" do
+      batch_a = create(:batch, name: "Lote Alfa")
+      batch_b = create(:batch, name: "Lote Beta")
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, batch: batch_a, quantity_kg: 300)
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, batch: batch_b, quantity_kg: 200)
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, batch: batch_b, quantity_kg: 50)
+
+      get silo_stock_entries_path
+
+      section = current_stock_section(response.body)
+      expect(section.css("thead th").map { |th| th.text.strip }).to eq(%w[Lote Silo Tipo Marca Quantidade])
+      rows = section.css("tbody tr").map { |tr| tr.css("td").map { |td| td.text.strip } }
+      expect(rows.map { |r| [r[0], r[4]] }).to eq([["Lote Alfa", "300kg"], ["Lote Beta", "250kg"]])
+    end
+
+    it "lists the history from the newest to the oldest entry" do
+      old_type = create(:feeding_type, feeding_brand: feeding_brand, name: "Racao Antiga")
+      new_type = create(:feeding_type, feeding_brand: feeding_brand, name: "Racao Recente")
+      create(:silo_stock_entry, silo: silo, feeding_type: old_type, occurred_on: Date.new(2026, 1, 10))
+      create(:silo_stock_entry, silo: silo, feeding_type: new_type, occurred_on: Date.new(2026, 3, 5))
+
+      get silo_stock_entries_path
+
+      dates = Nokogiri::HTML(response.body).css("tbody tr").filter_map { |tr| tr.at_css("td")&.text&.strip }.grep(%r{\A\d{2}/\d{2}/\d{4}\z})
+      expect(dates).to eq(%w[05/03/2026 10/01/2026])
     end
 
     it "shows a grand total at the end of the current stock table" do

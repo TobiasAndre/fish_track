@@ -110,12 +110,15 @@
                 Pago em <%= l(salary_payment.occurred_on) %> —
                 <%= number_to_currency(paid_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
               </div>
+              <% if can?("payroll", :delete) %>
               <%= button_to "Estornar pagamento", payroll_item_path(salary_payment),
                 method: :delete,
                 data: { turbo_confirm: "Estornar o pagamento do salário? Isso também remove o lançamento do financeiro." },
                 class: "mt-2 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                         hover:bg-gray-50 dark:hover:bg-gray-800 transition text-xs font-medium" %>
+              <% end %>
             <% elsif remaining_cents > 0 %>
+              <% if can?("payroll", :write) %>
               <%= button_to "Marcar salário como pago", payroll_items_path,
                 params: {
                   payroll_item: {
@@ -127,6 +130,7 @@
                 data: { turbo_confirm: "Marcar #{number_to_currency(remaining_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".")} como pago e lançar no financeiro?" },
                 class: "mt-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700
                         dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs font-medium transition" %>
+              <% end %>
             <% end %>
           </div>
         </div>
@@ -153,6 +157,7 @@
                 <div class="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                   <%= number_to_currency(settlement.balance_salary_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
                 </div>
+                <% if can?("payroll", :write) %>
                 <%= button_to "Lançar", payroll_items_path,
                   params: {
                     payroll_item: {
@@ -162,6 +167,7 @@
                     }
                   },
                   class: "mt-2 w-full px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-800 text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900 transition" %>
+                <% end %>
               </div>
 
               <div class="rounded-lg bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-900 p-3">
@@ -171,6 +177,7 @@
                 <div class="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                   <%= number_to_currency(settlement.thirteenth_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
                 </div>
+                <% if can?("payroll", :write) %>
                 <%= button_to "Lançar", payroll_items_path,
                   params: {
                     payroll_item: {
@@ -180,6 +187,7 @@
                     }
                   },
                   class: "mt-2 w-full px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-800 text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900 transition" %>
+                <% end %>
               </div>
 
               <div class="rounded-lg bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-900 p-3">
@@ -189,6 +197,7 @@
                 <div class="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                   <%= number_to_currency(settlement.vacation_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %>
                 </div>
+                <% if can?("payroll", :write) %>
                 <%= button_to "Lançar", payroll_items_path,
                   params: {
                     payroll_item: {
@@ -198,6 +207,7 @@
                     }
                   },
                   class: "mt-2 w-full px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-800 text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900 transition" %>
+                <% end %>
               </div>
             </div>
 
@@ -292,11 +302,13 @@
                         </div>
                       </div>
 
+                      <% if can?("payroll", :delete) %>
                       <%= button_to "Remover", payroll_item_path(a),
                         method: :delete,
                         data: { turbo_confirm: "Remover este adiantamento?" },
                         class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+                      <% end %>
                     </div>
                   <% end %>
                 <% else %>
@@ -333,11 +345,13 @@
                         </div>
                       </div>
 
+                      <% if can?("payroll", :delete) %>
                       <%= button_to "Remover", payroll_item_path(a),
                         method: :delete,
                         data: { turbo_confirm: "Remover este adiantamento de 13º?" },
                         class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+                      <% end %>
                     </div>
                   <% end %>
                 <% else %>
@@ -369,11 +383,13 @@
                         </div>
                       </div>
 
+                      <% if can?("payroll", :delete) %>
                       <%= button_to "Remover", payroll_item_path(b),
                         method: :delete,
                         data: { turbo_confirm: "Remover este bônus?" },
                         class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+                      <% end %>
                     </div>
                   <% end %>
                 <% else %>
@@ -405,11 +421,13 @@
                         </div>
                       </div>
 
+                      <% if can?("payroll", :delete) %>
                       <%= button_to "Remover", payroll_item_path(d),
                         method: :delete,
                         data: { turbo_confirm: "Remover este desconto?" },
                         class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+                      <% end %>
                     </div>
                   <% end %>
                 <% else %>
@@ -496,10 +514,12 @@
               </div>
 
               <div class="sm:col-span-6">
+                <% if can?("payroll", f.object.persisted? ? :edit : :write) %>
                 <%= f.submit "Lançar",
                   class: "w-full px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
                           dark:bg-indigo-500 dark:hover:bg-indigo-400
                           text-white text-sm font-medium transition" %>
+                <% end %>
               </div>
             <% end %>
           </div>
@@ -511,7 +531,9 @@
     <% if @employees.empty? %>
       <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-sm text-gray-500 dark:text-gray-400">
         Nenhum funcionário cadastrado.
+        <% if can?("payroll", :write) %>
         <%= link_to "Criar funcionário", new_employee_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+        <% end %>
       </div>
     <% end %>
   </div>

@@ -33,8 +33,12 @@ class AccessProfilesController < ApplicationController
   end
 
   def destroy
-    @profile.destroy
-    redirect_to access_profiles_path, notice: "Perfil removido com sucesso."
+    if profile_in_use?
+      redirect_to access_profiles_path, alert: "Este perfil está atribuído a usuários. Troque o perfil deles antes de excluir."
+    else
+      @profile.destroy
+      redirect_to access_profiles_path, notice: "Perfil removido com sucesso."
+    end
   end
 
   private
@@ -51,6 +55,12 @@ class AccessProfilesController < ApplicationController
     return if system_admin?
 
     redirect_to root_path, alert: "Você não tem permissão para acessar esta área."
+  end
+
+  # Membership vive no schema público (sem FK para o perfil, que é do tenant).
+  def profile_in_use?
+    company = Company.find_by(tenant_name: session[:tenant_name])
+    company.present? && Membership.exists?(company_id: company.id, access_profile_id: @profile.id)
   end
 
   def set_profile

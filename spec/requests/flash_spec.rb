@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Flash messages", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   def flash_elements
     Nokogiri::HTML(response.body).css('[data-controller="flash"]')

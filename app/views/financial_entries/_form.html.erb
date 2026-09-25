@@ -118,9 +118,11 @@
   </div>
 
   <div class="flex gap-2">
+    <% if can?("financial_entries", f.object.persisted? ? :edit : :write) %>
     <%= f.submit "Salvar",
       class: "flex-1 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white font-medium py-2.5 rounded-lg transition" %>
+    <% end %>
     <%= link_to "Cancelar", financial_entries_path,
       class: "px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700
               hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>

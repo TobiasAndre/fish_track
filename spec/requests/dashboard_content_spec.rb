@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Dashboard content", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let!(:batch) { create(:batch, name: "Lote Azul", stocking_quantity: 4_000) }
 
   before do

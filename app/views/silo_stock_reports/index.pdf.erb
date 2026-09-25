@@ -1,0 +1,230 @@
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    color: #111;
+    background: #fff;
+  }
+
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .title {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin: 14px 0 6px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+
+  th {
+    background: #f0f0f0;
+    border: 1px solid #bbb;
+    padding: 3px 4px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid #ccc;
+    padding: 3px 4px;
+    vertical-align: top;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .data tbody tr {
+    page-break-inside: avoid;
+  }
+
+  /* Coluna "Data": encolhe até o conteúdo e sobra espaço para as demais. */
+  .data th:first-child,
+  .data td:first-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .data tr.grand-total td {
+    background: #ccc;
+    font-weight: bold;
+  }
+
+  .empty {
+    text-align: center;
+    color: #777;
+    padding: 18px;
+  }
+
+  .footer {
+    margin-top: 18px;
+    padding-top: 6px;
+    border-top: 1px solid #ccc;
+    font-size: 8px;
+    color: #666;
+  }
+</style>
+
+<% kg = ->(value) { "#{number_with_precision(value, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".")}kg" } %>
+<% brl = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+<% silo_filter = @silos.find { |silo| silo.id.to_s == @report.silo_id.to_s } %>
+
+<div class="header">
+  <h1 class="title">Relatorio de Estoque de Racao</h1>
+
+  <div class="subtitle">
+    Gerado em <%= l(Date.current) %>
+  </div>
+</div>
+
+<div class="section-title">Filtros utilizados</div>
+
+<table>
+  <tbody>
+    <tr>
+      <th scope="row">Data inicial</th>
+      <td><%= @report.from.present? ? l(Date.parse(@report.from.to_s)) : "-" %></td>
+
+      <th scope="row">Data final</th>
+      <td><%= @report.to.present? ? l(Date.parse(@report.to.to_s)) : "-" %></td>
+
+      <th scope="row">Silo</th>
+      <td><%= silo_filter ? "#{silo_filter.unit.name} - #{silo_filter.name}" : "Todos" %></td>
+    </tr>
+
+    <tr>
+      <th scope="row">Lote</th>
+      <td><%= @batches.find_by(id: @report.batch_id)&.name || "Todos" %></td>
+
+      <th scope="row">Marca</th>
+      <td><%= @feeding_brands.find_by(id: @report.feeding_brand_id)&.name || "Todas" %></td>
+
+      <th scope="row">Tipo</th>
+      <td><%= @filter_feeding_types.find { |type| type.id.to_s == @report.feeding_type_id.to_s }&.name || "Todos" %></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Estoque atual (soma das entradas)</div>
+
+<table class="data">
+  <thead>
+    <tr>
+      <th>Lote</th>
+      <th>Silo</th>
+      <th>Tipo</th>
+      <th>Marca</th>
+      <th class="text-right">Quantidade</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @stock_rows.each do |row| %>
+      <tr>
+        <td><%= row[:batch]&.name || "-" %></td>
+        <td><%= row[:silo]&.name || "Sem silo" %></td>
+        <td><%= row[:feeding_type]&.name || "-" %></td>
+        <td><%= row[:feeding_type]&.feeding_brand&.name || "-" %></td>
+        <td class="text-right"><%= kg.call(row[:kg]) %></td>
+      </tr>
+    <% end %>
+
+    <% if @stock_rows.empty? %>
+      <tr>
+        <td colspan="5" class="empty">Nenhum estoque disponivel.</td>
+      </tr>
+    <% else %>
+      <tr class="grand-total">
+        <td colspan="4">Total geral</td>
+        <td class="text-right"><%= kg.call(@stock_total_kg) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="section-title">Historico de entradas (da mais recente para a mais antiga)</div>
+
+<table class="data">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Unidade</th>
+      <th>Silo</th>
+      <th>Lote</th>
+      <th>Tipo</th>
+      <th>Marca</th>
+      <th class="text-right">Quantidade</th>
+      <th class="text-right">Preco/kg</th>
+      <th class="text-right">Total</th>
+      <th>Pagamento</th>
+      <th>Vencimento</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @entries.each do |entry| %>
+      <tr>
+        <td><%= entry.occurred_on.present? ? l(entry.occurred_on, format: "%d/%m/%y") : "-" %></td>
+        <td><%= entry.silo&.unit&.name || "-" %></td>
+        <td><%= entry.silo&.name || "-" %></td>
+        <td><%= entry.batch&.name || "-" %></td>
+        <td><%= entry.feeding_type.name %></td>
+        <td><%= entry.feeding_brand.name %></td>
+        <td class="text-right"><%= kg.call(entry.quantity_kg) %></td>
+        <td class="text-right"><%= entry.price_per_kg_cents.to_i.positive? ? brl.call(entry.price_per_kg_cents) : "-" %></td>
+        <td class="text-right"><%= entry.total_cents.to_i.positive? ? brl.call(entry.total_cents) : "-" %></td>
+        <td><%= [entry.payment_method&.name, entry.payment_term&.name].compact.join(" - ").presence || "-" %></td>
+        <td>
+          <% dates = entry.due_dates %>
+          <% if dates.size > 1 %>
+            <%= "#{dates.size}x: #{l(dates.first, format: "%d/%m/%y")} a #{l(dates.last, format: "%d/%m/%y")}" %>
+          <% elsif dates.size == 1 %>
+            <%= l(dates.first, format: "%d/%m/%y") %>
+          <% else %>
+            <%= entry.due_on.present? ? l(entry.due_on, format: "%d/%m/%y") : "-" %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+
+    <% if @entries.empty? %>
+      <tr>
+        <td colspan="11" class="empty">Nenhuma entrada de estoque encontrada para os filtros selecionados.</td>
+      </tr>
+    <% else %>
+      <tr class="grand-total">
+        <td colspan="6">Total (<%= pluralize(@entries.size, "entrada", "entradas") %>)</td>
+        <td class="text-right"><%= kg.call(@entries_total_kg.to_d) %></td>
+        <td></td>
+        <td class="text-right"><%= brl.call(@entries_total_cents) %></td>
+        <td colspan="2"></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="footer">
+  Relatório gerado automaticamente pelo Fish Track.
+</div>

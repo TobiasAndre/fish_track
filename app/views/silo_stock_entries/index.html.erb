@@ -11,6 +11,7 @@
   <%= turbo_frame_tag "silo_stock", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
   <%= render "shared/flash" %>
 
+  <% if can?("silo_stock_entries", @silo_stock_entry.persisted? ? :edit : :write) %>
   <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
     <div class="mb-3">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -160,18 +161,9 @@
       </div>
     <% end %>
   </div>
+  <% end %>
 
-  <% silos_by_id = @silos.index_by(&:id) %>
-  <% feeding_types_by_id = @feeding_types.index_by(&:id) %>
-  <% stock_rows = @current_stock
-       .select { |_key, total_kg| total_kg.to_d.positive? }
-       .sort_by { |(silo_id, feeding_type_id), _|
-         [
-           silo_id.nil? ? 1 : 0, # entradas sem silo por último
-           silos_by_id[silo_id]&.unit&.name.to_s,
-           silos_by_id[silo_id]&.name.to_s,
-           feeding_types_by_id[feeding_type_id]&.name.to_s
-         ] } %>
+  <% stock_rows = @stock_rows %>
 
   <% if stock_rows.any? %>
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
@@ -181,7 +173,7 @@
         <table class="min-w-full text-sm">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
-              <th class="py-2 pr-4 font-medium">Unidade</th>
+              <th class="py-2 pr-4 font-medium">Lote</th>
               <th class="py-2 pr-4 font-medium">Silo</th>
               <th class="py-2 pr-4 font-medium">Tipo</th>
               <th class="py-2 pr-4 font-medium">Marca</th>
@@ -190,22 +182,19 @@
           </thead>
 
           <tbody>
-            <% stock_rows.each do |(silo_id, feeding_type_id), total_kg| %>
-              <% silo = silos_by_id[silo_id] %>
-              <% feeding_type = feeding_types_by_id[feeding_type_id] %>
-
+            <% stock_rows.each do |row| %>
               <tr class="border-b border-gray-100 dark:border-gray-800">
-                <td class="py-2 pr-4"><%= silo&.unit&.name || "—" %></td>
-                <td class="py-2 pr-4"><%= silo&.name || "Sem silo" %></td>
-                <td class="py-2 pr-4"><%= feeding_type&.name || "—" %></td>
-                <td class="py-2 pr-4"><%= feeding_type&.feeding_brand&.name || "—" %></td>
-                <td class="py-2 pr-4 font-medium"><%= number_with_precision(total_kg, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
+                <td class="py-2 pr-4"><%= row[:batch]&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= row[:silo]&.name || "Sem silo" %></td>
+                <td class="py-2 pr-4"><%= row[:feeding_type]&.name || "—" %></td>
+                <td class="py-2 pr-4"><%= row[:feeding_type]&.feeding_brand&.name || "—" %></td>
+                <td class="py-2 pr-4 font-medium"><%= number_with_precision(row[:kg], precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
               </tr>
             <% end %>
           </tbody>
 
           <tfoot>
-            <% total_estoque_kg = stock_rows.sum { |(_key, total_kg)| total_kg.to_d } %>
+            <% total_estoque_kg = stock_rows.sum { |row| row[:kg].to_d } %>
             <tr class="border-t-2 border-gray-300 dark:border-gray-700 font-semibold text-gray-900 dark:text-gray-100">
               <td class="py-2 pr-4" colspan="4">Total geral</td>
               <td class="py-2 pr-4"><%= number_with_precision(total_estoque_kg, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".") %>kg</td>
@@ -326,17 +315,21 @@
                 </td>
                 <td class="py-2 pr-4 text-right">
                   <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                    <% if can?("silo_stock_entries", :edit) %>
                     <%= link_to edit_silo_stock_entry_path(entry),
                       class: "text-gray-500 hover:text-indigo-600 transition",
                       title: "Editar" do %>
                       ✏️
                     <% end %>
+                    <% end %>
 
+                    <% if can?("silo_stock_entries", :delete) %>
                     <%= link_to silo_stock_entry_path(entry),
                       data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                       class: "text-gray-500 hover:text-red-600 transition",
                       title: "Excluir" do %>
                       🗑️
+                    <% end %>
                     <% end %>
                   </div>
                 </td>

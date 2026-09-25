@@ -25,9 +25,11 @@
         </span>
       <% end %>
 
+      <% if can?("batches", :edit) %>
       <%= link_to "Editar", edit_batch_path(@batch),
         class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                 hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      <% end %>
 
       <%= link_to "Voltar", batches_path,
         class: "px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800
@@ -91,10 +93,12 @@
 
             <div class="flex items-start gap-2 self-start">
               <% if @batch.active_status? %>
+                <% if can?("batches", :write) %>
                 <%= link_to "Adicionar evento", new_batch_batch_stocking_stocking_event_path(@batch, stocking),
                   class: "shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700
                           dark:bg-indigo-500 dark:hover:bg-indigo-400
                           text-white text-sm font-medium transition" %>
+                <% end %>
               <% end %>
 
               <%= link_to "Ver todos", batch_batch_stocking_stocking_events_path(@batch, stocking),
@@ -141,14 +145,18 @@
 
                     <td class="px-4 py-3">
                       <div class="flex justify-end gap-2">
+                        <% if can?("batches", :edit) %>
                         <%= link_to "Editar", edit_batch_batch_stocking_stocking_event_path(@batch, stocking, e),
                           class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                                   hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                        <% end %>
 
+                        <% if can?("batches", :delete) %>
                         <%= button_to "Excluir", batch_batch_stocking_stocking_event_path(@batch, stocking, e),
                           method: :delete,
                           data: { turbo_confirm: "Excluir este evento?" },
                           class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                        <% end %>
                       </div>
                     </td>
                   </tr>

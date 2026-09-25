@@ -68,6 +68,61 @@
       </div>
     </div>
 
+    <%# Acesso por empresa: tipo do usuário e, para membros, o perfil de acesso (permissões por página). %>
+    <div>
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Empresas e perfil de acesso</h2>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Proprietários e administradores da empresa acessam tudo. Membros acessam apenas o que o perfil de acesso permitir.
+      </p>
+
+      <% current_memberships = user.persisted? ? user.memberships.index_by(&:company_id) : {} %>
+      <% field_class = "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50" %>
+      <% role_labels = { "owner" => "Proprietário", "admin" => "Administrador", "member" => "Membro" } %>
+
+      <div class="mt-3 space-y-3">
+        <% @companies.each do |company| %>
+          <% membership = current_memberships[company.id] %>
+          <% prefix = "memberships[#{company.id}]" %>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3" data-controller="membership-row">
+            <%# O "0" garante que desmarcar a empresa chegue ao servidor (remove o acesso). %>
+            <%= hidden_field_tag "#{prefix}[enabled]", "0", id: nil %>
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+              <%= check_box_tag "#{prefix}[enabled]", "1", membership.present?,
+                    id: "membership_#{company.id}_enabled",
+                    data: { membership_row_target: "enabled", action: "change->membership-row#refresh" },
+                    class: "h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" %>
+              <%= company.name %>
+            </label>
+
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2" data-membership-row-target="details">
+              <div>
+                <%= label_tag "membership_#{company.id}_role", "Tipo", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+                <%= select_tag "#{prefix}[role]",
+                      options_for_select(Membership::ROLES.map { |role| [role_labels[role], role] }, membership&.role || "member"),
+                      id: "membership_#{company.id}_role",
+                      data: { membership_row_target: "role", action: "change->membership-row#refresh" },
+                      class: field_class %>
+              </div>
+
+              <div data-membership-row-target="profileWrapper">
+                <%= label_tag "membership_#{company.id}_profile", "Perfil de acesso", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+                <%= select_tag "#{prefix}[access_profile_id]",
+                      options_from_collection_for_select(@profiles_by_company[company.id] || [], :id, :name, membership&.access_profile_id),
+                      prompt: "Sem perfil (sem acesso)",
+                      id: "membership_#{company.id}_profile",
+                      data: { membership_row_target: "profile" },
+                      class: field_class %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @companies.empty? %>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Nenhuma empresa cadastrada.</p>
+        <% end %>
+      </div>
+    </div>
+
     <div class="flex items-center justify-end gap-4">
       <%= link_to "Cancelar", admin_users_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
       <%= form.submit user.persisted? ? "Atualizar" : "Salvar",

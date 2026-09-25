@@ -8,25 +8,38 @@
     </div>
 
     <div class="flex gap-2">
-      <%= link_to "Lotes", batches_path,
-        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
-      <%= link_to "Tanques", ponds_path,
-        class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      <% if can?("batches", :read) %>
+        <%= link_to "Lotes", batches_path,
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                  hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      <% end %>
+      <% if can?("ponds", :read) %>
+        <%= link_to "Tanques", ponds_path,
+          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+                  hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+      <% end %>
     </div>
   </div>
 
   <%# Totais dos lotes ativos, numa linha só: alojados/entregues/a entregar vêm das lotações e dos carregamentos; despesa, faturamento e saldo, dos lançamentos do Financeiro vinculados aos lotes. %>
   <% card = "min-w-0 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 xl:p-4" %>
   <% value = "mt-1 text-base sm:text-lg lg:text-[11px] min-[1100px]:text-sm xl:text-base min-[1440px]:text-xl font-semibold whitespace-nowrap" %>
+  <% see_batches = can?("batches", :read) %>
+  <% see_loadings = can?("loading_events", :read) %>
+  <% see_finance = can?("financial_entries", :read) %>
+  <% total_cards = [see_batches, see_loadings, see_loadings, see_finance, see_finance, see_finance].count(true) %>
+  <% grid_cols = { 1 => "lg:grid-cols-1", 2 => "lg:grid-cols-2", 3 => "lg:grid-cols-3", 4 => "lg:grid-cols-4", 5 => "lg:grid-cols-5", 6 => "lg:grid-cols-6" }[total_cards] %>
   <% balance_tone = @figures.balance_cents.negative? ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300" %>
-  <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 xl:gap-4">
+  <% if total_cards.positive? %>
+  <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 <%= grid_cols %> gap-3 xl:gap-4">
+    <% if see_batches %>
     <div class="<%= card %>">
       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">Peixes alojados</p>
       <p class="<%= value %> text-gray-900 dark:text-gray-100"><%= number_with_delimiter(@figures.stocked_quantity, delimiter: ".") %></p>
     </div>
+    <% end %>
 
+    <% if see_loadings %>
     <div class="<%= card %>">
       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">Peixes entregues</p>
       <p class="<%= value %> text-gray-900 dark:text-gray-100"><%= number_with_delimiter(@figures.delivered_quantity, delimiter: ".") %></p>
@@ -37,6 +50,9 @@
       <p class="<%= value %> text-gray-900 dark:text-gray-100"><%= number_with_delimiter(@figures.to_deliver_quantity, delimiter: ".") %></p>
     </div>
 
+    <% end %>
+
+    <% if see_finance %>
     <div class="<%= card %>">
       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">Despesa total</p>
       <p class="<%= value %> text-red-700 dark:text-red-300"><%= number_to_currency(@figures.expense_cents / 100.0) %></p>
@@ -51,12 +67,17 @@
       <p class="text-xs text-gray-500 dark:text-gray-400 truncate">Saldo financeiro</p>
       <p class="<%= value %> <%= balance_tone %>"><%= number_to_currency(@figures.balance_cents / 100.0) %></p>
     </div>
+    <% end %>
   </div>
+  <% end %>
+  <% if see_batches %>
   <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
     Somando os <%= pluralize(@active_batches_count, "lote ativo", "lotes ativos") %>.
   </p>
+  <% end %>
 
-  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="mt-8 grid grid-cols-1 <%= see_batches && see_finance ? "lg:grid-cols-2" : "" %> gap-6">
+    <% if see_batches %>
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Lotes ativos</h2>
@@ -77,7 +98,7 @@
             .select { |event| event.event_type == "biometrics" }
             .max_by { |event| [event.occurred_on || Date.new(1900, 1, 1), event.created_at] } %>
 
-          <%= link_to edit_batch_path(b),
+          <%= link_to (can?("batches", :edit) ? edit_batch_path(b) : batch_path(b)),
             class: "rounded-xl border border-gray-200 dark:border-gray-800
                     hover:bg-gray-50 dark:hover:bg-gray-800/40 transition p-4" do %>
 
@@ -123,11 +144,15 @@
             </div>
 
             <div class="mt-2 flex flex-wrap gap-2">
+              <% if see_loadings %>
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                 Carregado: <%= batch_figures.loaded_quantity.positive? ? number_with_delimiter(batch_figures.loaded_quantity, delimiter: ".") : "—" %>
               </span>
 
+              <% end %>
+
+              <% if see_finance %>
               <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
                            bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300">
                 Despesa: <%= number_to_currency(batch_figures.expense_cents / 100.0) %>
@@ -137,18 +162,24 @@
                            bg-green-50 text-green-800 dark:bg-green-950/40 dark:text-green-300">
                 Faturamento: <%= number_to_currency(batch_figures.revenue_cents / 100.0) %>
               </span>
+              <% end %>
             </div>
           <% end %>
         <% end %>
 
         <% if @active_batches.empty? %>
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            Nenhum lote ativo ainda. <%= link_to "Criar um lote", new_batch_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+            Nenhum lote ativo ainda.
+            <% if can?("batches", :write) %>
+              <%= link_to "Criar um lote", new_batch_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+            <% end %>
           </div>
         <% end %>
       </div>
     </div>
+    <% end %>
 
+    <% if see_finance %>
     <div class="flex flex-col gap-6">
       <%= render "dashboard/open_entries",
             title: "A pagar", entries: @payables, total_cents: @payables_total_cents, count: @payables_count,
@@ -160,5 +191,6 @@
             filter_path: financial_entries_path(entry_type: "income", status: "pending"),
             amount_class: "text-green-700 dark:text-green-300", empty_text: "Nada a receber em aberto." %>
     </div>
+    <% end %>
   </div>
 </div>

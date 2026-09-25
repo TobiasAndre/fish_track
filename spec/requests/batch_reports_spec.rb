@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "BatchReports", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:unit) { create(:unit) }
   let(:pond) { create(:pond, unit: unit) }
 

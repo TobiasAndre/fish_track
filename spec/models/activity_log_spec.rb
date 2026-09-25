@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe ActivityLog, "object snapshots" do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   def record(**attrs)
     described_class.record!(**{ user: user, action: "update", resource_type: "Pond", description: "Tanque X", company: nil, ip_address: "203.0.113.5" }.merge(attrs))

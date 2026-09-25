@@ -12,10 +12,12 @@
         class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                 hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
 
+      <% if can?("employees", :write) %>
       <%= link_to "Novo funcionário", new_employee_path,
         class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
                 dark:bg-indigo-500 dark:hover:bg-indigo-400
                 text-white text-sm font-medium transition" %>
+      <% end %>
     </div>
   </div>
 
@@ -146,19 +148,23 @@
                 <% end %>
 
                 <!-- Editar -->
+                <% if can?("employees", :edit) %>
                 <%= link_to edit_employee_path(e),
                   class: "text-gray-500 hover:text-indigo-600 transition",
                   title: "Editar" do %>
                   ✏️
                 <% end %>
+                <% end %>
 
                 <!-- Excluir -->
+                <% if can?("employees", :delete) %>
                 <%= button_to employee_path(e),
                   method: :delete,
                   data: { turbo_confirm: "Excluir #{e.name}?" },
                   class: "bg-transparent p-0 text-gray-500 hover:text-red-600 transition",
                   title: "Excluir" do %>
                   🗑️
+                <% end %>
                 <% end %>
               </div>
             </td>
@@ -169,7 +175,9 @@
           <tr>
             <td colspan="10" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
               Nenhum funcionário encontrado.
+              <% if can?("employees", :write) %>
               <%= link_to "Criar funcionário", new_employee_path, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+              <% end %>
             </td>
           </tr>
         <% end %>

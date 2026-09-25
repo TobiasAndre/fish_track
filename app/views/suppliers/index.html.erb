@@ -7,10 +7,12 @@
       </p>
     </div>
 
+    <% if can?("suppliers", :write) %>
     <%= link_to "Novo fornecedor", new_supplier_path,
       class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
               dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white text-sm font-medium transition" %>
+    <% end %>
   </div>
 
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -36,14 +38,18 @@
             <td class="px-4 py-3 text-gray-700 dark:text-gray-200"><%= format_tax_id(s.tax_id) || "—" %></td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <% if can?("suppliers", :edit) %>
                 <%= link_to "Editar", edit_supplier_path(s),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <% end %>
 
+                <% if can?("suppliers", :delete) %>
                 <%= button_to "Excluir", supplier_path(s),
                   method: :delete,
                   data: { turbo_confirm: "Excluir #{s.name}?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                <% end %>
               </div>
             </td>
           </tr>

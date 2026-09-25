@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "FinancialPayments", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:entry) { create(:financial_entry, entry_type: "income", amount_cents: 100_000, description: "Venda Azul") }
 
   before { sign_in user }

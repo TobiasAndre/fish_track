@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Dashboard", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   describe "GET / (dashboard#show)" do
     it "redirects to sign in when not authenticated" do

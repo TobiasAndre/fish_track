@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "AccessProfiles", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:company) { create(:company, name: "Piscicultura Azul", tenant_name: "public") }
 
   # sign_in do Devise não passa pelo seletor de empresa; o login real grava o tenant na sessão.
@@ -228,6 +228,15 @@ RSpec.describe "AccessProfiles", type: :request do
 
         expect { delete access_profile_path(profile) }.to change(AccessProfile, :count).by(-1).and change(AccessProfilePermission, :count).by(-2)
         expect(response).to redirect_to(access_profiles_path)
+      end
+
+      it "refuses to remove a profile that is assigned to users of the company" do
+        profile = create(:access_profile, permission_matrix: { "units" => %w[read] })
+        create(:membership, company: company, role: "member", access_profile_id: profile.id)
+
+        expect { delete access_profile_path(profile) }.not_to change(AccessProfile, :count)
+        expect(response).to redirect_to(access_profiles_path)
+        expect(flash[:alert]).to include("atribuído a usuários")
       end
     end
 

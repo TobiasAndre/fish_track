@@ -21,7 +21,7 @@ RSpec.describe PermissionCatalog do
   end
 
   it "gives the read-only pages (dashboard and reports) only the read action" do
-    %w[dashboard batch_reports loading_reports batch_results].each do |key|
+    %w[dashboard batch_reports loading_reports silo_stock_reports batch_results].each do |key|
       expect(described_class.find(key).actions).to eq(%w[read])
     end
     expect(described_class.find("feeding_plans").actions).to eq(%w[read edit])
@@ -63,5 +63,22 @@ RSpec.describe PermissionCatalog do
     routed = Rails.application.routes.routes.filter_map { |route| route.defaults[:controller] }.uniq
 
     expect(described_class.covered_controllers - routed).to be_empty
+  end
+
+  # Um usuário com perfil só chega a uma ação se o perfil puder conceder a permissão
+  # que ela exige; senão a rota ficaria acessível apenas ao administrador.
+  it "maps every routed action of the catalog to a permission its page can grant" do
+    unreachable = Rails.application.routes.routes.filter_map do |route|
+      controller = route.defaults[:controller]
+      action = route.defaults[:action]
+      resource = described_class.resource_for_controller(controller)
+      next if resource.nil? || AccessPolicy.public_action?(action)
+
+      verb = route.verb.presence || "GET"
+      required = AccessPolicy.required_action(controller, action, verb)
+      "#{controller}##{action} (#{verb}) needs #{required} on #{resource.key}" unless resource.allows?(required)
+    end.uniq
+
+    expect(unreachable).to be_empty, "Adjust the page's actions or AccessPolicy::ACTION_OVERRIDES:\n#{unreachable.join("\n")}"
   end
 end

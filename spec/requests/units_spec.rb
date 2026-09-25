@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Units", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   describe "GET /units" do
     it "redirects to sign in when not authenticated" do

@@ -7,10 +7,12 @@
       </p>
     </div>
 
+    <% if can?("silos", :write) %>
     <%= link_to "Novo silo", new_silo_path,
       class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
               dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white text-sm font-medium transition" %>
+    <% end %>
   </div>
 
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -30,14 +32,18 @@
             <td class="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium"><%= silo.name %></td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <% if can?("silos", :edit) %>
                 <%= link_to "Editar", edit_silo_path(silo),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <% end %>
 
+                <% if can?("silos", :delete) %>
                 <%= button_to "Excluir", silo_path(silo),
                   method: :delete,
                   data: { turbo_confirm: "Excluir silo #{silo.name}?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                <% end %>
               </div>
             </td>
           </tr>

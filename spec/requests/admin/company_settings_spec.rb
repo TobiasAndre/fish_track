@@ -5,7 +5,7 @@ require "rails_helper"
 # creating. These specs cover authentication and the "no tenant selected"
 # guard; deeper coverage would require provisioning a tenant.
 RSpec.describe "Admin::CompanySettings", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:company) { create(:company) }
 
   describe "GET /admin/company_settings/:id/edit" do

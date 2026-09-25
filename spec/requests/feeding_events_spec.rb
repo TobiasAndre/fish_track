@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "FeedingEvents", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:unit) { create(:unit) }
   let(:pond) { create(:pond, unit: unit) }
   let(:batch) { create(:batch, pond: pond, stocking_quantity: 1000, stocking_avg_weight_g: 5.0) }

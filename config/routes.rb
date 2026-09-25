@@ -24,6 +24,10 @@ Rails.application.routes.draw do
     to: "batch_reports#share_pdf",
     as: :shared_batch_report_pdf
 
+  get "shared/:tenant_name/silo_stock_reports/:id/:share_token",
+    to: "silo_stock_reports#share_pdf",
+    as: :shared_silo_stock_report_pdf
+
   get "shared/:tenant_name/loading_reports/:id/:share_token",
     to: "loading_reports#share_pdf",
     as: :shared_loading_report_pdf
@@ -80,6 +84,9 @@ Rails.application.routes.draw do
       collection { post :create_share }
     end
     resources :loading_reports, only: [:index] do
+      collection { post :create_share }
+    end
+    resources :silo_stock_reports, only: [:index] do
       collection { post :create_share }
     end
     resources :batch_results, only: [:index]

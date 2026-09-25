@@ -1,0 +1,233 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      Relatório de Estoque de Ração
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Estoque atual e histórico de entradas de ração, filtrando por silo, lote, marca, tipo e período.
+    </p>
+  </div>
+
+  <% field = "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+  <% label = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+  <% filters = @report.filters %>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <%= form_with url: silo_stock_reports_path, method: :get, local: true do %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <%= label_tag :from, "Data inicial", class: label %>
+          <%= date_field_tag :from, @report.from, class: field %>
+        </div>
+
+        <div>
+          <%= label_tag :to, "Data final", class: label %>
+          <%= date_field_tag :to, @report.to, class: field %>
+        </div>
+
+        <div>
+          <%= label_tag :silo_id, "Silo", class: label %>
+          <%= select_tag :silo_id,
+                options_from_collection_for_select(@silos, :id, ->(silo) { "#{silo.unit.name} · #{silo.name}" }, @report.silo_id),
+                include_blank: "Todos", class: field %>
+        </div>
+
+        <div>
+          <%= label_tag :batch_id, "Lote", class: label %>
+          <%= select_tag :batch_id,
+                options_from_collection_for_select(@batches, :id, :name, @report.batch_id),
+                include_blank: "Todos", class: field %>
+        </div>
+
+        <div>
+          <%= label_tag :feeding_brand_id, "Marca", class: label %>
+          <%= select_tag :feeding_brand_id,
+                options_from_collection_for_select(@feeding_brands, :id, :name, @report.feeding_brand_id),
+                include_blank: "Todas", class: field %>
+        </div>
+
+        <div>
+          <%= label_tag :feeding_type_id, "Tipo", class: label %>
+          <%= select_tag :feeding_type_id,
+                options_from_collection_for_select(@filter_feeding_types, :id, :name, @report.feeding_type_id),
+                include_blank: "Todos", class: field %>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 mt-6">
+        <%= submit_tag "Filtrar",
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer" %>
+
+        <%= link_to "Limpar filtros", silo_stock_reports_path,
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700" %>
+
+        <%= button_tag "Gerar PDF",
+              type: "submit",
+              name: "format",
+              value: "pdf",
+              formtarget: "_blank",
+              class: "inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700" %>
+      </div>
+    <% end %>
+
+    <%= form_with url: create_share_silo_stock_reports_path, method: :post, local: true, class: "mt-3" do %>
+      <% filters.each do |name, value| %>
+        <%= hidden_field_tag name, value, id: nil %>
+      <% end %>
+      <button type="submit" title="Compartilhar no WhatsApp"
+        class="inline-flex items-center justify-center rounded-lg bg-green-500 p-2 text-white hover:bg-green-600 transition">
+        <i class="fa-brands fa-whatsapp text-xl"></i>
+      </button>
+    <% end %>
+  </div>
+
+  <% kg = ->(value) { "#{number_with_precision(value, precision: 3, strip_insignificant_zeros: true, separator: ",", delimiter: ".")}kg" } %>
+  <% brl = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Estoque atual</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= kg.call(@stock_total_kg) %></div>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Entradas no período (<%= @entries.size %>)</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= kg.call(@entries_total_kg.to_d) %></div>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">Valor das entradas</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"><%= brl.call(@entries_total_cents) %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Estoque atual (soma das entradas)</h2>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-xs">
+        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+          <tr>
+            <th class="px-2 py-2 text-left font-semibold">Lote</th>
+            <th class="px-2 py-2 text-left font-semibold">Silo</th>
+            <th class="px-2 py-2 text-left font-semibold">Tipo</th>
+            <th class="px-2 py-2 text-left font-semibold">Marca</th>
+            <th class="px-2 py-2 text-right font-semibold">Quantidade</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @stock_rows.each do |row| %>
+            <tr class="border-t border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300">
+              <td class="px-2 py-1.5"><%= row[:batch]&.name || "—" %></td>
+              <td class="px-2 py-1.5"><%= row[:silo]&.name || "Sem silo" %></td>
+              <td class="px-2 py-1.5"><%= row[:feeding_type]&.name || "—" %></td>
+              <td class="px-2 py-1.5"><%= row[:feeding_type]&.feeding_brand&.name || "—" %></td>
+              <td class="px-2 py-1.5 text-right"><%= kg.call(row[:kg]) %></td>
+            </tr>
+          <% end %>
+
+          <% if @stock_rows.empty? %>
+            <tr>
+              <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Nenhum estoque disponível.</td>
+            </tr>
+          <% else %>
+            <tr class="bg-gray-200 dark:bg-gray-700 font-semibold text-gray-900 dark:text-gray-50">
+              <td class="px-2 py-1.5" colspan="4">Total geral</td>
+              <td class="px-2 py-1.5 text-right"><%= kg.call(@stock_total_kg) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Histórico de entradas</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= @entries.size %> entrada(s) encontrada(s), da mais recente para a mais antiga</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-xs">
+        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+          <tr>
+            <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">Data</th>
+            <th class="px-2 py-2 text-left font-semibold">Unidade</th>
+            <th class="px-2 py-2 text-left font-semibold">Silo</th>
+            <th class="px-2 py-2 text-left font-semibold">Lote</th>
+            <th class="px-2 py-2 text-left font-semibold">Tipo</th>
+            <th class="px-2 py-2 text-left font-semibold">Marca</th>
+            <th class="px-2 py-2 text-right font-semibold">Quantidade</th>
+            <th class="px-2 py-2 text-right font-semibold">Preço/kg</th>
+            <th class="px-2 py-2 text-right font-semibold">Total</th>
+            <th class="px-2 py-2 text-left font-semibold">Pagamento</th>
+            <th class="px-2 py-2 text-left font-semibold">Vencimento</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @entries.each do |entry| %>
+            <tr class="border-t border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300">
+              <td class="px-2 py-1.5 whitespace-nowrap"><%= entry.occurred_on.present? ? l(entry.occurred_on) : "—" %></td>
+              <td class="px-2 py-1.5"><%= entry.silo&.unit&.name || "—" %></td>
+              <td class="px-2 py-1.5"><%= entry.silo&.name || "—" %></td>
+              <td class="px-2 py-1.5"><%= entry.batch&.name || "—" %></td>
+              <td class="px-2 py-1.5"><%= entry.feeding_type.name %></td>
+              <td class="px-2 py-1.5"><%= entry.feeding_brand.name %></td>
+              <td class="px-2 py-1.5 text-right"><%= kg.call(entry.quantity_kg) %></td>
+              <td class="px-2 py-1.5 text-right"><%= entry.price_per_kg_cents.to_i.positive? ? brl.call(entry.price_per_kg_cents) : "—" %></td>
+              <td class="px-2 py-1.5 text-right"><%= entry.total_cents.to_i.positive? ? brl.call(entry.total_cents) : "—" %></td>
+              <td class="px-2 py-1.5"><%= [entry.payment_method&.name, entry.payment_term&.name].compact.join(" · ").presence || "—" %></td>
+              <td class="px-2 py-1.5">
+                <% dates = entry.due_dates %>
+                <% if dates.size > 1 %>
+                  <%= "#{dates.size}×: #{l(dates.first)} – #{l(dates.last)}" %>
+                <% elsif dates.size == 1 %>
+                  <%= l(dates.first) %>
+                <% else %>
+                  <%= entry.due_on.present? ? l(entry.due_on) : "—" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @entries.empty? %>
+            <tr>
+              <td colspan="11" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                Nenhuma entrada de estoque encontrada para os filtros selecionados.
+              </td>
+            </tr>
+          <% else %>
+            <tr class="bg-gray-200 dark:bg-gray-700 font-semibold text-gray-900 dark:text-gray-50">
+              <td class="px-2 py-1.5" colspan="6">Total (<%= pluralize(@entries.size, "entrada", "entradas") %>)</td>
+              <td class="px-2 py-1.5 text-right"><%= kg.call(@entries_total_kg.to_d) %></td>
+              <td></td>
+              <td class="px-2 py-1.5 text-right"><%= brl.call(@entries_total_cents) %></td>
+              <td colspan="2"></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <% if params[:report_share_id].present? && session[:tenant_name].present? %>
+    <% report_share = ReportShare.find_by(id: params[:report_share_id], report_type: "silo_stock_report") %>
+    <% if report_share.present? %>
+      <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+      <% mensagem = "Relatório de Estoque de Ração #{company&.name}" %>
+      <% pdf_url = shared_silo_stock_report_pdf_url(
+        tenant_name: session[:tenant_name],
+        id: report_share.id,
+        share_token: report_share.share_token,
+        format: :pdf
+      ) %>
+      <div hidden data-turbo-temporary data-controller="open-url"
+           data-open-url-url-value="<%= whatsapp_share_url(message: mensagem, url: pdf_url) %>"></div>
+    <% end %>
+  <% end %>
+</div>

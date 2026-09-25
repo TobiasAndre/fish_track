@@ -56,8 +56,10 @@
       </div>
 
       <div class="flex items-end">
+        <% if can?("feeding_tables", form.object.persisted? ? :edit : :write) %>
         <%= form.submit "Salvar percentual",
               class: "w-full rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700" %>
+        <% end %>
       </div>
     <% end %>
   </div>
@@ -96,11 +98,13 @@
                         <%= number_with_precision(item.feeding_percentage, precision: 2) %>%
                       </span>
 
+                      <% if can?("feeding_tables", :delete) %>
                       <%= button_to "×",
                             feeding_table_feeding_strategy_item_path(@feeding_table, item),
                             method: :delete,
                             form: { data: { turbo_confirm: "Remover este percentual?" } },
                             class: "text-red-600 hover:text-red-800" %>
+                      <% end %>
                     </div>
                   <% else %>
                     <span class="text-gray-300 dark:text-gray-600">-</span>

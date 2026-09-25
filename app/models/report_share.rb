@@ -1,7 +1,7 @@
 class ReportShare < ApplicationRecord
   has_secure_token :share_token
 
-  REPORT_TYPES = %w[batch_report loading_report feeding_plan].freeze
+  REPORT_TYPES = %w[batch_report loading_report silo_stock_report feeding_plan].freeze
 
   validates :report_type, presence: true, inclusion: { in: REPORT_TYPES }
 

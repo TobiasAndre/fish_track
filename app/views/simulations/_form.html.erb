@@ -211,8 +211,10 @@
 
     <div class="flex items-center justify-end gap-4">
       <%= link_to "Cancelar", simulations_path, class: "text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" %>
+      <% if can?("simulations", form.object.persisted? ? :edit : :write) %>
       <%= form.submit @simulation.persisted? ? "Atualizar" : "Salvar",
         class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700" %>
+      <% end %>
     </div>
   </div>
 <% end %>

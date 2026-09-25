@@ -16,6 +16,7 @@
           batch_stocking: @selected_batch_stocking,
           current_avg_weight_g: @current_avg_weight_g %>
 
+    <% if can?("mortality_events", @stocking_event.persisted? ? :edit : :write) %>
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3">
         <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -122,6 +123,7 @@
         </div>
       <% end %>
     </div>
+    <% end %>
 
     <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div class="mb-3 flex items-center justify-between">
@@ -173,17 +175,21 @@
 
                   <td class="py-2 pr-4 text-right">
                     <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <% if can?("mortality_events", :edit) %>
                       <%= link_to edit_mortality_event_path(event),
                         class: "text-gray-500 hover:text-indigo-600 transition",
                         title: "Editar" do %>
                         ✏️
                       <% end %>
+                      <% end %>
 
+                      <% if can?("mortality_events", :delete) %>
                       <%= link_to mortality_event_path(event),
                         data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                         class: "text-gray-500 hover:text-red-600 transition",
                         title: "Excluir" do %>
                         🗑️
+                      <% end %>
                       <% end %>
                     </div>
                   </td>
@@ -343,18 +349,22 @@
 
                         <td class="py-2 pr-4 text-right">
                           <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                            <% if can?("mortality_events", :edit) %>
                             <%= link_to edit_mortality_event_path(event),
                               data: { turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-indigo-600 transition",
                               title: "Editar" do %>
                               ✏️
                             <% end %>
+                            <% end %>
 
+                            <% if can?("mortality_events", :delete) %>
                             <%= link_to mortality_event_path(event),
                               data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-red-600 transition",
                               title: "Excluir" do %>
                               🗑️
+                            <% end %>
                             <% end %>
                           </div>
                         </td>

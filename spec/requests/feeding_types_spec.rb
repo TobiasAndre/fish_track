@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "FeedingTypes", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:feeding_brand) { create(:feeding_brand, name: "Guabi") }
 
   before { sign_in user }

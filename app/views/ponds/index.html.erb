@@ -7,10 +7,12 @@
       </p>
     </div>
 
+    <% if can?("ponds", :write) %>
     <%= link_to "Novo Tanque", new_pond_path,
       class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
               dark:bg-indigo-500 dark:hover:bg-indigo-400
               text-white text-sm font-medium transition" %>
+    <% end %>
   </div>
 
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -36,14 +38,18 @@
             </td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <% if can?("ponds", :edit) %>
                 <%= link_to "Editar", edit_pond_path(pond),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <% end %>
 
+                <% if can?("ponds", :delete) %>
                 <%= button_to "Excluir", pond_path(pond),
                   method: :delete,
                   data: { turbo_confirm: "Excluir Tanque #{pond.name}?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                <% end %>
               </div>
             </td>
           </tr>

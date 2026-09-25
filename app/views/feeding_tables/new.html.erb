@@ -22,7 +22,9 @@
 
     <div class="flex justify-end gap-3">
       <%= link_to "Cancelar", feeding_tables_path, class: "rounded-lg bg-gray-200 px-4 py-2 text-gray-800" %>
+      <% if can?("feeding_tables", form.object.persisted? ? :edit : :write) %>
       <%= form.submit "Criar tabela", class: "rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700" %>
+      <% end %>
     </div>
   <% end %>
 </div>

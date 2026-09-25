@@ -19,6 +19,7 @@
   <%= turbo_frame_tag "water_quality", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
     <%= render "shared/flash" %>
 
+    <% if can?("water_quality_readings", @reading.persisted? ? :edit : :write) %>
     <div class="<%= card %> p-4">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">
         <%= @reading.persisted? ? "Editar análise" : "Nova análise" %>
@@ -81,6 +82,7 @@
         </div>
       <% end %>
     </div>
+    <% end %>
 
     <div class="<%= card %> p-4">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Última análise de cada tanque</h2>
@@ -215,15 +217,19 @@
                   <td class="py-2 pr-4 text-gray-600 dark:text-gray-300"><%= reading.notes.presence || "—" %></td>
                   <td class="py-2 text-right whitespace-nowrap">
                     <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <% if can?("water_quality_readings", :edit) %>
                       <%= link_to edit_water_quality_reading_path(reading, period),
                         class: "text-gray-500 hover:text-indigo-600 transition", title: "Editar" do %>
                         ✏️
                       <% end %>
+                      <% end %>
 
+                      <% if can?("water_quality_readings", :delete) %>
                       <%= link_to water_quality_reading_path(reading, period),
                         data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                         class: "text-gray-500 hover:text-red-600 transition", title: "Excluir" do %>
                         🗑️
+                      <% end %>
                       <% end %>
                     </div>
                   </td>

@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "WaterQualityReadings", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:unit) { create(:unit, name: "Sede") }
   let!(:pond_4) { create(:pond, unit: unit, name: "Tanque 4", order_number: 1) }
   let!(:pond_7) { create(:pond, unit: unit, name: "Tanque 7", order_number: 2) }

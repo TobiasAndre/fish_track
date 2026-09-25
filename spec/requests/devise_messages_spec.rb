@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Devise messages", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   it "shows the failed-login message in Portuguese instead of a missing translation" do
     company = create(:company, tenant_name: "public")

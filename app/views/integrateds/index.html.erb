@@ -12,10 +12,12 @@
         class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                 hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
 
+      <% if can?("integrateds", :write) %>
       <%= link_to "Novo integrado", new_customer_integrated_path(@customer),
         class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
                 dark:bg-indigo-500 dark:hover:bg-indigo-400
                 text-white text-sm font-medium transition" %>
+      <% end %>
     </div>
   </div>
 
@@ -47,14 +49,18 @@
 
             <td class="px-4 py-3">
               <div class="flex justify-end gap-2">
+                <% if can?("integrateds", :edit) %>
                 <%= link_to "Editar", edit_customer_integrated_path(@customer, integrated),
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+                <% end %>
 
+                <% if can?("integrateds", :delete) %>
                 <%= button_to "Excluir", customer_integrated_path(@customer, integrated),
                   method: :delete,
                   data: { turbo_confirm: "Excluir integrado #{integrated.name}?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition" %>
+                <% end %>
               </div>
             </td>
           </tr>

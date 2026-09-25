@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "BatchResults", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let!(:batch) { create(:batch, name: "Lote Azul", started_on: Date.new(2026, 1, 1)) }
 
   before { sign_in user }

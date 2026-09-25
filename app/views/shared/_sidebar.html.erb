@@ -32,6 +32,11 @@
   ]
 
   cadastros_open = cadastro_controllers.include?(controller_name)
+
+  # Grupos do menu só aparecem se o usuário puder ver ao menos uma página deles.
+  show_cadastros = cadastro_controllers.any? { |key| can?(key, :read) }
+  show_lancamentos = %w[batches biometry_events mortality_events silo_stock_entries water_quality_readings loading_events payroll financial_entries orders simulations].any? { |key| can?(key, :read) }
+  show_relatorios = %w[batch_reports loading_reports silo_stock_reports batch_results feeding_plans].any? { |key| can?(key, :read) }
   selected_menu = 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
   unselected_menu = 'hover:bg-gray-100 dark:hover:bg-gray-800'
 %>
@@ -82,11 +87,14 @@
 
     <!-- Navigation -->
     <nav class="p-3 space-y-1 overflow-y-auto flex-1 overscroll-contain">
+      <% if can?("dashboard", :read) %>
       <%= link_to root_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
         <span>📊</span><span class="text-sm font-medium">Dashboard</span>
       <% end %>
+      <% end %>
 
       <!-- Cadastros -->
+      <% if show_cadastros %>
       <details 
         class="group rounded-lg"
         data-controller="menu-group"
@@ -111,111 +119,161 @@
         </summary>
 
         <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
+          <% if can?("units", :read) %>
           <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'units' ? selected_menu : unselected_menu}" do %>
             <span>📍</span><span class="text-sm font-medium">Unidades</span>
           <% end %>
+          <% end %>
 
+          <% if can?("ponds", :read) %>
           <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'ponds' ? selected_menu : unselected_menu}" do %>
             <span>💧</span><span class="text-sm font-medium">Tanques</span>
           <% end %>
+          <% end %>
 
+          <% if can?("silos", :read) %>
           <%= link_to silos_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silos' ? selected_menu : unselected_menu}" do %>
             <span>🛢️</span><span class="text-sm font-medium">Silos</span>
           <% end %>
+          <% end %>
 
+          <% if can?("suppliers", :read) %>
           <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
             <span>🏭</span><span class="text-sm font-medium">Fornecedores</span>
           <% end %>
+          <% end %>
 
+          <% if can?("customers", :read) %>
           <%= link_to customers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'customers' ? selected_menu : unselected_menu}" do %>
             <span>🤝</span><span class="text-sm font-medium">Clientes</span>
           <% end %>
+          <% end %>
 
+          <% if can?("products", :read) %>
           <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'products' ? selected_menu : unselected_menu}" do %>
             <span>🏷️</span><span class="text-sm font-medium">Produtos</span>
           <% end %>
+          <% end %>
 
+          <% if can?("payment_terms", :read) %>
           <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_terms' ? selected_menu : unselected_menu}" do %>
             <span>📄</span><span class="text-sm font-medium">Condições de pagamento</span>
           <% end %>
+          <% end %>
 
+          <% if can?("payment_methods", :read) %>
           <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_methods' ? selected_menu : unselected_menu}" do %>
             <span>💳</span><span class="text-sm font-medium">Formas de pagamento</span>
           <% end %>
+          <% end %>
 
+          <% if can?("employees", :read) %>
           <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'employees' ? selected_menu : unselected_menu}" do %>
             <span>👥</span><span class="text-sm font-medium">Funcionários</span>
           <% end %>
+          <% end %>
 
+          <% if can?("feeding_tables", :read) %>
           <%= link_to feeding_tables_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_tables' ? selected_menu : unselected_menu}" do %>
             <span>🐟</span><span class="text-sm font-medium">Regras de Arraçoamento</span>
           <% end %>
+          <% end %>
 
+          <% if can?("feeding_brands", :read) %>
           <%= link_to feeding_brands_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_brands' ? selected_menu : unselected_menu}" do %>
             <span>🏷️</span><span class="text-sm font-medium">Marcas de Ração</span>
           <% end %>
+          <% end %>
 
+          <% if can?("feeding_types", :read) %>
           <%= link_to feeding_types_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_types' ? selected_menu : unselected_menu}" do %>
             <span>🌾</span><span class="text-sm font-medium">Tipos de Ração</span>
           <% end %>
+          <% end %>
         </div>
       </details>
+      <% end %>
 
       <!-- Lançamentos -->
+      <% if show_lancamentos %>
       <p class="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
         Lançamentos
       </p>
+      <% end %>
 
+      <% if can?("batches", :read) %>
       <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batches' ? selected_menu : unselected_menu}" do %>
         <span>📦</span><span class="text-sm font-medium">Lotes</span>
       <% end %>
+      <% end %>
 
+      <% if can?("biometry_events", :read) %>
       <%= link_to biometry_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'biometry_events' ? selected_menu : unselected_menu}" do %>
         <span>🧬</span><span class="text-sm font-medium">Biometria</span>
       <% end %>
+      <% end %>
 
+      <% if can?("mortality_events", :read) %>
       <%= link_to mortality_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'mortality_events' ? selected_menu : unselected_menu}" do %>
         <span>☠️</span><span class="text-sm font-medium">Mortalidade</span>
       <% end %>
+      <% end %>
 
+      <% if can?("silo_stock_entries", :read) %>
       <%= link_to silo_stock_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_entries' ? selected_menu : unselected_menu}" do %>
         <span>🛢️</span><span class="text-sm font-medium">Estoque de Ração</span>
       <% end %>
+      <% end %>
 
+      <% if can?("water_quality_readings", :read) %>
       <%= link_to water_quality_readings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'water_quality_readings' ? selected_menu : unselected_menu}" do %>
         <span>🧪</span><span class="text-sm font-medium">Qualidade de Água</span>
       <% end %>
+      <% end %>
 
+      <% if can?("loading_events", :read) %>
       <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
         <span>🚚</span><span class="text-sm font-medium">Carregamento</span>
       <% end %>
+      <% end %>
 
+      <% if can?("payroll", :read) %>
       <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
         <span>🧾</span><span class="text-sm font-medium">Folha</span>
       <% end %>
+      <% end %>
 
+      <% if can?("financial_entries", :read) %>
       <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'financial_entries' ? selected_menu : unselected_menu}" do %>
         <span>💰</span><span class="text-sm font-medium">Financeiro</span>
       <% end %>
+      <% end %>
 
+      <% if can?("orders", :read) %>
       <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'orders' ? selected_menu : unselected_menu}" do %>
         <span>📋</span><span class="text-sm font-medium">Pedidos</span>
       <% end %>
+      <% end %>
 
+      <% if can?("simulations", :read) %>
       <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'simulations' ? selected_menu : unselected_menu}" do %>
         <span>🧮</span><span class="text-sm font-medium">Orçamentos</span>
       <% end %>
+      <% end %>
 
+      <% if show_relatorios %>
       <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
 
       <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
         Relatórios
       </p>
+      <% end %>
 
-      <%= link_to "Relatório de Lote", batch_reports_path %>
-      <%= link_to "Relatório de Carregamentos", loading_reports_path %>
-      <%= link_to "Resultado por Lote", batch_results_path %>
-      <%= link_to "Arraçoamento", feeding_plans_path %>
+      <% if can?("batch_reports", :read) %><%= link_to "Relatório de Lote", batch_reports_path %><% end %>
+      <% if can?("loading_reports", :read) %><%= link_to "Relatório de Carregamentos", loading_reports_path %><% end %>
+      <% if can?("silo_stock_reports", :read) %><%= link_to "Estoque de Ração", silo_stock_reports_path %><% end %>
+      <% if can?("batch_results", :read) %><%= link_to "Resultado por Lote", batch_results_path %><% end %>
+      <% if can?("feeding_plans", :read) %><%= link_to "Arraçoamento", feeding_plans_path %><% end %>
 
       <% if system_admin? %>
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
@@ -282,11 +340,14 @@
 
   <!-- Navigation -->
   <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
+    <% if can?("dashboard", :read) %>
     <%= link_to root_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>📊</span><span data-sidebar-target="label">Dashboard</span>
     <% end %>
+    <% end %>
 
     <!-- Cadastros -->
+    <% if show_cadastros %>
     <details 
       class="group rounded-lg"
       data-controller="menu-group"
@@ -311,123 +372,186 @@
       </summary>
 
       <div class="mt-1 ml-3 pl-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
+        <% if can?("units", :read) %>
         <%= link_to units_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'units' ? selected_menu : unselected_menu}" do %>
           <span>📍</span><span data-sidebar-target="label">Unidades</span>
         <% end %>
+        <% end %>
 
+        <% if can?("ponds", :read) %>
         <%= link_to ponds_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'ponds' ? selected_menu : unselected_menu}" do %>
           <span>💧</span><span data-sidebar-target="label">Tanques</span>
         <% end %>
+        <% end %>
 
+        <% if can?("silos", :read) %>
         <%= link_to silos_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silos' ? selected_menu : unselected_menu}" do %>
           <span>🛢️</span><span data-sidebar-target="label">Silos</span>
         <% end %>
+        <% end %>
 
+        <% if can?("suppliers", :read) %>
         <%= link_to suppliers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'suppliers' ? selected_menu : unselected_menu}" do %>
           <span>🏭</span><span data-sidebar-target="label">Fornecedores</span>
         <% end %>
+        <% end %>
 
+        <% if can?("customers", :read) %>
         <%= link_to customers_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'customers' ? selected_menu : unselected_menu}" do %>
           <span>🤝</span><span data-sidebar-target="label">Clientes</span>
         <% end %>
+        <% end %>
 
+        <% if can?("products", :read) %>
         <%= link_to products_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'products' ? selected_menu : unselected_menu}" do %>
           <span>🏷️</span><span data-sidebar-target="label">Produtos</span>
         <% end %>
+        <% end %>
 
+        <% if can?("payment_terms", :read) %>
         <%= link_to payment_terms_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_terms' ? selected_menu : unselected_menu}" do %>
           <span>📄</span><span data-sidebar-target="label">Condições de pagamento</span>
         <% end %>
+        <% end %>
 
+        <% if can?("payment_methods", :read) %>
         <%= link_to payment_methods_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payment_methods' ? selected_menu : unselected_menu}" do %>
           <span>💳</span><span data-sidebar-target="label">Formas de pagamento</span>
         <% end %>
+        <% end %>
 
+        <% if can?("employees", :read) %>
         <%= link_to employees_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'employees' ? selected_menu : unselected_menu}" do %>
           <span>👥</span><span data-sidebar-target="label">Funcionários</span>
         <% end %>
+        <% end %>
 
+        <% if can?("feeding_tables", :read) %>
         <%= link_to feeding_tables_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_tables' ? selected_menu : unselected_menu}" do %>
           <span>🐟</span><span data-sidebar-target="label">Regras de Arraçoamento</span>
         <% end %>
+        <% end %>
 
+        <% if can?("feeding_brands", :read) %>
         <%= link_to feeding_brands_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_brands' ? selected_menu : unselected_menu}" do %>
           <span>🏷️</span><span data-sidebar-target="label">Marcas de Ração</span>
         <% end %>
+        <% end %>
 
+        <% if can?("feeding_types", :read) %>
         <%= link_to feeding_types_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_types' ? selected_menu : unselected_menu}" do %>
           <span>🌾</span><span data-sidebar-target="label">Tipos de Ração</span>
         <% end %>
+        <% end %>
       </div>
     </details>
+    <% end %>
 
     <!-- Lançamentos -->
+    <% if show_lancamentos %>
     <p class="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
       data-sidebar-target="label">
       Lançamentos
     </p>
+    <% end %>
 
+    <% if can?("batches", :read) %>
     <%= link_to batches_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batches' ? selected_menu : unselected_menu}" do %>
       <span>📦</span><span data-sidebar-target="label">Lotes</span>
     <% end %>
+    <% end %>
 
+    <% if can?("biometry_events", :read) %>
     <%= link_to biometry_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>🧬</span><span data-sidebar-target="label">Biometria</span>
     <% end %>
+    <% end %>
 
+    <% if can?("mortality_events", :read) %>
     <%= link_to mortality_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" do %>
       <span>☠️</span><span data-sidebar-target="label" class="text-sm font-medium">Mortalidade</span>
     <% end %>
+    <% end %>
 
+    <% if can?("silo_stock_entries", :read) %>
     <%= link_to silo_stock_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_entries' ? selected_menu : unselected_menu}" do %>
       <span>🛢️</span><span data-sidebar-target="label">Estoque de Ração</span>
     <% end %>
+    <% end %>
 
+    <% if can?("water_quality_readings", :read) %>
     <%= link_to water_quality_readings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'water_quality_readings' ? selected_menu : unselected_menu}" do %>
       <span>🧪</span><span data-sidebar-target="label">Qualidade de Água</span>
     <% end %>
+    <% end %>
 
+    <% if can?("loading_events", :read) %>
     <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
       <span>🚚</span><span data-sidebar-target="label">Carregamento</span>
     <% end %>
+    <% end %>
 
+    <% if can?("payroll", :read) %>
     <%= link_to payroll_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'payroll' ? selected_menu : unselected_menu}" do %>
       <span>🧾</span><span data-sidebar-target="label">Folha</span>
     <% end %>
+    <% end %>
 
+    <% if can?("financial_entries", :read) %>
     <%= link_to financial_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'financial_entries' ? selected_menu : unselected_menu}" do %>
       <span>💰</span><span data-sidebar-target="label">Financeiro</span>
     <% end %>
+    <% end %>
 
+    <% if can?("orders", :read) %>
     <%= link_to orders_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'orders' ? selected_menu : unselected_menu}" do %>
       <span>📋</span><span data-sidebar-target="label">Pedidos</span>
     <% end %>
+    <% end %>
 
+    <% if can?("simulations", :read) %>
     <%= link_to simulations_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'simulations' ? selected_menu : unselected_menu}" do %>
       <span>🧮</span><span data-sidebar-target="label">Orçamentos</span>
     <% end %>
+    <% end %>
 
+    <% if show_relatorios %>
     <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
 
     <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
       data-sidebar-target="label">
       Relatórios
     </p>
+    <% end %>
 
+    <% if can?("batch_reports", :read) %>
     <%= link_to batch_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_reports' ? selected_menu : unselected_menu}" do %>
       <span>📦</span><span data-sidebar-target="label">Lotes</span>
     <% end %>
+    <% end %>
 
+    <% if can?("loading_reports", :read) %>
     <%= link_to loading_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading_reports' ? selected_menu : unselected_menu}" do %>
       <span>🚚</span><span data-sidebar-target="label">Carregamentos</span>
     <% end %>
+    <% end %>
 
+    <% if can?("silo_stock_reports", :read) %>
+    <%= link_to silo_stock_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_reports' ? selected_menu : unselected_menu}" do %>
+      <span>🛢️</span><span data-sidebar-target="label">Estoque de Ração</span>
+    <% end %>
+    <% end %>
+
+    <% if can?("batch_results", :read) %>
     <%= link_to batch_results_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_results' ? selected_menu : unselected_menu}" do %>
       <span>📈</span><span data-sidebar-target="label">Resultado por Lote</span>
     <% end %>
+    <% end %>
 
+    <% if can?("feeding_plans", :read) %>
     <%= link_to feeding_plans_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_plans' ? selected_menu : unselected_menu}" do %>
       <span>🍚</span><span data-sidebar-target="label">Arraçoamento</span>
+    <% end %>
     <% end %>
 
     <% if system_admin? %>

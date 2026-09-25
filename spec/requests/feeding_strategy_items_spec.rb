@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "FeedingStrategyItems", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:feeding_table) { create(:feeding_table) }
   let(:weight_range) { create(:feeding_weight_range) }
   let(:temperature_range) { create(:feeding_temperature_range) }

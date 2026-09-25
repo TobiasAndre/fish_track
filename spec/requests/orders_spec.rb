@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Orders", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:customer) { create(:customer) }
   let(:payment_method) { create(:payment_method) }
   let(:payment_term) { create(:payment_term) }

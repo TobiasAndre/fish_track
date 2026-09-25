@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Suppliers", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
 
   before { sign_in user }
 

@@ -10,10 +10,12 @@
       </p>
     </div>
 
+    <% if can?("feeding_tables", :write) %>
     <%= link_to new_feeding_table_path,
           class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition" do %>
       <span>➕</span>
       <span>Nova Tabela</span>
+    <% end %>
     <% end %>
   </div>
 
@@ -88,11 +90,14 @@
 
                 <td class="px-6 py-4">
                   <div class="flex justify-end gap-2">
+                    <% if can?("feeding_tables", :edit) %>
                     <%= link_to edit_feeding_table_path(table),
                           class: "rounded-lg px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950" do %>
                       ✏️ Editar
                     <% end %>
+                    <% end %>
 
+                    <% if can?("feeding_tables", :delete) %>
                     <%= button_to feeding_table_path(table),
                           method: :delete,
                           form: {
@@ -102,6 +107,7 @@
                           },
                           class: "rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950" do %>
                       🗑️ Excluir
+                    <% end %>
                     <% end %>
 
                     <%= link_to print_feeding_table_path(table, format: :pdf),
@@ -150,10 +156,12 @@
         </p>
 
         <div class="mt-6">
+          <% if can?("feeding_tables", :write) %>
           <%= link_to new_feeding_table_path,
                 class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 transition" do %>
             <span>➕</span>
             <span>Nova Tabela</span>
+          <% end %>
           <% end %>
         </div>
       </div>

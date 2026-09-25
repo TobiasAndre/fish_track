@@ -18,7 +18,7 @@ class PermissionCatalog
   ALL = ACTIONS
   READ_ONLY = %w[read].freeze
 
-  Resource = Struct.new(:key, :label, :actions, :controllers, keyword_init: true) do
+  Resource = Struct.new(:key, :label, :actions, :controllers, :path_helper, keyword_init: true) do
     def allows?(action)
       actions.include?(action.to_s)
     end
@@ -26,13 +26,15 @@ class PermissionCatalog
 
   Group = Struct.new(:label, :resources, keyword_init: true)
 
-  def self.build(key, label, actions: ALL, controllers: [key])
-    Resource.new(key: key, label: label, actions: actions, controllers: controllers)
+  # path_helper: rota da página (para o menu e para levar o usuário a uma página
+  # que ele pode ver); por padrão "<chave>_path".
+  def self.build(key, label, actions: ALL, controllers: [key], path_helper: :"#{key}_path")
+    Resource.new(key: key, label: label, actions: actions, controllers: controllers, path_helper: path_helper)
   end
 
   GROUPS = [
     Group.new(label: "Geral", resources: [
-      build("dashboard", "Dashboard", actions: READ_ONLY, controllers: %w[dashboard dashboards])
+      build("dashboard", "Dashboard", actions: READ_ONLY, controllers: %w[dashboard dashboards], path_helper: :root_path)
     ]),
     Group.new(label: "Cadastros", resources: [
       build("units", "Unidades"),
@@ -65,6 +67,7 @@ class PermissionCatalog
     Group.new(label: "Relatórios", resources: [
       build("batch_reports", "Relatório de Lote", actions: READ_ONLY),
       build("loading_reports", "Relatório de Carregamentos", actions: READ_ONLY),
+      build("silo_stock_reports", "Relatório de Estoque de Ração", actions: READ_ONLY),
       build("batch_results", "Resultado por Lote", actions: READ_ONLY),
       # Além de visualizar, a calibração de tempo do tanque é uma edição.
       build("feeding_plans", "Arraçoamento", actions: %w[read edit])

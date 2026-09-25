@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "EmployeeVacations", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:employee) { create(:employee) }
 
   before { sign_in user }

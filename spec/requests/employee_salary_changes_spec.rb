@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "EmployeeSalaryChanges", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, system_admin: true) }
   let(:employee) { create(:employee, salary_cents: 300_000, started_on: Date.new(2024, 1, 1)) }
 
   before { sign_in user }

@@ -56,48 +56,20 @@ class SiloStockEntriesController < ApplicationController
   def load_entries
     @silo_stock_entry ||= SiloStockEntry.new(occurred_on: Date.current)
 
-    @q_unit_id = params[:unit_id].presence
-    @q_silo_id = params[:silo_id].presence
-    @q_batch_id = params[:batch_id].presence
-    @q_feeding_brand_id = params[:feeding_brand_id].presence
-    @q_feeding_type_id = params[:feeding_type_id].presence
-    @q_from = params[:from].presence
-    @q_to = params[:to].presence
+    @report = SiloStockReport.new(params.permit(*SiloStockReport::FILTER_KEYS))
+    @q_silo_id = @report.silo_id
+    @q_batch_id = @report.batch_id
+    @q_feeding_brand_id = @report.feeding_brand_id
+    @q_feeding_type_id = @report.feeding_type_id
+    @q_from = @report.from
+    @q_to = @report.to
+    @filter_feeding_types = @report.filter_feeding_types
 
-    # Quando uma marca está filtrada, o filtro de tipo só oferece os tipos
-    # daquela marca -- e um tipo de outra marca que tenha sobrado no parâmetro
-    # é ignorado.
-    @filter_feeding_types =
-      if @q_feeding_brand_id.present?
-        @feeding_types.select { |type| type.feeding_brand_id.to_s == @q_feeding_brand_id }
-      else
-        @feeding_types
-      end
-
-    if @q_feeding_type_id.present? && @filter_feeding_types.none? { |type| type.id.to_s == @q_feeding_type_id }
-      @q_feeding_type_id = nil
-    end
-
-    scope = SiloStockEntry.includes(:batch, :payment_method, :payment_term, :financial_entries, silo: :unit, feeding_type: :feeding_brand)
-      .left_joins(:silo)
-      .oldest_first
-
-    scope = scope.where(silos: { unit_id: @q_unit_id }) if @q_unit_id.present?
-    scope = scope.where(silo_id: @q_silo_id) if @q_silo_id.present?
-    scope = scope.where(batch_id: @q_batch_id) if @q_batch_id.present?
-    scope = scope.where(feeding_brand_id: @q_feeding_brand_id) if @q_feeding_brand_id.present?
-    scope = scope.where(feeding_type_id: @q_feeding_type_id) if @q_feeding_type_id.present?
-    scope = scope.where("silo_stock_entries.occurred_on >= ?", @q_from) if @q_from.present?
-    scope = scope.where("silo_stock_entries.occurred_on <= ?", @q_to) if @q_to.present?
-
-    @entries = scope.page(params[:page]).per(15)
-
-    # Totais do recorte filtrado (não só da página exibida).
-    @entries_count = scope.count
-    @entries_total_kg = scope.sum(:quantity_kg)
-    @entries_total_cents = scope.sum(:total_cents)
-
-    @current_stock = SiloStockEntry.group(:silo_id, :feeding_type_id).sum(:quantity_kg)
+    @entries = @report.scope.page(params[:page]).per(15)
+    @entries_count = @report.entries_count
+    @entries_total_kg = @report.total_kg
+    @entries_total_cents = @report.total_cents
+    @stock_rows = @report.stock_rows
   end
 
   def entry_params

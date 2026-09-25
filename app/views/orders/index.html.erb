@@ -7,8 +7,10 @@
       </p>
     </div>
 
+    <% if can?("orders", :write) %>
     <%= link_to "Novo pedido", new_order_path,
       class: "inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700" %>
+    <% end %>
   </div>
 
   <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -64,19 +66,25 @@
               <td class="px-4 py-3 text-right text-sm">
                 <div class="flex items-center justify-end gap-3">
                   <% if order.cancelable? %>
+                    <% if can?("orders", :edit) %>
                     <%= button_to "Cancelar",
                       cancel_order_path(order),
                       method: :patch,
                       data: { turbo_confirm: "Tem certeza que deseja cancelar este pedido?" },
                       class: "px-3 py-1.5 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white transition" %>
+                    <% end %>
                   <% end %>
 
+                  <% if can?("orders", :edit) %>
                   <%= link_to "Editar", edit_order_path(order),
                     class: "text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" %>
+                  <% end %>
 
+                  <% if can?("orders", :delete) %>
                   <%= link_to "Excluir", order_path(order),
                     data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir este pedido?" },
                     class: "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" %>
+                  <% end %>
                 </div>
               </td>
             </tr>

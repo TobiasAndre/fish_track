@@ -29,9 +29,11 @@
                   hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
       <% end %>
 
+      <% if can?("employees", :edit) %>
       <%= link_to "Editar cadastro", edit_employee_path(@employee),
         class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm" %>
+      <% end %>
     </div>
   </div>
 
@@ -189,8 +191,10 @@
         </div>
 
         <div class="sm:col-span-2">
+          <% if can?("employees", f.object.persisted? ? :edit : :write) %>
           <%= f.submit "Registrar alteração",
             class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white text-sm font-medium transition" %>
+          <% end %>
         </div>
       <% end %>
     </details>
@@ -318,8 +322,10 @@
                       </div>
 
                       <div class="sm:col-span-2">
+                        <% if can?("employees", f.object.persisted? ? :edit : :write) %>
                         <%= f.submit "Salvar alterações",
                           class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white text-sm font-medium transition" %>
+                        <% end %>
                       </div>
                     <% end %>
                   </details>
@@ -367,8 +373,10 @@
         </div>
 
         <div class="sm:col-span-2">
+          <% if can?("employees", f.object.persisted? ? :edit : :write) %>
           <%= f.submit "Cadastrar período",
             class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white text-sm font-medium transition" %>
+          <% end %>
         </div>
       <% end %>
     </details>
