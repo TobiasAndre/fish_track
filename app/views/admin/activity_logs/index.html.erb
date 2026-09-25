@@ -10,6 +10,18 @@
   <%= turbo_frame_tag "activity_logs", data: { turbo_action: "advance" }, class: "block space-y-6 transition-opacity aria-busy:opacity-60" do %>
   <%= form_with url: admin_activity_logs_path, method: :get, local: true,
         class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
+    <div class="w-40">
+      <%= label_tag :date, "Data", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+      <%# Abre no dia de hoje; apagar a data mostra todas. %>
+      <%= date_field_tag :date, @date&.iso8601, max: Date.current,
+        data: { action: "change->auto-submit#submit" },
+        class: "w-full rounded-lg border px-3 py-2 text-sm
+                bg-white dark:bg-gray-950
+                border-gray-300 dark:border-gray-700
+                text-gray-900 dark:text-gray-100
+                focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
     <div class="w-48">
       <%= label_tag :company_id, "Empresa", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
       <%= select_tag :company_id,
@@ -73,7 +85,7 @@
                 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
     </div>
 
-    <% if params[:company_id].present? || params[:user_id].present? || params[:action_type].present? || params[:event_type].present? %>
+    <% if @date != Date.current || params[:company_id].present? || params[:user_id].present? || params[:action_type].present? || params[:event_type].present? %>
       <%= link_to "Limpar filtros", admin_activity_logs_path,
             class: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2" %>
     <% end %>

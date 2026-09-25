@@ -8,6 +8,9 @@ module Admin
       @logs = @logs.where(action: params[:action_type]) if params[:action_type].presence
       @logs = @logs.where(event_type: params[:event_type]) if params[:event_type].presence
 
+      @date = selected_date
+      @logs = @logs.where(created_at: @date.in_time_zone.all_day) if @date
+
       @logs = @logs.page(params[:page]).per(50)
 
       @companies = Company.order(:name)
@@ -19,6 +22,19 @@ module Admin
     def show
       @log = ActivityLog.includes(:user, :company).find(params[:id])
       @location = IpLocator.new.locate(@log.ip_address)
+    end
+
+    private
+
+    # Sem o parâmetro, a lista abre no dia de hoje. O campo enviado em branco
+    # (o usuário limpou a data) mostra todas as datas.
+    def selected_date
+      return Date.current unless params.key?(:date)
+      return nil if params[:date].blank?
+
+      Date.iso8601(params[:date].to_s)
+    rescue Date::Error
+      Date.current
     end
   end
 end

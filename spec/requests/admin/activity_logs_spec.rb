@@ -11,6 +11,135 @@ RSpec.describe "Admin::ActivityLogs", type: :request do
     )
   end
 
+  describe "date filter" do
+    before { sign_in admin }
+
+    def log_on(time, description)
+      log = log_for(user: admin, description: description)
+      log.update_columns(created_at: time)
+      log
+    end
+
+    def descriptions
+      Nokogiri::HTML(response.body).css("tbody tr td:nth-child(5)").map { |td| td.text.strip }
+    end
+
+    it "opens on today's records only, with today already selected" do
+      log_on(Time.current, "Hoje 1")
+      log_on(Time.current.beginning_of_day + 1.minute, "Hoje 2")
+      log_on(1.day.ago, "Ontem")
+      log_on(30.days.ago, "Mês passado")
+
+      get admin_activity_logs_path
+
+      expect(descriptions).to contain_exactly("Hoje 1", "Hoje 2")
+      field = Nokogiri::HTML(response.body).at_css("input#date")
+      expect(field["value"]).to eq(Date.current.iso8601)
+      expect(field["type"]).to eq("date")
+      expect(field["max"]).to eq(Date.current.iso8601)
+    end
+
+    it "shows the records of the chosen date" do
+      log_on(Time.current, "Hoje")
+      log_on(Time.zone.local(2026, 9, 10, 14, 30), "Dia 10")
+      log_on(Time.zone.local(2026, 9, 11, 9, 0), "Dia 11")
+
+      get admin_activity_logs_path(date: "2026-09-10")
+
+      expect(descriptions).to eq(["Dia 10"])
+      expect(Nokogiri::HTML(response.body).at_css("input#date")["value"]).to eq("2026-09-10")
+    end
+
+    it "shows every date when the date field is cleared" do
+      log_on(Time.current, "Hoje")
+      log_on(1.day.ago, "Ontem")
+      log_on(90.days.ago, "Antigo")
+
+      get admin_activity_logs_path(date: "")
+
+      expect(descriptions).to contain_exactly("Hoje", "Ontem", "Antigo")
+      expect(Nokogiri::HTML(response.body).at_css("input#date")["value"]).to be_nil
+    end
+
+    it "falls back to today when the date is invalid" do
+      log_on(Time.current, "Hoje")
+      log_on(1.day.ago, "Ontem")
+
+      get admin_activity_logs_path(date: "not-a-date")
+
+      expect(descriptions).to eq(["Hoje"])
+      expect(Nokogiri::HTML(response.body).at_css("input#date")["value"]).to eq(Date.current.iso8601)
+    end
+
+    it "uses the app time zone (São Paulo) for the day boundaries" do
+      late = log_on(Time.zone.local(2026, 9, 10, 23, 30), "Noite do dia 10")   # 02:30 UTC do dia 11
+      early = log_on(Time.zone.local(2026, 9, 11, 0, 10), "Madrugada do dia 11") # 03:10 UTC do dia 11
+      expect(late.created_at.utc.day).to eq(11)
+
+      get admin_activity_logs_path(date: "2026-09-10")
+      expect(descriptions).to eq(["Noite do dia 10"])
+
+      get admin_activity_logs_path(date: "2026-09-11")
+      expect(descriptions).to eq(["Madrugada do dia 11"])
+      expect(early).to be_persisted
+    end
+
+    it "combines with the other filters" do
+      other = create(:user, name: "Outro")
+      mine = log_on(Time.current, "Minha de hoje")
+      theirs = ActivityLog.record!(user: other, action: "update", resource_type: "Pond", description: "Do outro hoje", company: nil)
+      log_on(1.day.ago, "Minha de ontem")
+
+      get admin_activity_logs_path(user_id: admin.id)
+      expect(descriptions).to eq(["Minha de hoje"])
+
+      get admin_activity_logs_path(user_id: admin.id, date: Date.yesterday.iso8601)
+      expect(descriptions).to eq(["Minha de ontem"])
+
+      get admin_activity_logs_path(action_type: "update")
+      expect(descriptions).to eq(["Do outro hoje"])
+      expect([mine, theirs]).to all(be_persisted)
+    end
+
+    it "keeps the date when paging" do
+      day = Time.zone.local(2026, 9, 10, 10, 0)
+      51.times { |i| log_on(day + i.minutes, "Log #{i}") }
+
+      get admin_activity_logs_path(date: "2026-09-10")
+
+      expect(descriptions.size).to eq(50)
+      next_link = Nokogiri::HTML(response.body).css("a[href*='page=2']").first
+      expect(next_link["href"]).to include("date=2026-09-10")
+    end
+
+    it "offers 'Limpar filtros' (back to today) only when something differs from the default" do
+      get admin_activity_logs_path
+      expect(response.body).not_to include("Limpar filtros")
+
+      get admin_activity_logs_path(date: "2026-09-10")
+      expect(response.body).to include("Limpar filtros")
+
+      get admin_activity_logs_path(date: "")
+      expect(response.body).to include("Limpar filtros")
+    end
+
+    it "auto-submits when the date changes and sits inside the list frame" do
+      get admin_activity_logs_path
+
+      field = Nokogiri::HTML(response.body).at_css("input#date")
+      expect(field["data-action"]).to eq("change->auto-submit#submit")
+      expect(field.ancestors("turbo-frame").map { |f| f["id"] }).to include("activity_logs")
+    end
+
+    it "still lets the detail modal open for a log of the chosen date" do
+      log = log_on(Time.zone.local(2026, 9, 10, 10, 0), "Dia 10")
+
+      get admin_activity_logs_path(date: "2026-09-10")
+
+      expect(Nokogiri::HTML(response.body).at_css("a[data-row-link-target=link]")["href"]).to eq(admin_activity_log_path(log))
+    end
+  end
+
   describe "GET /admin/activity_logs/:id (detalhamento)" do
     let(:company) { create(:company, name: "Piscicultura Azul") }
     let(:actor) { create(:user, name: "Maria Silva", email: "maria@example.com") }
