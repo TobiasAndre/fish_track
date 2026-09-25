@@ -53,6 +53,27 @@ RSpec.describe DashboardFigures do
     expect(figures.revenue_cents).to eq(47_000)
   end
 
+  it "computes peixes a entregar as alojados minus entregues" do
+    loading(batch_a, 300)
+    loading(batch_b, 500)
+
+    expect(figures.to_deliver_quantity).to eq(3_500 - 800)
+  end
+
+  it "computes the saldo financeiro as revenue minus expense" do
+    entry(batch_a, "income", 50_000)
+    entry(batch_b, "expense", 20_000)
+    entry(closed, "income", 999_999)
+
+    expect(figures.balance_cents).to eq(30_000)
+  end
+
+  it "lets the saldo go negative" do
+    entry(batch_a, "expense", 9_000)
+
+    expect(figures.balance_cents).to eq(-9_000)
+  end
+
   it "returns zeros for a batch without movement" do
     expect(figures.for(batch_a)).to have_attributes(loaded_quantity: 0, expense_cents: 0, revenue_cents: 0)
   end
@@ -60,7 +81,7 @@ RSpec.describe DashboardFigures do
   it "handles an empty list of batches" do
     empty = described_class.new([])
 
-    expect([empty.stocked_quantity, empty.delivered_quantity, empty.expense_cents, empty.revenue_cents]).to eq([0, 0, 0, 0])
+    expect([empty.stocked_quantity, empty.delivered_quantity, empty.to_deliver_quantity, empty.expense_cents, empty.revenue_cents, empty.balance_cents]).to eq([0, 0, 0, 0, 0, 0])
   end
 
   it "runs a fixed number of queries regardless of how many batches there are" do

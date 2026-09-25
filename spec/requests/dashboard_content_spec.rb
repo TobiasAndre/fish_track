@@ -20,7 +20,7 @@ RSpec.describe "Dashboard content", type: :request do
     doc.css("p").find { |p| p.text.strip == label }.next_element.text.strip
   end
 
-  it "shows the four totals for the active lotes" do
+  it "shows the six totals for the active lotes, side by side in one row" do
     stocking = batch.batch_stockings.first
     create(:stocking_event, :loading, batch_stocking: stocking).update_columns(quantity: 1_500)
     create(:financial_entry, batch: batch, entry_type: "expense", amount_cents: 250_000)
@@ -35,7 +35,43 @@ RSpec.describe "Dashboard content", type: :request do
     expect(card_value("Peixes entregues")).to eq("1.500")
     expect(card_value("Despesa total")).to eq("R$ 2.500,00")
     expect(card_value("Faturamento total")).to eq("R$ 9.000,00")
+    expect(card_value("Peixes a entregar")).to eq("2.500")   # 4.000 alojados - 1.500 entregues
+    expect(card_value("Saldo financeiro")).to eq("R$ 6.500,00") # 9.000 faturamento - 2.500 despesa
     expect(response.body).to include("Somando os 1 lote ativo")
+
+    labels = doc.css("p").map { |p| p.text.strip }
+    row = %w[Peixes\ alojados Peixes\ entregues Peixes\ a\ entregar Despesa\ total Faturamento\ total Saldo\ financeiro]
+    expect(labels.select { |t| row.include?(t) }).to eq(row)
+
+    grid = doc.css("p").find { |p| p.text.strip == "Peixes alojados" }.ancestors("div.grid").first
+    expect(grid["class"]).to include("lg:grid-cols-6")
+    expect(grid.css("> div").size).to eq(6)
+  end
+
+  it "shows a negative saldo in red and a positive one in green" do
+    create(:financial_entry, batch: batch, entry_type: "expense", amount_cents: 300_000)
+    create(:financial_entry, batch: batch, entry_type: "income", amount_cents: 100_000)
+
+    get root_path
+
+    saldo = doc.css("p").find { |p| p.text.strip == "Saldo financeiro" }.next_element
+    expect(saldo.text.strip).to eq("-R$ 2.000,00")
+    expect(saldo["class"]).to include("text-red-700")
+
+    create(:financial_entry, batch: batch, entry_type: "income", amount_cents: 400_000)
+    get root_path
+
+    saldo = doc.css("p").find { |p| p.text.strip == "Saldo financeiro" }.next_element
+    expect(saldo.text.strip).to eq("R$ 2.000,00")
+    expect(saldo["class"]).to include("text-green-700")
+  end
+
+  it "shows zero peixes a entregar when everything was delivered" do
+    create(:stocking_event, :loading, batch_stocking: batch.batch_stockings.first).update_columns(quantity: 4_000)
+
+    get root_path
+
+    expect(card_value("Peixes a entregar")).to eq("0")
   end
 
   it "shows loaded quantity, expense and revenue on each active lote" do

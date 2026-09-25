@@ -18,12 +18,22 @@ class DashboardFigures
     loaded_by_batch_id.values.sum
   end
 
+  # Peixes a entregar: alojados menos entregues.
+  def to_deliver_quantity
+    stocked_quantity - delivered_quantity
+  end
+
   def expense_cents
     money_by_batch_id.values.sum { |amounts| amounts["expense"].to_i }
   end
 
   def revenue_cents
     money_by_batch_id.values.sum { |amounts| amounts["income"].to_i }
+  end
+
+  # Saldo financeiro: faturamento menos despesa.
+  def balance_cents
+    revenue_cents - expense_cents
   end
 
   def for(batch)
