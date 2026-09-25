@@ -52,11 +52,15 @@
       <% available_vacations = emp.vacations.where(status: "available") %>
       <% scheduled_vacations = emp.vacations.where(status: "scheduled") %>
 
+      <%# Um frame por funcionário: lançar/remover/pagar recarrega só o cartão dele (sem o "pulo" da página). O toast vem dentro do frame, pois o layout não faz parte da atualização. %>
+      <%= turbo_frame_tag dom_id(emp, :payroll), class: "block transition-opacity aria-busy:opacity-60" do %>
+      <%= render "shared/flash" if turbo_frame_request? %>
+
       <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between gap-4">
           <div>
             <div class="font-semibold text-gray-900 dark:text-gray-100">
-              <%= link_to emp.name, employee_path(emp), class: "hover:underline" %>
+              <%= link_to emp.name, employee_path(emp), data: { turbo_frame: "_top" }, class: "hover:underline" %>
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400"><%= emp.role.presence || "—" %></div>
 
@@ -85,6 +89,7 @@
 
               <% if emp_alerts.any? %>
                 <%= link_to employee_path(emp),
+                  data: { turbo_frame: "_top" },
                   title: emp_alerts.map { |a| "#{a.title}: #{a.message}" }.join("\n"),
                   class: "inline-flex items-center rounded-lg bg-red-100 dark:bg-red-950 px-2 py-0.5 text-[11px]
                           text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900 transition cursor-help" do %>
@@ -136,7 +141,7 @@
               </h3>
 
               <%= link_to "Ver relatório", termination_report_employee_path(emp),
-                target: "_blank", rel: "noopener",
+                target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
                 class: "text-xs text-amber-800 dark:text-amber-300 hover:underline" %>
             </div>
 
@@ -500,6 +505,7 @@
           </div>
         </div>
       </div>
+      <% end %>
     <% end %>
 
     <% if @employees.empty? %>

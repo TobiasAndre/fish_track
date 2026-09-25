@@ -238,4 +238,104 @@ RSpec.describe "Payroll", type: :request do
       end.to change { PayrollItem.where(employee: employee, item_type: "salary", year: 2026, month: 6).count }.by(-1)
     end
   end
+
+  describe "Turbo Frames (only the employee's card reloads)" do
+    let(:year) { Date.current.year }
+    let(:month) { Date.current.month }
+    let!(:joao) { create(:employee, name: "João Frame", salary_cents: 300_000, started_on: 2.years.ago.to_date) }
+    let!(:maria) { create(:employee, name: "Maria Frame", salary_cents: 400_000, started_on: 2.years.ago.to_date) }
+
+    def doc
+      Nokogiri::HTML(response.body)
+    end
+
+    def frame_headers(employee)
+      { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(employee, :payroll) }
+    end
+
+    it "puts each employee's card in its own frame" do
+      get payroll_path, params: { year: year, month: month }
+
+      ids = doc.css("turbo-frame").map { |f| f["id"] }
+      expect(ids).to contain_exactly("payroll_employee_#{joao.id}", "payroll_employee_#{maria.id}")
+      expect(doc.at_css("turbo-frame#payroll_employee_#{joao.id}").text).to include("João Frame", "Novo lançamento")
+      expect(doc.at_css("h1")&.ancestors("turbo-frame").to_a).to be_empty
+    end
+
+    it "renders only the requested employee on a frame request (no layout, no other cards)" do
+      get payroll_path, params: { year: year, month: month }, headers: frame_headers(joao)
+
+      expect(doc.css("turbo-frame").map { |f| f["id"] }).to eq(["payroll_employee_#{joao.id}"])
+      expect(response.body).to include("João Frame")
+      expect(response.body).not_to include("Maria Frame")
+      expect(doc.css("nav")).to be_empty
+    end
+
+    it "renders every employee, and no frame-level toast, on a normal request" do
+      get payroll_path, params: { year: year, month: month }
+
+      expect(response.body).to include("João Frame", "Maria Frame")
+      expect(doc.css("turbo-frame [data-controller=flash]")).to be_empty
+    end
+
+    it "shows the flash toast inside the frame after an action, once" do
+      post payroll_items_path, params: {
+        payroll_item: { employee_id: joao.id, year: year, month: month, amount_cents: 20_000, item_type: "advance" }
+      }, headers: frame_headers(joao)
+      follow_redirect!(headers: frame_headers(joao))
+
+      toasts = doc.css("turbo-frame#payroll_employee_#{joao.id} [data-controller=flash]")
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole["data-flash-message-value"]).to eq("Adiantamento lançado!")
+      expect(doc.css("[data-controller=flash]").size).to eq(1)
+    end
+
+    it "updates the card's numbers after a launch (advance reduces the balance to pay)" do
+      post payroll_items_path, params: {
+        payroll_item: { employee_id: joao.id, year: year, month: month, amount_cents: 100_000, item_type: "advance" }
+      }, headers: frame_headers(joao)
+      follow_redirect!(headers: frame_headers(joao))
+
+      card = doc.at_css("turbo-frame#payroll_employee_#{joao.id}")
+      expect(card.text.gsub(/\s+/, " ")).to include("Saldo a pagar R$ 2.000,00")
+    end
+
+    it "shows the error toast inside the frame when the launch is refused" do
+      create(:payroll_item, employee: joao, item_type: "salary_payment", year: year, month: month, amount_cents: 300_000)
+
+      post payroll_items_path, params: {
+        payroll_item: { employee_id: joao.id, year: year, month: month, amount_cents: 300_000, item_type: "salary_payment" }
+      }, headers: frame_headers(joao)
+      follow_redirect!(headers: frame_headers(joao))
+
+      toast = doc.css("turbo-frame#payroll_employee_#{joao.id} [data-controller=flash]").sole
+      expect(toast["data-flash-type-value"]).to eq("error")
+      expect(toast["data-flash-message-value"]).to include("já foi marcado como pago")
+    end
+
+    it "removes a record and refreshes only that card" do
+      item = create(:payroll_item, employee: joao, item_type: "bonus", year: year, month: month, amount_cents: 50_000)
+
+      delete payroll_item_path(item), headers: frame_headers(joao)
+      follow_redirect!(headers: frame_headers(joao))
+
+      expect(PayrollItem.exists?(item.id)).to be(false)
+      expect(doc.css("turbo-frame").map { |f| f["id"] }).to eq(["payroll_employee_#{joao.id}"])
+      expect(doc.css("[data-controller=flash]").sole["data-flash-message-value"]).to eq("Registro removido!")
+    end
+
+    it "sends the links to the employee page out of the frame" do
+      get payroll_path, params: { year: year, month: month }
+
+      links = doc.css("turbo-frame#payroll_employee_#{joao.id} a[href='#{employee_path(joao)}']")
+      expect(links).not_to be_empty
+      expect(links.map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+
+    it "ignores a frame id that doesn't match an employee card" do
+      get payroll_path, params: { year: year, month: month }, headers: { "Turbo-Frame" => "something_else" }
+
+      expect(response.body).to include("João Frame", "Maria Frame")
+    end
+  end
 end

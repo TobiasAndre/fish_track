@@ -12,6 +12,11 @@ class PayrollController < ApplicationController
       .where("terminated_on IS NULL OR terminated_on >= ?", @competence_date)
       .order(:name)
 
+    # Atualização de um frame (cartão de um funcionário): renderiza só ele, em vez
+    # de calcular a folha de todo mundo para descartar o resto.
+    frame_employee_id = request.headers["Turbo-Frame"].to_s[/\Apayroll_employee_(\d+)\z/, 1]
+    @employees = @employees.where(id: frame_employee_id) if frame_employee_id
+
     @items_by_employee = PayrollItem.where(year: @year, month: @month)
       .includes(:employee)
       .where(year: @year, month: @month)
