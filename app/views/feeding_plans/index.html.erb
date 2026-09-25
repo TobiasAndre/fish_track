@@ -14,6 +14,7 @@
 
   <%# Só o conteúdo abaixo é recarregado ao trocar um filtro (Turbo Frame): o cabeçalho, o menu e a posição da rolagem ficam parados. %>
   <%= turbo_frame_tag "feeding_plan", data: { turbo_action: "advance" }, class: "block space-y-6 transition-opacity aria-busy:opacity-60" do %>
+  <%= render "feeding_plans/share_opener" %>
   <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
     <%= form_with url: feeding_plans_path, method: :get, local: true, class: "flex flex-wrap items-end gap-3", data: { controller: "auto-submit" } do %>
       <div class="w-64">
@@ -93,6 +94,30 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum tanque encontrado para o filtro selecionado.</p>
     </div>
   <% else %>
+    <%# Imprimir (PDF) e WhatsApp usam exatamente os filtros que estão na tela. %>
+    <div class="flex flex-wrap items-center justify-end gap-2">
+      <%= link_to feeding_plans_path(format: :pdf, feeding_table_id: @feeding_table&.id, unit_id: @selected_unit_id,
+                                     batch_id: @selected_batch_id.presence, pond_ids: @selected_pond_ids.presence),
+        target: "_blank", rel: "noopener", data: { turbo_frame: "_top" }, title: "Imprimir (PDF)",
+        class: "inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition" do %>
+        <i class="fa-solid fa-print"></i> Imprimir
+      <% end %>
+
+      <%= form_with url: create_share_feeding_plans_path, method: :post, local: true, data: { turbo_action: "replace" } do %>
+        <%= hidden_field_tag :feeding_table_id, @feeding_table&.id, id: nil %>
+        <%= hidden_field_tag :unit_id, @selected_unit_id, id: nil %>
+        <%= hidden_field_tag :batch_id, @selected_batch_id, id: nil %>
+        <% @selected_pond_ids.each do |pond_id| %>
+          <%= hidden_field_tag "pond_ids[]", pond_id, id: nil %>
+        <% end %>
+
+        <button type="submit" title="Enviar por WhatsApp"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition cursor-pointer">
+          <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+        </button>
+      <% end %>
+    </div>
+
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Trato (Kg) por temperatura</h2>
 

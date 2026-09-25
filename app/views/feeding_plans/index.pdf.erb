@@ -1,0 +1,217 @@
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #111;
+    background: #fff;
+  }
+
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+
+  th {
+    background: #f0f0f0;
+    border: 1px solid #bbb;
+    padding: 6px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    vertical-align: top;
+  }
+
+  .master-table td {
+    font-weight: bold;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .income {
+    color: #15803d;
+  }
+
+  .expense {
+    color: #b91c1c;
+  }
+
+  .muted {
+    color: #777;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .badge-overdue {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+  }
+
+  .badge-settled {
+    background: #dcfce7;
+    border-color: #22c55e;
+    color: #166534;
+  }
+
+  .empty {
+    text-align: center;
+    color: #777;
+    padding: 18px;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #666;
+  }
+</style>
+
+<%
+  kg = ->(value) { value ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "-" }
+  mins = ->(value) { value ? number_with_precision(value, precision: 1, strip_insignificant_zeros: true, separator: ",", delimiter: ".") : "-" }
+  temp_label = ->(range) { "#{range.temperature_from.to_i}-#{range.temperature_to.to_i}°C" }
+  weight_label = ->(range) {
+    range ? "#{number_with_precision(range.weight_from, precision: 1, strip_insignificant_zeros: true, separator: ",")}-#{number_with_precision(range.weight_to, precision: 1, strip_insignificant_zeros: true, separator: ",")} g" : "-"
+  }
+  temperature_ranges = @plan.temperature_ranges
+  unit = @units.find { |u| u.id.to_s == @selected_unit_id.to_s }
+  selected_ponds = @selected_pond_ids.any? ? @ponds.map(&:name).join(", ") : "Todos"
+%>
+
+<div class="header">
+  <h1 class="title">Arraçoamento</h1>
+
+  <div class="subtitle">
+    Trato (kg) e tempo (min) por tanque em cada faixa de temperatura da água &middot;
+    Gerado em <%= l((@generated_at || Time.current), format: "%d/%m/%Y %H:%M") %>
+  </div>
+</div>
+
+<div class="section-title">Filtros utilizados</div>
+
+<table>
+  <tbody>
+    <tr>
+      <th scope="row">Tabela de arraçoamento</th>
+      <td><%= @feeding_table&.name || "-" %></td>
+
+      <th scope="row">Unidade</th>
+      <td><%= unit&.name || "-" %></td>
+
+      <th scope="row">Lote</th>
+      <td><%= @selected_batch&.name || "Todos" %></td>
+
+      <th scope="row">Tanques</th>
+      <td><%= selected_ponds %></td>
+    </tr>
+  </tbody>
+</table>
+
+<% if @ponds.empty? %>
+  <div class="section-title">Trato (Kg) por temperatura</div>
+  <p class="empty">Nenhum tanque encontrado para o filtro selecionado.</p>
+<% else %>
+  <div class="section-title">Trato (Kg) por temperatura</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tanque</th>
+        <th>Qtde. peixes</th>
+        <th>Peso médio (g)</th>
+        <th>Biomassa (kg)</th>
+        <th>Faixa</th>
+        <% temperature_ranges.each do |range| %>
+          <th><%= temp_label.call(range) %></th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @plan.rows.each do |row| %>
+        <tr>
+          <td><%= row.pond.name %></td>
+          <td class="text-right"><%= row.quantity.positive? ? number_with_delimiter(row.quantity, delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= row.avg_weight_g.positive? ? number_with_precision(row.avg_weight_g, precision: 2, separator: ",", delimiter: ".") : "-" %></td>
+          <td class="text-right"><%= row.biomass_kg.positive? ? kg.call(row.biomass_kg) : "-" %></td>
+          <td><%= weight_label.call(row.weight_range) %></td>
+          <% temperature_ranges.each do |range| %>
+            <td class="text-right"><%= kg.call(row.feed_kg_by_temp[range.id]) %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="section-title">Tempo (min) por temperatura</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tanque</th>
+        <th>s/kg</th>
+        <% temperature_ranges.each do |range| %>
+          <th><%= temp_label.call(range) %></th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @plan.rows.each do |row| %>
+        <tr>
+          <td><%= row.pond.name %></td>
+          <td class="text-right"><%= row.pond.feed_seconds_per_kg ? number_with_precision(row.pond.feed_seconds_per_kg, precision: 3, separator: ",", delimiter: ".") : "-" %></td>
+          <% temperature_ranges.each do |range| %>
+            <td class="text-right"><%= mins.call(row.time_min_by_temp[range.id]) %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    "-" indica que não há biomassa de lote ativo, peso médio, taxa de arraçoamento cadastrada para a faixa de peso/temperatura
+    ou calibração de tempo do tanque.
+  </div>
+<% end %>

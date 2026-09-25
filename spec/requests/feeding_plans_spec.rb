@@ -238,6 +238,148 @@ RSpec.describe "FeedingPlans", type: :request do
     end
   end
 
+  describe "print (PDF) and WhatsApp" do
+    let!(:batch) { stock(pond, biomass_kg: 6_900, quantity: 900_000) }
+    let!(:pond_7) { create(:pond, unit: unit, name: "Tanque 7", order_number: 2) }
+
+    def doc
+      Nokogiri::HTML(response.body)
+    end
+
+    def sign_in_with_tenant
+      sign_out user
+      company = create(:company, name: "Piscicultura Azul", tenant_name: "public")
+      create(:membership, user: user, company: company, role: "owner")
+      post user_session_path, params: { user: { tenant_name: "public", email: user.email, password: "password123" } }
+    end
+
+    it "offers Imprimir and WhatsApp only when there are tanks to show" do
+      get feeding_plans_path
+      expect(doc.at_css("a[title='Imprimir (PDF)']")).to be_nil
+      expect(doc.at_css("button[title='Enviar por WhatsApp']")).to be_nil
+
+      get feeding_plans_path, params: { unit_id: unit.id }
+      expect(doc.at_css("a[title='Imprimir (PDF)']")).to be_present
+      expect(doc.at_css("button[title='Enviar por WhatsApp']")).to be_present
+    end
+
+    it "makes the print link carry exactly the filters on screen and open outside the frame" do
+      get feeding_plans_path, params: { unit_id: unit.id, batch_id: batch.id, pond_ids: [pond.id] }
+
+      link = doc.at_css("a[title='Imprimir (PDF)']")
+      expect(link["target"]).to eq("_blank")
+      expect(link["data-turbo-frame"]).to eq("_top")
+      href = Rack::Utils.parse_nested_query(URI(link["href"]).query)
+      expect(link["href"]).to include(".pdf")
+      expect(href).to include("unit_id" => unit.id.to_s, "batch_id" => batch.id.to_s, "pond_ids" => [pond.id.to_s])
+      expect(href["feeding_table_id"]).to eq(feeding_table.id.to_s)
+    end
+
+    it "sends the same filters in the WhatsApp form, replacing the history entry" do
+      get feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond.id, pond_7.id] }
+
+      form = doc.at_css("form[action='#{create_share_feeding_plans_path}']")
+      expect(form["data-turbo-action"]).to eq("replace")
+      values = form.css("input[type=hidden]").map { |i| [i["name"], i["value"]] }
+      expect(values).to include(["unit_id", unit.id.to_s], ["pond_ids[]", pond.id.to_s], ["pond_ids[]", pond_7.id.to_s])
+    end
+
+    describe "GET /feeding_plans.pdf" do
+      it "requires login" do
+        sign_out user
+
+        get feeding_plans_path(format: :pdf, unit_id: unit.id)
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.body).not_to start_with("%PDF")
+      end
+
+      it "renders a PDF of the filtered plan" do
+        get feeding_plans_path(format: :pdf, unit_id: unit.id, pond_ids: [pond.id])
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("application/pdf")
+        expect(response.body[0, 4]).to eq("%PDF")
+      end
+
+      it "renders a PDF even without a unit (with a 'no tanks' notice)" do
+        get feeding_plans_path(format: :pdf)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("application/pdf")
+      end
+    end
+
+    describe "POST /feeding_plans/create_share" do
+      it "requires login" do
+        sign_out user
+
+        expect { post create_share_feeding_plans_path, params: { unit_id: unit.id } }.not_to change(ReportShare, :count)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it "stores the filters in a feeding_plan share and goes back to the screen with it" do
+        expect do
+          post create_share_feeding_plans_path, params: { feeding_table_id: feeding_table.id, unit_id: unit.id, batch_id: "", pond_ids: [pond.id, pond_7.id] }
+        end.to change(ReportShare, :count).by(1)
+
+        share = ReportShare.last
+        expect(share.report_type).to eq("feeding_plan")
+        expect(share.share_token).to be_present
+        expect(share.filters).to eq("feeding_table_id" => feeding_table.id.to_s, "unit_id" => unit.id.to_s, "pond_ids" => [pond.id.to_s, pond_7.id.to_s])
+        expect(response).to redirect_to(feeding_plans_path(feeding_table_id: feeding_table.id, unit_id: unit.id, pond_ids: [pond.id, pond_7.id], report_share_id: share.id))
+      end
+
+      it "opens WhatsApp inside the frame with the public PDF link once it goes back to the screen" do
+        sign_in_with_tenant
+
+        post create_share_feeding_plans_path, params: { unit_id: unit.id, pond_ids: [pond.id] }, headers: { "Turbo-Frame" => "feeding_plan" }
+        follow_redirect!(headers: { "Turbo-Frame" => "feeding_plan" })
+
+        share = ReportShare.last
+        opener = doc.at_css("turbo-frame#feeding_plan [data-controller='open-url']")
+        expect(opener).to be_present
+        url = opener["data-open-url-url-value"]
+        expect(url).to start_with("https://wa.me/?text=")
+        text = CGI.unescape(url.delete_prefix("https://wa.me/?text="))
+        expect(text).to include("Arraçoamento - Piscicultura Azul - Sede")
+        expect(text).to include("/shared/public/feeding_plans/#{share.id}/#{share.share_token}.pdf")
+      end
+
+      it "doesn't open WhatsApp without a valid share" do
+        sign_in_with_tenant
+
+        get feeding_plans_path, params: { unit_id: unit.id, report_share_id: 0 }
+
+        expect(doc.css("[data-controller='open-url']")).to be_empty
+      end
+    end
+
+    describe "GET /shared/:tenant_name/feeding_plans/:id/:share_token" do
+      let!(:share) { ReportShare.create!(report_type: "feeding_plan", filters: { "unit_id" => unit.id.to_s, "pond_ids" => [pond.id.to_s] }) }
+
+      it "renders the PDF publicly, without logging in" do
+        sign_out user
+
+        get shared_feeding_plan_pdf_path(tenant_name: "public", id: share.id, share_token: share.share_token, format: :pdf)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("application/pdf")
+      end
+
+      it "is not found with a wrong token or another report type" do
+        sign_out user
+        other = ReportShare.create!(report_type: "batch_report", filters: {})
+
+        get shared_feeding_plan_pdf_path(tenant_name: "public", id: share.id, share_token: "wrong", format: :pdf)
+        expect(response).to have_http_status(:not_found)
+
+        get shared_feeding_plan_pdf_path(tenant_name: "public", id: other.id, share_token: other.share_token, format: :pdf)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
   describe "PATCH /feeding_plans/calibrations" do
     it "stores the calibration sample on the pond and feeds the time table" do
       batch = stock(pond, biomass_kg: 6_000, quantity: 800_000)

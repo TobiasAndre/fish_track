@@ -1,0 +1,17 @@
+<%# Depois de "WhatsApp": abre o WhatsApp com o link público do PDF do arraçoamento (controller open-url). %>
+<% if params[:report_share_id].present? && session[:tenant_name].present? %>
+  <% report_share = ReportShare.find_by(id: params[:report_share_id], report_type: "feeding_plan") %>
+  <% if report_share.present? %>
+    <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
+    <% unit = @units.find { |u| u.id.to_s == @selected_unit_id.to_s } %>
+    <% mensagem = ["Arraçoamento", company&.name, unit&.name].compact.join(" - ") %>
+    <% pdf_url = shared_feeding_plan_pdf_url(
+      tenant_name: session[:tenant_name],
+      id: report_share.id,
+      share_token: report_share.share_token,
+      format: :pdf
+    ) %>
+    <div hidden data-turbo-temporary data-controller="open-url"
+         data-open-url-url-value="<%= whatsapp_share_url(message: mensagem, url: pdf_url) %>"></div>
+  <% end %>
+<% end %>

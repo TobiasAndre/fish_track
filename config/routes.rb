@@ -32,6 +32,10 @@ Rails.application.routes.draw do
     to: "employees#share_termination_report",
     as: :shared_employee_termination_report_pdf
 
+  get "shared/:tenant_name/feeding_plans/:id/:share_token",
+    to: "feeding_plans#share_pdf",
+    as: :shared_feeding_plan_pdf
+
   get "shared/:tenant_name/feeding_tables/:id/:share_token",
     to: "feeding_tables#share_pdf",
     as: :shared_feeding_table_pdf
@@ -122,7 +126,10 @@ Rails.application.routes.draw do
     end
 
     resources :feeding_plans, only: [:index] do
-      collection { patch :calibrations }
+      collection do
+        patch :calibrations
+        post :create_share
+      end
     end
 
     resources :feeding_types, except: [:show]
