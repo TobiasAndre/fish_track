@@ -1,0 +1,102 @@
+<% input_class = "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+<% box_class = "h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-500" %>
+<% actions = PermissionCatalog::ACTIONS %>
+
+<%= form_with model: profile, class: "space-y-6" do |f| %>
+  <%= render "shared/form_errors", resource: profile %>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :name, "Nome do perfil", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+      <%= f.text_field :name, required: true, maxlength: 60, placeholder: "Ex.: Técnico de campo", class: input_class %>
+    </div>
+
+    <div>
+      <%= f.label :description, "Descrição (opcional)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+      <%= f.text_field :description, class: input_class %>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-controller="permission-matrix">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Permissões por página</h2>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Marque o que este perfil pode fazer em cada página. Criar, editar e excluir exigem visualizar. Ações que não existem na página aparecem com "—".
+      </p>
+    </div>
+
+    <%# Marcador: garante que desmarcar tudo também limpe as permissões ao salvar. %>
+    <%= hidden_field_tag "access_profile[permission_matrix][__submitted]", "1", id: nil %>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300">
+            <th class="px-4 py-3 text-left font-medium">Página</th>
+
+            <% actions.each do |action| %>
+              <th class="px-3 py-3 text-center font-medium">
+                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Marcar toda a coluna (<%= action %>)">
+                  <span><%= PermissionCatalog::ACTION_LABELS[action] %></span>
+                  <span class="text-[10px] font-normal uppercase tracking-wide text-gray-400 dark:text-gray-500"><%= action %></span>
+                  <input type="checkbox" class="<%= box_class %>" aria-label="Marcar todos: <%= PermissionCatalog::ACTION_LABELS[action] %>"
+                    data-permission-matrix-target="columnToggle" data-column="<%= action %>"
+                    data-action="change->permission-matrix#toggleColumn">
+                </label>
+              </th>
+            <% end %>
+
+            <th class="px-3 py-3 text-center font-medium">
+              <span class="block">Tudo</span>
+              <span class="text-[10px] font-normal text-gray-400 dark:text-gray-500">na página</span>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% PermissionCatalog.groups.each do |group| %>
+            <tr class="bg-gray-50 dark:bg-gray-950">
+              <th colspan="<%= actions.size + 2 %>" class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <%= group.label %>
+              </th>
+            </tr>
+
+            <% group.resources.each do |resource| %>
+              <tr class="border-b border-gray-100 dark:border-gray-800" data-resource="<%= resource.key %>">
+                <td class="px-4 py-2 text-gray-900 dark:text-gray-100"><%= resource.label %></td>
+
+                <% actions.each do |action| %>
+                  <td class="px-3 py-2 text-center">
+                    <% if resource.allows?(action) %>
+                      <%= check_box_tag "access_profile[permission_matrix][#{resource.key}][]", action, profile.granted?(resource.key, action),
+                        id: "permission_#{resource.key}_#{action}",
+                        class: box_class,
+                        aria: { label: "#{PermissionCatalog::ACTION_LABELS[action]} #{resource.label}" },
+                        data: { permission_matrix_target: "box", resource: resource.key, action_name: action,
+                                action: "change->permission-matrix#changed" } %>
+                    <% else %>
+                      <span class="text-gray-300 dark:text-gray-700" title="Esta página não tem esta ação">—</span>
+                    <% end %>
+                  </td>
+                <% end %>
+
+                <td class="px-3 py-2 text-center">
+                  <input type="checkbox" class="<%= box_class %>" aria-label="Marcar tudo em <%= resource.label %>"
+                    data-permission-matrix-target="rowToggle" data-resource="<%= resource.key %>"
+                    data-action="change->permission-matrix#toggleRow">
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <%= link_to "Cancelar", access_profiles_path,
+      class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+    <%= f.submit(profile.persisted? ? "Atualizar perfil" : "Criar perfil",
+      class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition cursor-pointer") %>
+  </div>
+<% end %>

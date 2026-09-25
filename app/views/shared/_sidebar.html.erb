@@ -238,6 +238,11 @@
           <span>📝</span>
           <span class="text-sm font-medium">Logs</span>
         <% end %>
+
+        <%= link_to access_profiles_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'access_profiles' ? selected_menu : unselected_menu}" do %>
+          <span>🔐</span>
+          <span class="text-sm font-medium">Perfis de acesso</span>
+        <% end %>
       <% end %>
     </nav>
 
@@ -446,6 +451,11 @@
       <%= link_to admin_activity_logs_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'admin_activity_logs' ? selected_menu : unselected_menu}" do %>
         <span>📝</span>
         <span data-sidebar-target="label">Logs</span>
+      <% end %>
+
+      <%= link_to access_profiles_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'access_profiles' ? selected_menu : unselected_menu}" do %>
+        <span>🔐</span>
+        <span data-sidebar-target="label">Perfis de acesso</span>
       <% end %>
     <% end %>
   </nav>

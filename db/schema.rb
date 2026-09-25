@@ -10,9 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "access_profile_permissions", force: :cascade do |t|
+    t.bigint "access_profile_id", null: false
+    t.string "action", null: false
+    t.string "resource", null: false
+    t.index ["access_profile_id", "resource", "action"], name: "index_access_profile_permissions_uniqueness", unique: true
+    t.index ["access_profile_id"], name: "index_access_profile_permissions_on_access_profile_id"
+  end
+
+  create_table "access_profiles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((name)::text)", name: "index_access_profiles_on_lower_name", unique: true
+  end
 
   create_table "activity_logs", force: :cascade do |t|
     t.string "action", null: false
@@ -576,6 +592,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
     t.index ["pond_id"], name: "index_water_quality_readings_on_pond_id"
   end
 
+  add_foreign_key "access_profile_permissions", "access_profiles", on_delete: :cascade
   add_foreign_key "activity_logs", "companies"
   add_foreign_key "activity_logs", "users"
   add_foreign_key "batch_stockings", "batches"

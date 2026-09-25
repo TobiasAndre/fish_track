@@ -133,6 +133,8 @@ Rails.application.routes.draw do
     end
 
     resources :feeding_types, except: [:show]
+
+    resources :access_profiles, except: [:show]
     resources :feeding_brands, except: [:show]
 
     root "dashboard#show"
