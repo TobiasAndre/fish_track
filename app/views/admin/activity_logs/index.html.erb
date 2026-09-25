@@ -95,7 +95,8 @@
 
         <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
           <% @logs.each do |log| %>
-            <tr>
+            <tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/40 transition"
+                data-controller="row-link" data-action="click->row-link#open">
               <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                 <%= log.created_at.strftime("%d/%m/%Y %H:%M") %>
               </td>
@@ -114,7 +115,10 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                <%= log.description %>
+                <%# Clicar na linha (ou aqui) abre o detalhamento no modal. %>
+                <%= link_to log.description, admin_activity_log_path(log),
+                  data: { turbo_frame: "activity_log_detail", row_link_target: "link" },
+                  class: "hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline" %>
               </td>
               <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                 <%= log.ip_address || "—" %>
@@ -136,4 +140,10 @@
 
   <%= paginate @logs %>
   <% end %>
+
+  <%# Modal do detalhamento: fica fora do frame da lista para sobreviver a filtros e paginação. %>
+  <dialog data-controller="dialog" data-action="turbo:frame-load->dialog#open click->dialog#backdrop close->dialog#cleanup"
+    class="m-auto w-[min(56rem,calc(100vw-2rem))] rounded-2xl p-0 shadow-2xl bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 backdrop:bg-black/50">
+    <%= turbo_frame_tag "activity_log_detail", data: { dialog_target: "frame" } %>
+  </dialog>
 </div>

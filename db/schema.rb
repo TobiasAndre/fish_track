@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_180100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,6 +37,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_150000) do
     t.string "description", null: false
     t.string "event_type"
     t.string "ip_address"
+    t.jsonb "object_after"
+    t.jsonb "object_before"
     t.bigint "resource_id"
     t.string "resource_type", null: false
     t.datetime "updated_at", null: false
@@ -286,6 +288,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_150000) do
     t.index ["customer_id"], name: "index_integrateds_on_customer_id"
     t.index ["name"], name: "index_integrateds_on_name"
     t.index ["tax_id"], name: "index_integrateds_on_tax_id"
+  end
+
+  create_table "ip_locations", force: :cascade do |t|
+    t.string "city"
+    t.string "country"
+    t.string "country_code"
+    t.datetime "created_at", null: false
+    t.string "ip_address", null: false
+    t.string "isp"
+    t.decimal "latitude", precision: 9, scale: 6
+    t.decimal "longitude", precision: 9, scale: 6
+    t.datetime "looked_up_at", null: false
+    t.string "region"
+    t.string "source"
+    t.datetime "updated_at", null: false
+    t.index ["ip_address"], name: "index_ip_locations_on_ip_address", unique: true
   end
 
   create_table "memberships", force: :cascade do |t|

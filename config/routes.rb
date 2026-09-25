@@ -49,7 +49,7 @@ Rails.application.routes.draw do
     resources :users, only: %i[index new create edit update]
     resources :companies, only: %i[index new create edit update]
     resources :company_settings, only: %i[edit update]
-    resources :activity_logs, only: [:index]
+    resources :activity_logs, only: %i[index show]
   end
 
   authenticate :user do

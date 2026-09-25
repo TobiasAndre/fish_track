@@ -13,5 +13,12 @@ module Admin
       @companies = Company.order(:name)
       @users = User.order(:name)
     end
+
+    # Detalhamento de uma ação (abre num modal por Turbo Frame). A localização do IP
+    # é consultada aqui, só quando alguém abre o log.
+    def show
+      @log = ActivityLog.includes(:user, :company).find(params[:id])
+      @location = IpLocator.new.locate(@log.ip_address)
+    end
   end
 end
