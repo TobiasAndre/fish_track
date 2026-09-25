@@ -143,6 +143,98 @@ RSpec.describe "LoadingEvents", type: :request do
     end
   end
 
+  describe "Turbo Frames (only the affected area reloads)" do
+    def frame(id)
+      Nokogiri::HTML(response.body).at_css("turbo-frame##{id}")
+    end
+
+    def loading_params(**overrides)
+      { stocking_event: { batch_stocking_id: batch_stocking.id, occurred_on: Date.current, customer_id: customer.id,
+                          payment_method_id: payment_method.id, total_weight_kg: 100, avg_weight_g: 500 }.merge(overrides) }
+    end
+
+    def sign_in_with_tenant
+      sign_out user
+      company = create(:company, tenant_name: "public")
+      create(:membership, user: user, company: company, role: "owner")
+      post user_session_path, params: { user: { tenant_name: "public", email: user.email, password: "password123" } }
+    end
+
+    it "wraps the summary, form and history of a batch stocking in one frame that advances the URL, keeping the back link outside" do
+      get loading_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("loading_workspace")
+      expect(workspace["data-turbo-action"]).to eq("advance")
+      expect(workspace.at_css("form[action='#{loading_events_path}']")).to be_present
+      expect(workspace.text).to include("Novo lançamento", "Histórico")
+      expect(Nokogiri::HTML(response.body).at_css("a[href='#{loading_events_path}']").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "makes saving and deleting replace the history entry, and lets print/WhatsApp/edit stay in their place" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer, occurred_on: Date.current - 1)
+
+      get loading_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("loading_workspace")
+      expect(workspace.at_css("form[action='#{loading_events_path}']")["data-turbo-action"]).to eq("replace")
+      expect(workspace.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-action"] }.uniq).to eq(["replace"])
+      expect(workspace.css("a[title=Imprimir]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+
+    it "renders the flash toast inside the frame, once, after a save" do
+      post loading_events_path, params: loading_params
+      follow_redirect!
+
+      toasts = Nokogiri::HTML(response.body).css('[data-controller="flash"]')
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole["data-flash-message-value"]).to eq("Carregamento lançado com sucesso.")
+      expect(toasts.sole.ancestors("turbo-frame").map { |f| f["id"] }).to include("loading_workspace")
+    end
+
+    it "keeps the WhatsApp opener inside the frame so it fires when only the frame is replaced after a save" do
+      sign_in_with_tenant
+
+      post loading_events_path, params: loading_params, headers: { "Turbo-Frame" => "loading_workspace" }
+      follow_redirect!(headers: { "Turbo-Frame" => "loading_workspace" })
+
+      doc = Nokogiri::HTML(response.body)
+      opener = doc.at_css("turbo-frame#loading_workspace [data-controller='open-url']")
+      expect(opener).to be_present
+      expect(opener["data-open-url-url-value"]).to start_with("https://wa.me/?text=")
+      expect(doc.css("nav")).to be_empty
+      expect(doc.css('[data-controller="flash"]').size).to eq(1)
+      expect(doc.css("tbody tr").size).to be >= 1
+    end
+
+    it "shows validation errors inside the frame on a failed save" do
+      post loading_events_path, params: loading_params(occurred_on: nil), headers: { "Turbo-Frame" => "loading_workspace" }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(frame("loading_workspace").text).to include("Não foi possível salvar")
+    end
+
+    it "opens an edit inside the frame" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer, occurred_on: Date.current - 2)
+
+      get edit_loading_event_path(event), headers: { "Turbo-Frame" => "loading_workspace" }
+
+      expect(frame("loading_workspace").text).to include("Editar lançamento")
+    end
+
+    it "keeps the overview filters and list in their own frame and sends the row actions to a full visit" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer, occurred_on: Date.current - 4)
+
+      get loading_events_path
+
+      overview = frame("loading_overview")
+      expect(overview["data-turbo-action"]).to eq("advance")
+      expect(overview.at_css("select#unit_id")).to be_present
+      expect(overview.at_css("a[href='#{loading_events_path(batch_stocking_id: batch_stocking.id)}']")["data-turbo-frame"]).to eq("_top")
+      expect(overview.css("a[title=Editar]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+      expect(overview.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+  end
+
   describe "POST /loading_events" do
     it "creates a loading stocking event, deriving quantity from weight and avg weight" do
       expect do

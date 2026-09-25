@@ -51,6 +51,97 @@ RSpec.describe "FeedingEvents", type: :request do
     end
   end
 
+  describe "Turbo Frames (only the affected area reloads)" do
+    def frame(id)
+      Nokogiri::HTML(response.body).at_css("turbo-frame##{id}")
+    end
+
+    def new_event(**attrs)
+      create(:stocking_event, event_type: "feeding", batch_stocking: batch_stocking, occurred_on: Date.current - 2, feeding_type: feeding_type, feeding_brand: feeding_brand, feed_kg: 10, total_cents: 5_000, **attrs)
+    end
+
+    def create_params(**overrides)
+      { stocking_event: { batch_stocking_id: batch_stocking.id, occurred_on: Date.current, feeding_type_id: feeding_type.id, feed_kg: "50", total_cents: 25_000 }.merge(overrides) }
+    end
+
+    it "wraps the summary, form and history of a batch stocking in one frame that advances the URL, keeping the back link outside" do
+      get feeding_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("feeding_workspace")
+      expect(workspace["data-turbo-action"]).to eq("advance")
+      expect(workspace.at_css("form[action='#{feeding_events_path}']")).to be_present
+      expect(workspace.text).to include("Novo lançamento", "Histórico")
+      expect(Nokogiri::HTML(response.body).at_css("a[href='#{feeding_events_path}']").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "makes saving and deleting replace the history entry instead of stacking the same URL" do
+      new_event
+
+      get feeding_events_path(batch_stocking_id: batch_stocking.id)
+
+      workspace = frame("feeding_workspace")
+      expect(workspace.at_css("form[action='#{feeding_events_path}']")["data-turbo-action"]).to eq("replace")
+      expect(workspace.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-action"] }.uniq).to eq(["replace"])
+    end
+
+    it "renders the flash toast inside the frame, once, after a save" do
+      post feeding_events_path, params: create_params
+      follow_redirect!
+
+      toasts = Nokogiri::HTML(response.body).css('[data-controller="flash"]')
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole["data-flash-message-value"]).to eq("Ração lançada com sucesso.")
+      expect(toasts.sole.ancestors("turbo-frame").map { |f| f["id"] }).to include("feeding_workspace")
+    end
+
+    it "answers the frame request after a save with just the frame and the toast, without the app layout" do
+      post feeding_events_path, params: create_params, headers: { "Turbo-Frame" => "feeding_workspace" }
+      follow_redirect!(headers: { "Turbo-Frame" => "feeding_workspace" }) if response.redirect?
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-frame#feeding_workspace")).to be_present
+      expect(doc.css("nav")).to be_empty
+      expect(doc.css('[data-controller="flash"]').size).to eq(1)
+      expect(doc.css("tbody tr").size).to be >= 1
+    end
+
+    it "re-renders the form with the errors inside the frame on a validation failure" do
+      post feeding_events_path, params: create_params(occurred_on: nil), headers: { "Turbo-Frame" => "feeding_workspace" }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(frame("feeding_workspace").text).to include("Não foi possível salvar")
+    end
+
+    it "opens an edit inside the frame" do
+      event = new_event
+
+      get edit_feeding_event_path(event), headers: { "Turbo-Frame" => "feeding_workspace" }
+
+      expect(frame("feeding_workspace").text).to include("Editar")
+    end
+
+    it "keeps the overview filters and list in their own frame and sends the actions to a full visit" do
+      new_event
+
+      get feeding_events_path
+
+      overview = frame("feeding_overview")
+      expect(overview["data-turbo-action"]).to eq("advance")
+      expect(overview.at_css("select#unit_id")).to be_present
+      expect(overview.at_css("a[href='#{feeding_events_path(batch_stocking_id: batch_stocking.id)}']")["data-turbo-frame"]).to eq("_top")
+    end
+
+    it "sends the links to register a brand/type out of the frame" do
+      FeedingType.destroy_all
+
+      get feeding_events_path(batch_stocking_id: batch_stocking.id)
+
+      links = frame("feeding_workspace").css("a[href='#{new_feeding_brand_path}'], a[href='#{new_feeding_type_path}']")
+      expect(links.size).to eq(2)
+      expect(links.map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+  end
+
   describe "POST /feeding_events" do
     it "creates a feeding stocking event associated with the batch stocking" do
       expect do

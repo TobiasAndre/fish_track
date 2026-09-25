@@ -6,6 +6,8 @@
     </p>
   </div>
 
+  <%# Filtros, tabela e paginação são um frame: filtrar e paginar recarrega só ele (sem o "pulo"). %>
+  <%= turbo_frame_tag "activity_logs", data: { turbo_action: "advance" }, class: "block space-y-6 transition-opacity aria-busy:opacity-60" do %>
   <%= form_with url: admin_activity_logs_path, method: :get, local: true,
         class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
     <div class="w-48">
@@ -133,4 +135,5 @@
   </div>
 
   <%= paginate @logs %>
+  <% end %>
 </div>

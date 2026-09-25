@@ -1,4 +1,8 @@
 <div class="max-w-6xl mx-auto">
+  <%# A página toda (cabeçalho, totais, filtros, tabela e paginação) é um frame: filtrar, paginar, liquidar, reabrir ou excluir recarrega só ele (sem o "pulo") e o toast vem junto. O PDF e os totais ficam coerentes com os filtros. %>
+  <% content_for :flash_inline, "1" %>
+  <%= turbo_frame_tag "financial_entries", data: { turbo_action: "advance" }, class: "block transition-opacity aria-busy:opacity-60" do %>
+  <%= render "shared/flash" %>
   <div class="flex items-start justify-between gap-4">
     <div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Financeiro</h1>
@@ -11,11 +15,11 @@
       <%= link_to "Gerar PDF",
         financial_entries_path(format: :pdf, stage: @q_stage, entry_type: @q_type,
                                status: @q_status, batch_id: @q_batch_id, from: @q_from, to: @q_to),
-        target: "_blank",
+        target: "_blank", data: { turbo_frame: "_top" },
         class: "px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700
                 text-white text-sm font-medium transition" %>
 
-      <%= link_to "Novo lançamento", new_financial_entry_path,
+      <%= link_to "Novo lançamento", new_financial_entry_path, data: { turbo_frame: "_top" },
         class: "px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700
                 dark:bg-indigo-500 dark:hover:bg-indigo-400
                 text-white text-sm font-medium transition" %>
@@ -210,22 +214,25 @@
               <div class="flex justify-end gap-2">
                 <% if e.settled? %>
                   <%= button_to "Reabrir", unsettle_financial_entry_path(e), method: :patch,
+                    form: { data: { turbo_action: "replace" } },
                     data: { turbo_confirm: "Reabrir este lançamento? Os pagamentos registrados serão removidos e ele volta para em aberto." },
                     class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                             hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
                 <% else %>
                   <%= button_to (e.partially_paid? ? "Liquidar saldo" : "Liquidar"), settle_financial_entry_path(e), method: :patch,
+                    form: { data: { turbo_action: "replace" } },
                     class: "px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white transition" %>
                 <% end %>
-                <%= link_to (e.receivable? ? "Recebimentos" : "Pagamentos"), financial_entry_payments_path(e),
+                <%= link_to (e.receivable? ? "Recebimentos" : "Pagamentos"), financial_entry_payments_path(e), data: { turbo_frame: "_top" },
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
-                <%= link_to edit_financial_entry_path(e), title: "Editar", aria: { label: "Editar" },
+                <%= link_to edit_financial_entry_path(e), title: "Editar", aria: { label: "Editar" }, data: { turbo_frame: "_top" },
                   class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
                           hover:bg-gray-50 dark:hover:bg-gray-800 transition" do %>
                   <i class="fa-solid fa-pen-to-square"></i>
                 <% end %>
                 <%= button_to financial_entry_path(e), method: :delete,
+                  form: { data: { turbo_action: "replace" } },
                   title: "Excluir", aria: { label: "Excluir" },
                   data: { turbo_confirm: "Excluir lançamento?" },
                   class: "px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition cursor-pointer" do %>
@@ -264,5 +271,6 @@
 
       <%= paginate @entries %>
     </div>
+  <% end %>
   <% end %>
 </div>

@@ -7,6 +7,11 @@
       <% end %>
     </div>
 
+    <%# Resumo, formulário e histórico são um frame só: ao salvar, editar ou excluir, só ele é recarregado (sem o "pulo" da página) e o toast e a abertura do WhatsApp vêm junto. %>
+    <% content_for :flash_inline, "1" %>
+    <%= turbo_frame_tag "loading_workspace", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
+    <%= render "shared/flash" %>
+
     <%= render "shared/batch_stocking_summary",
           batch_stocking: @selected_batch_stocking,
           current_avg_weight_g: @current_avg_weight_g %>
@@ -33,7 +38,7 @@
         url: @stocking_event.persisted? ? loading_event_path(@stocking_event) : loading_events_path,
         method: @stocking_event.persisted? ? :patch : :post,
         local: true,
-        data: { controller: "loading-form" },
+        data: { controller: "loading-form", turbo_action: "replace" },
         class: "space-y-4" do |f| %>
 
         <%= f.hidden_field :batch_stocking_id, value: @selected_batch_stocking.id %>
@@ -339,7 +344,7 @@
                       <!-- Enviar por WhatsApp -->
                       <% if (whatsapp_url = loading_event_whatsapp_url(event)) %>
                         <%= link_to whatsapp_url,
-                          target: "_blank", rel: "noopener",
+                          target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
                           class: "text-gray-500 hover:text-green-600 transition",
                           title: "Enviar por WhatsApp" do %>
                           <i class="fa-brands fa-whatsapp text-xl"></i>
@@ -348,7 +353,7 @@
 
                       <!-- Imprimir -->
                       <%= link_to print_loading_event_path(event, format: :pdf),
-                        target: "_blank", rel: "noopener",
+                        target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
                         class: "text-gray-500 hover:text-indigo-600 transition",
                         title: "Imprimir" do %>
                         🖨️
@@ -363,7 +368,7 @@
 
                       <!-- Excluir -->
                       <%= link_to loading_event_path(event),
-                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                         class: "text-gray-500 hover:text-red-600 transition",
                         title: "Excluir" do %>
                         🗑️
@@ -397,8 +402,12 @@
         </div>
       <% end %>
     </div>
+    <%= render "loading_events/printable_opener" %>
+    <% end %>
   <% else %>
 
+    <%# Filtros e lista num frame: trocar unidade/tanque recarrega só a lista. Abrir um lote, editar e excluir saem do frame (outra tela). %>
+    <%= turbo_frame_tag "loading_overview", data: { turbo_action: "advance" }, class: "block transition-opacity aria-busy:opacity-60" do %>
     <div class="space-y-4">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -497,6 +506,7 @@
                 </div>
 
                 <%= link_to loading_events_path(batch_stocking_id: batch_stocking.id),
+                      data: { turbo_frame: "_top" },
                       class: "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700" do %>
                   Lançar carregamento
                 <% end %>
@@ -554,7 +564,7 @@
                             <!-- Enviar por WhatsApp -->
                             <% if (whatsapp_url = loading_event_whatsapp_url(event)) %>
                               <%= link_to whatsapp_url,
-                                target: "_blank", rel: "noopener",
+                                target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
                                 class: "text-gray-500 hover:text-green-600 transition",
                                 title: "Enviar por WhatsApp" do %>
                                 <i class="fa-brands fa-whatsapp text-xl"></i>
@@ -563,7 +573,7 @@
 
                             <!-- Imprimir -->
                             <%= link_to print_loading_event_path(event, format: :pdf),
-                              target: "_blank", rel: "noopener",
+                              target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-indigo-600 transition",
                               title: "Imprimir" do %>
                               🖨️
@@ -571,6 +581,7 @@
 
                             <!-- Editar -->
                             <%= link_to edit_loading_event_path(event),
+                              data: { turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-indigo-600 transition",
                               title: "Editar" do %>
                               ✏️
@@ -578,7 +589,7 @@
 
                             <!-- Excluir -->
                             <%= link_to loading_event_path(event),
-                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-red-600 transition",
                               title: "Excluir" do %>
                               🗑️
@@ -618,22 +629,8 @@
         </div>
       <% end %>
     </div>
-  <% end %>
-
-  <% if params[:printable_event_id].present? && session[:tenant_name].present? %>
-    <% printed_event = StockingEvent.find_by(id: params[:printable_event_id], event_type: "loading") %>
-    <% if printed_event.present? %>
-      <% printed_event.regenerate_share_token if printed_event.share_token.blank? %>
-      <% company = Company.find_by(tenant_name: session[:tenant_name]) %>
-      <% mensagem = "Carregamento #{company&.name}: #{printed_event.customer&.name || printed_event.batch_stocking.display_name}" %>
-      <% pdf_url = shared_loading_event_pdf_url(
-        tenant_name: session[:tenant_name],
-        id: printed_event.id,
-        share_token: printed_event.share_token,
-        format: :pdf
-      ) %>
-      <div hidden data-turbo-temporary data-controller="open-url"
-           data-open-url-url-value="https://wa.me/?text=<%= CGI.escape("#{mensagem} #{pdf_url}") %>"></div>
     <% end %>
   <% end %>
+
+  <%= render "loading_events/printable_opener" unless @selected_batch_stocking.present? %>
 </div>

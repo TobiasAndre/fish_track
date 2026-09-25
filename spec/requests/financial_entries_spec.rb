@@ -226,6 +226,65 @@ RSpec.describe "FinancialEntries", type: :request do
     end
   end
 
+  describe "Turbo Frame (only the list reloads)" do
+    def frame
+      Nokogiri::HTML(response.body).at_css("turbo-frame#financial_entries")
+    end
+
+    let!(:open_entry) { create(:financial_entry, description: "Conta aberta", amount_cents: 5_000, due_on: Date.current.next_day) }
+
+    it "wraps the header, totals, filters, table and paging in one frame that advances the URL" do
+      get financial_entries_path
+
+      expect(frame["data-turbo-action"]).to eq("advance")
+      expect(frame.at_css("h1").text).to include("Financeiro")
+      expect(frame.at_css("select#status")).to be_present
+      expect(frame.text).to include("Conta aberta", "A pagar em aberto")
+    end
+
+    it "keeps the PDF link in the frame so it always reflects the current filters" do
+      get financial_entries_path, params: { status: "pending" }
+
+      pdf = frame.at_css("a[target=_blank]")
+      expect(pdf["href"]).to include(".pdf", "status=pending")
+      expect(pdf["data-turbo-frame"]).to eq("_top")
+    end
+
+    it "sends the links to other screens out of the frame" do
+      get financial_entries_path
+
+      expect(frame.at_css("a[href='#{new_financial_entry_path}']")["data-turbo-frame"]).to eq("_top")
+      expect(frame.css("a[title=Editar]").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+      expect(frame.css("a[href='#{financial_entry_payments_path(open_entry)}']").map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+
+    it "makes settle, reopen and delete replace the history entry" do
+      get financial_entries_path
+
+      forms = frame.css("form[action='#{settle_financial_entry_path(open_entry)}'], form[action='#{financial_entry_path(open_entry)}']")
+      expect(forms.size).to eq(2)
+      expect(forms.map { |f| f["data-turbo-action"] }.uniq).to eq(["replace"])
+    end
+
+    it "renders the flash toast inside the frame, once, after settling" do
+      patch settle_financial_entry_path(open_entry), headers: { "HTTP_REFERER" => financial_entries_url(status: "pending") }
+      follow_redirect!
+
+      toasts = Nokogiri::HTML(response.body).css('[data-controller="flash"]')
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole.ancestors("turbo-frame").map { |f| f["id"] }).to include("financial_entries")
+    end
+
+    it "answers a frame request with just the frame, without the app layout" do
+      get financial_entries_path(status: "pending"), headers: { "Turbo-Frame" => "financial_entries" }
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-frame#financial_entries")).to be_present
+      expect(doc.css("nav")).to be_empty
+      expect(response.body).to include("Conta aberta")
+    end
+  end
+
   describe "partial payments" do
     let!(:partial) do
       create(:financial_entry, amount_cents: 100_000, description: "Ração parcial", due_on: Date.current.next_day).tap do |e|

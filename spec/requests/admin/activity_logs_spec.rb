@@ -11,6 +11,34 @@ RSpec.describe "Admin::ActivityLogs", type: :request do
     )
   end
 
+  describe "Turbo Frame (only the list reloads)" do
+    before { sign_in admin }
+
+    it "wraps the filters, table and paging in a frame that advances the URL" do
+      log_for(user: admin, description: "Criou o tanque Norte")
+
+      get admin_activity_logs_path
+
+      frame = Nokogiri::HTML(response.body).at_css("turbo-frame#activity_logs")
+      expect(frame["data-turbo-action"]).to eq("advance")
+      expect(frame.at_css("select#user_id")).to be_present
+      expect(frame.text).to include("Criou o tanque Norte")
+      expect(Nokogiri::HTML(response.body).at_css("h1").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "answers a frame request with just the filtered frame" do
+      log_for(user: admin, description: "Criou o tanque Norte")
+      log_for(user: admin, action: "destroy", description: "Removeu o tanque Sul")
+
+      get admin_activity_logs_path(action_type: "destroy"), headers: { "Turbo-Frame" => "activity_logs" }
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css("nav")).to be_empty
+      expect(response.body).to include("Removeu o tanque Sul")
+      expect(response.body).not_to include("Criou o tanque Norte")
+    end
+  end
+
   describe "GET /admin/activity_logs" do
     it "redirects to sign in when not authenticated" do
       get admin_activity_logs_path

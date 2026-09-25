@@ -45,6 +45,47 @@ RSpec.describe "FinancialPayments", type: :request do
     end
   end
 
+  describe "Turbo Frame (only the payments area reloads)" do
+    def frame
+      Nokogiri::HTML(response.body).at_css("turbo-frame#financial_payments")
+    end
+
+    it "wraps the summary, form and list in a frame, keeping the back link outside" do
+      get financial_entry_payments_path(entry)
+
+      expect(frame.text).to include("Registrar recebimento", "Valor")
+      expect(frame.at_css("form[action='#{financial_entry_payments_path(entry)}']")["data-turbo-action"]).to eq("replace")
+      expect(Nokogiri::HTML(response.body).at_css("a[href='#{financial_entries_path}']").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "makes deleting a payment replace the history entry" do
+      entry.payments.create!(paid_on: Date.current, amount_cents: 10_000)
+
+      get financial_entry_payments_path(entry)
+
+      expect(frame.css("form[action^='#{financial_entry_payments_path(entry)}/']").map { |f| f["data-turbo-action"] }.uniq).to eq(["replace"])
+    end
+
+    it "renders the toast inside the frame after registering a payment, with the updated balance" do
+      post financial_entry_payments_path(entry), params: { financial_payment: { paid_on: Date.current, amount_cents: 30_000 } },
+        headers: { "Turbo-Frame" => "financial_payments" }
+      follow_redirect!(headers: { "Turbo-Frame" => "financial_payments" })
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css("[data-controller=flash]").sole["data-flash-message-value"]).to eq("Recebimento registrado.")
+      expect(doc.css("nav")).to be_empty
+      expect(doc.text).to include("R$ 700,00")
+    end
+
+    it "shows validation errors inside the frame" do
+      post financial_entry_payments_path(entry), params: { financial_payment: { paid_on: Date.current, amount_cents: 999_999 } },
+        headers: { "Turbo-Frame" => "financial_payments" }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(frame.text).to include("excede o saldo")
+    end
+  end
+
   describe "POST /financial_entries/:id/payments" do
     it "registers a partial payment, leaving the entry pending with the balance" do
       expect do

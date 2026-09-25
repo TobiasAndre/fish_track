@@ -7,6 +7,11 @@
       <% end %>
     </div>
 
+    <%# Resumo, formulário e histórico são um frame só: ao salvar, editar ou excluir, só ele é recarregado (sem o "pulo" da página) e o toast vem junto. %>
+    <% content_for :flash_inline, "1" %>
+    <%= turbo_frame_tag "mortality_workspace", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
+    <%= render "shared/flash" %>
+
     <%= render "shared/batch_stocking_summary",
           batch_stocking: @selected_batch_stocking,
           current_avg_weight_g: @current_avg_weight_g %>
@@ -33,7 +38,7 @@
         url: @stocking_event.persisted? ? mortality_event_path(@stocking_event) : mortality_events_path,
         method: @stocking_event.persisted? ? :patch : :post,
         local: true,
-        data: { controller: "mortality-form" },
+        data: { controller: "mortality-form", turbo_action: "replace" },
         class: "space-y-4" do |f| %>
 
         <%= f.hidden_field :batch_stocking_id, value: @selected_batch_stocking.id %>
@@ -175,7 +180,7 @@
                       <% end %>
 
                       <%= link_to mortality_event_path(event),
-                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                         class: "text-gray-500 hover:text-red-600 transition",
                         title: "Excluir" do %>
                         🗑️
@@ -195,8 +200,11 @@
         </div>
       <% end %>
     </div>
+    <% end %>
   <% else %>
 
+    <%# Filtros e lista num frame: trocar unidade/tanque recarrega só a lista. Abrir um lote, editar e excluir saem do frame (outra tela). %>
+    <%= turbo_frame_tag "mortality_overview", data: { turbo_action: "advance" }, class: "block transition-opacity aria-busy:opacity-60" do %>
     <div class="space-y-4">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -289,6 +297,7 @@
                 </div>
 
                 <%= link_to mortality_events_path(batch_stocking_id: batch_stocking.id),
+                      data: { turbo_frame: "_top" },
                       class: "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700" do %>
                   Lançar mortalidade
                 <% end %>
@@ -335,13 +344,14 @@
                         <td class="py-2 pr-4 text-right">
                           <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
                             <%= link_to edit_mortality_event_path(event),
+                              data: { turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-indigo-600 transition",
                               title: "Editar" do %>
                               ✏️
                             <% end %>
 
                             <%= link_to mortality_event_path(event),
-                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                              data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_frame: "_top" },
                               class: "text-gray-500 hover:text-red-600 transition",
                               title: "Excluir" do %>
                               🗑️
@@ -370,5 +380,6 @@
         </div>
       <% end %>
     </div>
+    <% end %>
   <% end %>
 </div>
