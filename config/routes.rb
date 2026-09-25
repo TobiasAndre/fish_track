@@ -83,6 +83,7 @@ Rails.application.routes.draw do
     resources :mortality_events, only: %i[index new create edit update destroy]
     resources :feeding_events, only: %i[index new create edit update destroy]
     resources :silo_stock_entries, only: %i[index create edit update destroy]
+    resources :water_quality_readings, only: %i[index create edit update destroy]
     resources :loading_events, only: %i[index new edit create update destroy] do
       member do
         get :print, defaults: { format: :html }

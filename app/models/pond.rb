@@ -5,6 +5,7 @@ class Pond < ApplicationRecord
 
   has_many :batch_stockings, dependent: :destroy
   has_many :batches, through: :batch_stockings
+  has_many :water_quality_readings, dependent: :destroy
 
   validates :order_number, numericality: { only_integer: true }, allow_nil: true
   validates :feed_sample_kg, numericality: { greater_than: 0 }, allow_nil: true

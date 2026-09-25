@@ -182,6 +182,10 @@
         <span>🛢️</span><span class="text-sm font-medium">Estoque de Ração</span>
       <% end %>
 
+      <%= link_to water_quality_readings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'water_quality_readings' ? selected_menu : unselected_menu}" do %>
+        <span>🧪</span><span class="text-sm font-medium">Qualidade de Água</span>
+      <% end %>
+
       <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>
         <span>🚚</span><span class="text-sm font-medium">Carregamento</span>
       <% end %>
@@ -372,6 +376,10 @@
 
     <%= link_to silo_stock_entries_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_entries' ? selected_menu : unselected_menu}" do %>
       <span>🛢️</span><span data-sidebar-target="label">Estoque de Ração</span>
+    <% end %>
+
+    <%= link_to water_quality_readings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'water_quality_readings' ? selected_menu : unselected_menu}" do %>
+      <span>🧪</span><span data-sidebar-target="label">Qualidade de Água</span>
     <% end %>
 
     <%= link_to loading_events_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading' ? selected_menu : unselected_menu}" do %>

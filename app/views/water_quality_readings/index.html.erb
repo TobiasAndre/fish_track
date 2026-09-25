@@ -1,0 +1,238 @@
+<% parameters = WaterQualityReading::PARAMETERS %>
+<% fmt = ->(value, decimals) { value.nil? ? "—" : number_with_precision(value, precision: decimals, separator: ",", delimiter: ".") } %>
+<% input_class = "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+<% label_class = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+<% card = "rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" %>
+<% param_label = ->(key) { p = parameters[key]; p[:unit] ? "#{p[:label]} (#{p[:unit]})" : p[:label] } %>
+<% period = { from: @from.iso8601, to: @to.iso8601 } %>
+
+<div class="max-w-6xl mx-auto space-y-4">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Qualidade de Água</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+      Lance as análises por tanque (pH, nitrito, amônia, alcalinidade e salinidade), veja a última análise de cada um e o histórico em gráfico.
+    </p>
+  </div>
+
+  <%# Formulário, última análise, gráficos e histórico são um frame só: salvar, editar, excluir ou trocar o tanque/período recarrega só ele (sem o "pulo") e o toast vem junto. %>
+  <% content_for :flash_inline, "1" %>
+  <%= turbo_frame_tag "water_quality", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
+    <%= render "shared/flash" %>
+
+    <div class="<%= card %> p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">
+        <%= @reading.persisted? ? "Editar análise" : "Nova análise" %>
+      </h2>
+
+      <% if @reading.errors.any? %>
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <p class="font-medium mb-1">Não foi possível salvar:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <% @reading.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with model: @reading,
+        url: @reading.persisted? ? water_quality_reading_path(@reading) : water_quality_readings_path,
+        method: @reading.persisted? ? :patch : :post,
+        local: true,
+        data: { turbo_action: "replace" },
+        class: "space-y-4" do |f| %>
+        <%= hidden_field_tag :from, period[:from], id: nil %>
+        <%= hidden_field_tag :to, period[:to], id: nil %>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <%= f.label :pond_id, "Tanque", class: label_class %>
+            <%= f.collection_select :pond_id, @ponds, :id, :full_name, { prompt: "Selecione o tanque" }, required: true, class: input_class %>
+          </div>
+
+          <div>
+            <%= f.label :measured_at, "Data e hora da análise", class: label_class %>
+            <%= f.datetime_local_field :measured_at, required: true, class: input_class %>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <% parameters.each do |key, meta| %>
+            <div>
+              <%= f.label key, param_label.call(key), class: label_class %>
+              <%= f.number_field key, step: (meta[:decimals] >= 3 ? 0.001 : 0.01), min: 0, max: (key == :ph ? 14 : nil), inputmode: "decimal", class: input_class %>
+            </div>
+          <% end %>
+        </div>
+
+        <div>
+          <%= f.label :notes, "Observações", class: label_class %>
+          <%= f.text_area :notes, rows: 1, class: "#{input_class} resize-none" %>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <% if @reading.persisted? %>
+            <%= link_to "Cancelar", water_quality_readings_path(period.merge(pond_id: @reading.pond_id)),
+              class: "inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
+          <% end %>
+
+          <%= f.submit(@reading.persisted? ? "Atualizar análise" : "Salvar análise",
+            class: "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition cursor-pointer") %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="<%= card %> p-4">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Última análise de cada tanque</h2>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+              <th class="py-2 pr-4 font-medium">Tanque</th>
+              <th class="py-2 pr-4 font-medium">Análise</th>
+              <% parameters.each do |key, meta| %>
+                <th class="py-2 pr-4 font-medium text-right whitespace-nowrap">
+                  <%= meta[:label] %>
+                  <% if meta[:unit] %><span class="block text-[11px] font-normal"><%= meta[:unit] %></span><% end %>
+                </th>
+              <% end %>
+              <th class="py-2 font-medium"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% @ponds.each do |pond| %>
+              <% latest = @latest_by_pond_id[pond.id] %>
+              <tr class="border-b border-gray-100 dark:border-gray-800 <%= "bg-indigo-50/60 dark:bg-indigo-950/30" if pond == @selected_pond %>">
+                <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap"><%= pond.full_name %></td>
+
+                <% if latest %>
+                  <td class="py-2 pr-4 whitespace-nowrap"><%= l(latest.measured_at, format: "%d/%m/%Y %H:%M") %></td>
+                  <% parameters.each do |key, meta| %>
+                    <td class="py-2 pr-4 text-right whitespace-nowrap"><%= fmt.call(latest[key], meta[:decimals]) %></td>
+                  <% end %>
+                <% else %>
+                  <td class="py-2 pr-4 text-gray-500 dark:text-gray-400" colspan="<%= parameters.size + 1 %>">Sem análise lançada.</td>
+                <% end %>
+
+                <td class="py-2 text-right whitespace-nowrap">
+                  <% if latest %>
+                    <%= link_to "Ver gráfico", water_quality_readings_path(period.merge(pond_id: pond.id)),
+                      class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @ponds.empty? %>
+              <tr>
+                <td colspan="<%= parameters.size + 3 %>" class="py-4 text-gray-500 dark:text-gray-400">
+                  Nenhum tanque cadastrado. <%= link_to "Cadastrar tanque", new_pond_path, data: { turbo_frame: "_top" }, class: "text-indigo-600 dark:text-indigo-400 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="<%= card %> p-4">
+      <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Histórico<%= " — #{@selected_pond.full_name}" if @selected_pond %>
+        </h2>
+
+        <%= form_with url: water_quality_readings_path, method: :get, local: true,
+              class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
+          <div class="w-56">
+            <%= label_tag :pond_id, "Tanque", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+            <%= select_tag :pond_id, options_from_collection_for_select(@ponds, :id, :full_name, @selected_pond&.id),
+              prompt: "Selecione o tanque", data: { action: "change->auto-submit#submit" }, class: input_class %>
+          </div>
+
+          <div>
+            <%= label_tag :from, "De", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+            <%= date_field_tag :from, @from.iso8601, max: Date.current, data: { action: "change->auto-submit#submit" }, class: input_class %>
+          </div>
+
+          <div>
+            <%= label_tag :to, "Até", class: "block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" %>
+            <%= date_field_tag :to, @to.iso8601, max: Date.current, data: { action: "change->auto-submit#submit" }, class: input_class %>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @selected_pond.nil? %>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Selecione um tanque para ver o gráfico do período.</p>
+      <% elsif @readings.empty? %>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Nenhuma análise de <%= @selected_pond.full_name %> entre <%= l(@from) %> e <%= l(@to) %>.
+        </p>
+      <% else %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <% parameters.each do |key, meta| %>
+            <% series = @readings.filter_map { |reading| [reading.measured_at.iso8601, reading[key].to_f] if reading[key].present? } %>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+              <h3 class="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2"><%= param_label.call(key) %></h3>
+
+              <% if series.any? %>
+                <div id="water-chart-<%= key %>"
+                     data-controller="chart"
+                     data-chart-series-value="<%= series.to_json %>"
+                     data-chart-label-value="<%= meta[:label] %>"
+                     data-chart-color-value="<%= meta[:color] %>"
+                     data-chart-decimals-value="<%= meta[:decimals] %>"
+                     data-chart-suffix-value="<%= meta[:unit] %>"
+                     class="h-[220px]"></div>
+              <% else %>
+                <p class="py-6 text-sm text-gray-500 dark:text-gray-400">Sem lançamentos de <%= meta[:label] %> no período.</p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-800 text-left text-gray-500 dark:text-gray-400">
+                <th class="py-2 pr-4 font-medium">Análise</th>
+                <% parameters.each do |key, meta| %>
+                  <th class="py-2 pr-4 font-medium text-right"><%= meta[:label] %></th>
+                <% end %>
+                <th class="py-2 pr-4 font-medium">Observações</th>
+                <th class="py-2 font-medium text-right">Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% @readings.reverse_each do |reading| %>
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                  <td class="py-2 pr-4 whitespace-nowrap"><%= l(reading.measured_at, format: "%d/%m/%Y %H:%M") %></td>
+                  <% parameters.each do |key, meta| %>
+                    <td class="py-2 pr-4 text-right whitespace-nowrap"><%= fmt.call(reading[key], meta[:decimals]) %></td>
+                  <% end %>
+                  <td class="py-2 pr-4 text-gray-600 dark:text-gray-300"><%= reading.notes.presence || "—" %></td>
+                  <td class="py-2 text-right whitespace-nowrap">
+                    <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <%= link_to edit_water_quality_reading_path(reading, period),
+                        class: "text-gray-500 hover:text-indigo-600 transition", title: "Editar" do %>
+                        ✏️
+                      <% end %>
+
+                      <%= link_to water_quality_reading_path(reading, period),
+                        data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
+                        class: "text-gray-500 hover:text-red-600 transition", title: "Excluir" do %>
+                        🗑️
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

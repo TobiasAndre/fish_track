@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_24_100100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -561,6 +561,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_100100) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
+  create_table "water_quality_readings", force: :cascade do |t|
+    t.decimal "alkalinity", precision: 8, scale: 2
+    t.decimal "ammonia", precision: 7, scale: 3
+    t.datetime "created_at", null: false
+    t.datetime "measured_at", null: false
+    t.decimal "nitrite", precision: 7, scale: 3
+    t.text "notes"
+    t.decimal "ph", precision: 4, scale: 2
+    t.bigint "pond_id", null: false
+    t.decimal "salinity", precision: 6, scale: 2
+    t.datetime "updated_at", null: false
+    t.index ["pond_id", "measured_at"], name: "index_water_quality_readings_on_pond_id_and_measured_at"
+    t.index ["pond_id"], name: "index_water_quality_readings_on_pond_id"
+  end
+
   add_foreign_key "activity_logs", "companies"
   add_foreign_key "activity_logs", "users"
   add_foreign_key "batch_stockings", "batches"
@@ -609,4 +624,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_100100) do
   add_foreign_key "stocking_events", "payment_methods"
   add_foreign_key "stocking_events", "payment_terms"
   add_foreign_key "stocking_events", "suppliers"
+  add_foreign_key "water_quality_readings", "ponds"
 end
