@@ -49,6 +49,20 @@ RSpec.describe "Dashboard content", type: :request do
     expect(card.text.gsub(/\s+/, " ")).to include("Carregado: 800", "Despesa: R$ 300,00", "Faturamento: R$ 550,00")
   end
 
+  it "lists each active lote's tanks by the tank order_number" do
+    unit = create(:unit, name: "Sede")
+    pond_9 = create(:pond, unit: unit, name: "Tanque 9", order_number: 3)
+    pond_4 = create(:pond, unit: unit, name: "Tanque 4", order_number: 1)
+    pond_7 = create(:pond, unit: unit, name: "Tanque 7", order_number: 2)
+    multi = create(:batch, name: "Lote Multi", pond: pond_9)
+    [pond_7, pond_4].each { |pond| multi.batch_stockings.create!(pond: pond, quantity: 100, avg_weight_g: 1, stocked_on: Date.current) }
+
+    get root_path
+
+    card = doc.css("a").find { |a| a.text.include?("Lote Multi") }
+    expect(card.text.gsub(/\s+/, " ")).to include("Sede • Tanque: Tanque 4, Tanque 7, Tanque 9")
+  end
+
   it "no longer shows the recent events" do
     create(:stocking_event, :mortality, batch_stocking: batch.batch_stockings.first)
 

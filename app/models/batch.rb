@@ -44,6 +44,12 @@ class Batch < ApplicationRecord
     update_columns(current_biomass_kg: total_current_biomass)
   end
 
+  # Tanques do lote pela ordem de exibição (order_number, depois id, como Pond.ordered).
+  # Usa as lotações já carregadas, então não gera consulta por lote.
+  def ponds_in_order
+    batch_stockings.map(&:pond).uniq.sort_by { |pond| [pond.order_number, pond.id] }
+  end
+
   def current_pond
     batch_stockings.order(stocked_on: :desc, created_at: :desc).first&.pond
   end

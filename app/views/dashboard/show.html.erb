@@ -52,8 +52,9 @@
 
       <div class="p-4 flex flex-col gap-3">
         <% @active_batches.each do |b| %>
-          <% unit_names = b.batch_stockings.map { |s| s.pond.unit.name }.uniq.join(", ") %>
-          <% pond_names = b.batch_stockings.map { |s| s.pond.name }.uniq.join(", ") %>
+          <% ordered_ponds = b.ponds_in_order %>
+          <% unit_names = ordered_ponds.map { |pond| pond.unit.name }.uniq.join(", ") %>
+          <% pond_names = ordered_ponds.map(&:name).join(", ") %>
           <% current_quantity = b.current_quantity.to_i %>
           <% current_biomass = b.current_biomass_kg.to_d %>
 

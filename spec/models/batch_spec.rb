@@ -82,6 +82,30 @@ RSpec.describe Batch, type: :model do
     end
   end
 
+  describe "#ponds_in_order" do
+    it "lists the batch's ponds by order_number, not by stocking order" do
+      unit = create(:unit)
+      pond_9 = create(:pond, unit: unit, name: "Tanque 9", order_number: 3)
+      pond_4 = create(:pond, unit: unit, name: "Tanque 4", order_number: 1)
+      pond_7 = create(:pond, unit: unit, name: "Tanque 7", order_number: 2)
+      batch = create(:batch, pond: pond_9)
+      [pond_7, pond_4].each { |pond| batch.batch_stockings.create!(pond: pond, quantity: 100, avg_weight_g: 1, stocked_on: Date.current) }
+
+      expect(batch.reload.batch_stockings.map { |s| s.pond.name }).to eq(["Tanque 9", "Tanque 7", "Tanque 4"])
+      expect(batch.ponds_in_order.map(&:name)).to eq(["Tanque 4", "Tanque 7", "Tanque 9"])
+    end
+
+    it "breaks a tie on order_number by id and lists each pond once" do
+      unit = create(:unit)
+      first = create(:pond, unit: unit, name: "Primeiro", order_number: 5)
+      second = create(:pond, unit: unit, name: "Segundo", order_number: 5)
+      batch = create(:batch, pond: second)
+      [first, first].each { |pond| batch.batch_stockings.create!(pond: pond, quantity: 100, avg_weight_g: 1, stocked_on: Date.current) }
+
+      expect(batch.reload.ponds_in_order.map(&:name)).to eq(["Primeiro", "Segundo"])
+    end
+  end
+
   describe "#current_pond" do
     it "returns the pond of the most recently stocked batch stocking" do
       batch = create(:batch, stocked_on: 10.days.ago.to_date)
