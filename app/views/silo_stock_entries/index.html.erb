@@ -6,6 +6,11 @@
     </p>
   </div>
 
+  <%# Formulário, estoque atual e histórico são um frame só: ao salvar, editar, excluir, filtrar ou paginar, só ele é recarregado (sem o "pulo" da página inteira) e o toast vem junto. %>
+  <% content_for :flash_inline, "1" %>
+  <%= turbo_frame_tag "silo_stock", data: { turbo_action: "advance" }, class: "block space-y-4 transition-opacity aria-busy:opacity-60" do %>
+  <%= render "shared/flash" %>
+
   <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
     <div class="mb-3">
       <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -26,8 +31,8 @@
 
     <% if @feeding_types.empty? %>
       <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, class: "underline font-medium" %>
-        e um <%= link_to "tipo de ração", new_feeding_type_path, class: "underline font-medium" %> antes de lançar.
+        Cadastre uma <%= link_to "marca de ração", new_feeding_brand_path, data: { turbo_frame: "_top" }, class: "underline font-medium" %>
+        e um <%= link_to "tipo de ração", new_feeding_type_path, data: { turbo_frame: "_top" }, class: "underline font-medium" %> antes de lançar.
       </div>
     <% end %>
 
@@ -35,7 +40,7 @@
       url: @silo_stock_entry.persisted? ? silo_stock_entry_path(@silo_stock_entry) : silo_stock_entries_path,
       method: @silo_stock_entry.persisted? ? :patch : :post,
       local: true,
-      data: { controller: "feeding-form" },
+      data: { controller: "feeding-form", turbo_action: "replace" },
       class: "space-y-4" do |f| %>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -328,7 +333,7 @@
                     <% end %>
 
                     <%= link_to silo_stock_entry_path(entry),
-                      data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?" },
+                      data: { turbo_method: :delete, turbo_confirm: "Tem certeza que deseja excluir?", turbo_action: "replace" },
                       class: "text-gray-500 hover:text-red-600 transition",
                       title: "Excluir" do %>
                       🗑️
@@ -360,4 +365,5 @@
       </div>
     <% end %>
   </div>
+  <% end %>
 </div>

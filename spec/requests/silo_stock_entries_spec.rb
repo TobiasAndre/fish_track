@@ -185,6 +185,95 @@ RSpec.describe "SiloStockEntries", type: :request do
     end
   end
 
+  describe "Turbo Frame (only the affected area reloads)" do
+    def frame
+      Nokogiri::HTML(response.body).at_css("turbo-frame#silo_stock")
+    end
+
+    def valid_params(**overrides)
+      { silo_stock_entry: { silo_id: silo.id, feeding_type_id: feeding_type.id, occurred_on: Date.current,
+                            quantity_kg: 500, total_cents: 250_000 }.merge(overrides) }
+    end
+
+    it "wraps the form, current stock and history in one frame that advances the URL, keeping the heading outside" do
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 500, total_cents: 250_000)
+
+      get silo_stock_entries_path
+
+      expect(frame["data-turbo-action"]).to eq("advance")
+      expect(frame.text).to include("Nova entrada de estoque", "Estoque atual", "Histórico")
+      expect(frame.at_css("select#silo_id")).to be_present
+      expect(Nokogiri::HTML(response.body).at_css("h1").ancestors("turbo-frame")).to be_empty
+    end
+
+    it "makes saving, updating and deleting replace the history entry instead of stacking the same URL" do
+      create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 500, total_cents: 250_000)
+
+      get silo_stock_entries_path
+
+      expect(frame.at_css("form[action='#{silo_stock_entries_path}']")["data-turbo-action"]).to eq("replace")
+      expect(frame.css("a[data-turbo-method=delete]").map { |a| a["data-turbo-action"] }.uniq).to eq(["replace"])
+    end
+
+    it "keeps the links to register brands/types and the paging inside the right place" do
+      get silo_stock_entries_path
+      FeedingType.destroy_all
+      get silo_stock_entries_path
+
+      links = frame.css("a[href='#{new_feeding_brand_path}'], a[href='#{new_feeding_type_path}']")
+      expect(links.size).to eq(2)
+      expect(links.map { |a| a["data-turbo-frame"] }.uniq).to eq(["_top"])
+    end
+
+    it "paginates inside the frame (page links have no frame override)" do
+      create_list(:silo_stock_entry, 16, silo: silo, feeding_type: feeding_type, quantity_kg: 10, total_cents: 1_000)
+
+      get silo_stock_entries_path
+
+      page_links = frame.css("a[href*='page=']")
+      expect(page_links).not_to be_empty
+      expect(page_links.map { |a| a["data-turbo-frame"] }.compact).to be_empty
+    end
+
+    it "renders the flash toast inside the frame, once, after a save" do
+      post silo_stock_entries_path, params: valid_params
+      follow_redirect!
+
+      toasts = Nokogiri::HTML(response.body).css('[data-controller="flash"]')
+      expect(toasts.size).to eq(1)
+      expect(toasts.sole["data-flash-message-value"]).to eq("Estoque lançado com sucesso.")
+      expect(toasts.sole.ancestors("turbo-frame").map { |f| f["id"] }).to include("silo_stock")
+    end
+
+    it "answers the frame request after a save with just the frame, the updated stock and the toast, without the app layout" do
+      post silo_stock_entries_path, params: valid_params, headers: { "Turbo-Frame" => "silo_stock" }
+      follow_redirect!(headers: { "Turbo-Frame" => "silo_stock" }) if response.redirect?
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-frame#silo_stock")).to be_present
+      expect(doc.css("nav")).to be_empty
+      expect(doc.css('[data-controller="flash"]').size).to eq(1)
+      expect(doc.text).to include("Estoque atual", "500")
+    end
+
+    it "shows validation errors inside the frame on a failed save" do
+      post silo_stock_entries_path, params: valid_params(quantity_kg: ""), headers: { "Turbo-Frame" => "silo_stock" }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(frame.text).to include("Não foi possível salvar")
+    end
+
+    it "opens an edit and applies filters inside the frame" do
+      entry = create(:silo_stock_entry, silo: silo, feeding_type: feeding_type, quantity_kg: 500, total_cents: 250_000)
+
+      get edit_silo_stock_entry_path(entry), headers: { "Turbo-Frame" => "silo_stock" }
+      expect(frame.text).to include("Editar lançamento")
+
+      get silo_stock_entries_path(silo_id: silo.id), headers: { "Turbo-Frame" => "silo_stock" }
+      expect(frame.text).to include("Histórico")
+    end
+  end
+
   describe "POST /silo_stock_entries" do
     it "creates a silo stock entry" do
       expect do
