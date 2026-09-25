@@ -32,6 +32,16 @@
     border-bottom: 1px solid #ccc;
   }
 
+  /* A tabela de tempo sempre começa na página seguinte (a de trato fica na primeira). */
+  .new-page {
+    page-break-before: always;
+    margin-top: 0;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -184,7 +194,7 @@
     </tbody>
   </table>
 
-  <div class="section-title">Tempo (min) por temperatura</div>
+  <div class="section-title new-page">Tempo (min) por temperatura</div>
 
   <table>
     <thead>

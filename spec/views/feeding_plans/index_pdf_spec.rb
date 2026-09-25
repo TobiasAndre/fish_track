@@ -54,6 +54,22 @@ RSpec.describe "feeding_plans/index.pdf.erb", type: :view do
     expect(rendered).to include("<td>Tanque 7</td>", "Tanques")
   end
 
+  it "starts the time table on a new page, so it is always the second page" do
+    render_pdf(ponds: [pond_4, pond_7])
+
+    doc = Nokogiri::HTML(rendered)
+    expect(rendered).to include("page-break-before: always")
+    expect(doc.at_css(".section-title.new-page").text).to eq("Tempo (min) por temperatura")
+    expect(doc.css(".new-page").size).to eq(1)
+    expect(doc.at_css(".section-title", text: "Trato (Kg) por temperatura")["class"]).not_to include("new-page")
+  end
+
+  it "keeps a table row from being split across pages" do
+    render_pdf(ponds: [pond_4])
+
+    expect(rendered).to match(/tr\s*\{\s*page-break-inside:\s*avoid/)
+  end
+
   it "shows a notice when there is no tank" do
     render_pdf(ponds: [])
 

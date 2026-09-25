@@ -302,6 +302,32 @@ RSpec.describe "FeedingPlans", type: :request do
         expect(response.body[0, 4]).to eq("%PDF")
       end
 
+      # Conta as páginas do PDF gerado (objetos /Type /Page, sem contar /Pages).
+      def pdf_pages
+        response.body.b.scan(%r{/Type\s*/Page(?![a-z])}).size
+      end
+
+      it "puts the time table on the second page: trato page + tempo page" do
+        get feeding_plans_path(format: :pdf, unit_id: unit.id)
+
+        expect(pdf_pages).to eq(2)
+      end
+
+      it "keeps the same two pages for a single selected tank" do
+        get feeding_plans_path(format: :pdf, unit_id: unit.id, pond_ids: [pond.id])
+
+        expect(pdf_pages).to eq(2)
+      end
+
+      it "gives the shared (WhatsApp) PDF the same layout" do
+        share = ReportShare.create!(report_type: "feeding_plan", filters: { "unit_id" => unit.id.to_s })
+        sign_out user
+
+        get shared_feeding_plan_pdf_path(tenant_name: "public", id: share.id, share_token: share.share_token, format: :pdf)
+
+        expect(pdf_pages).to eq(2)
+      end
+
       it "renders a PDF even without a unit (with a 'no tanks' notice)" do
         get feeding_plans_path(format: :pdf)
 
