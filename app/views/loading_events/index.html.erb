@@ -496,6 +496,15 @@
                       </span>
                     <% end %>
 
+                    <%# Mesmo "Saldo atual" (em verde) do resumo exibido na tela de lançamento. %>
+                    <% saldo_atual = batch_stocking.current_quantity || batch_stocking.quantity %>
+                    <% if saldo_atual.present? %>
+                      <span class="inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                        Saldo atual:
+                        <span class="ml-1 font-medium"><%= number_with_delimiter(saldo_atual, delimiter: ".") %></span>
+                      </span>
+                    <% end %>
+
                     <% if batch_stocking.current_biomass_kg.present? %>
                       <span class="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         Biomassa:

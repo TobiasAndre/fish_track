@@ -88,6 +88,17 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response.body).to include("800")
     end
 
+    it "shows the running balance, in green, on each tank of the active batches listing" do
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: Date.current) # 200 loaded
+
+      get loading_events_path
+
+      badge = Nokogiri::HTML(response.body).css("span.bg-emerald-100").find { |span| span.text.include?("Saldo atual") }
+      expect(badge).to be_present
+      expect(badge.text).to include("800")
+    end
+
     it "shows payment term, due date and payment method on one row, with notes on the row below" do
       create(:payment_term, name: "30 dias", days: 30)
 
