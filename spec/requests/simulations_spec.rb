@@ -124,6 +124,32 @@ RSpec.describe "Simulations", type: :request do
     end
   end
 
+  describe "GET /simulations/:id/print" do
+    it "shows the customer's CPF/CNPJ and address" do
+      customer.update!(
+        tax_id: "12345678000199", address: "Rua das Flores", address_number: "123",
+        neighborhood: "Centro", city: "Toledo", state: "PR", postal_code: "85900-000"
+      )
+      sim = create(:simulation, customer: customer)
+
+      get print_simulation_path(sim)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("CPF/CNPJ", "12.345.678/0001-99")
+      expect(response.body).to include("Endereço", "Rua das Flores, 123, Centro, Toledo/PR, CEP 85900-000")
+    end
+
+    it "omits the CPF/CNPJ and address lines when the customer has none" do
+      sim = create(:simulation, customer: customer)
+
+      get print_simulation_path(sim)
+
+      expect(response.body).to include(customer.name)
+      expect(response.body).not_to include("CPF/CNPJ")
+      expect(response.body).not_to include("Endereço")
+    end
+  end
+
   describe "DELETE /simulations/:id" do
     it "removes the simulation" do
       sim = create(:simulation, customer: customer)

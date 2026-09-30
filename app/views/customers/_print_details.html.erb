@@ -1,0 +1,8 @@
+<%# CPF/CNPJ e endereço do cliente no cabeçalho dos impressos (orçamento e carregamento). %>
+<% if customer.tax_id.present? %>
+  CPF/CNPJ: <strong><%= format_tax_id(customer.tax_id) %></strong><br>
+<% end %>
+
+<% if customer.full_address.present? %>
+  Endereço: <strong><%= customer.full_address %></strong><br>
+<% end %>

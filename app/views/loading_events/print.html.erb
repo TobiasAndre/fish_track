@@ -13,6 +13,7 @@
 
           <% if @stocking_event.customer.present? %>
             Cliente: <strong><%= @stocking_event.customer.name %></strong><br>
+            <%= render "customers/print_details", customer: @stocking_event.customer %>
           <% end %>
 
           <% if @stocking_event.integrated.present? %>

@@ -10,6 +10,7 @@
 
         <div style="font-size: 14px; color: #4b5563;">
           Cliente: <strong><%= @simulation.customer.name %></strong><br>
+          <%= render "customers/print_details", customer: @simulation.customer %>
 
           <% if @simulation.integrated.present? %>
             Integrado: <strong><%= @simulation.integrated.name %></strong><br>

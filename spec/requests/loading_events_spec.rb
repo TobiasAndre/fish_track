@@ -416,6 +416,28 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(response.body).to include("Fornecedor")
       expect(response.body).to include(supplier.name)
     end
+
+    it "shows the customer's CPF/CNPJ and address" do
+      customer.update!(
+        tax_id: "12345678901", address: "Rua das Flores", address_number: "123",
+        neighborhood: "Centro", city: "Toledo", state: "PR", postal_code: "85900-000"
+      )
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer)
+
+      get print_loading_event_path(event)
+
+      expect(response.body).to include("CPF/CNPJ", "123.456.789-01")
+      expect(response.body).to include("Endereço", "Rua das Flores, 123, Centro, Toledo/PR, CEP 85900-000")
+    end
+
+    it "omits the CPF/CNPJ and address lines when the customer has none" do
+      event = create(:stocking_event, :loading, batch_stocking: batch_stocking, customer: customer)
+
+      get print_loading_event_path(event)
+
+      expect(response.body).not_to include("CPF/CNPJ")
+      expect(response.body).not_to include("Endereço")
+    end
   end
 
   describe "GET /shared/:tenant_name/loading_events/:id/:share_token" do
