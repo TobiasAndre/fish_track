@@ -25,6 +25,40 @@ RSpec.describe "Payroll", type: :request do
     end
   end
 
+  describe "GET /payroll filtered by employee" do
+    let!(:maria) { create(:employee, name: "Maria Filtrada") }
+    let!(:joao) { create(:employee, name: "João Escondido") }
+
+    def card_names
+      Nokogiri::HTML(response.body).css("turbo-frame[id^='payroll_employee_'] a[href^='/employees/']").map(&:text).uniq
+    end
+
+    it "lists every employee of the competência when no employee is chosen, with all of them as options" do
+      get payroll_path, params: { year: 2026, month: 6 }
+
+      expect(card_names).to contain_exactly("Maria Filtrada", "João Escondido")
+      options = Nokogiri::HTML(response.body).css("select#employee_id option").map(&:text)
+      expect(options).to eq(["Todos", "João Escondido", "Maria Filtrada"])
+    end
+
+    it "shows only the chosen employee's card, keeping the employee selected" do
+      get payroll_path, params: { year: 2026, month: 6, employee_id: maria.id }
+
+      expect(card_names).to eq(["Maria Filtrada"])
+      expect(Nokogiri::HTML(response.body).at_css("select#employee_id option[selected]").text).to eq("Maria Filtrada")
+    end
+
+    it "explains when the chosen employee is not on the payroll of that competência" do
+      maria.update_columns(status: "terminated", terminated_on: Date.new(2026, 5, 10))
+
+      get payroll_path, params: { year: 2026, month: 7, employee_id: maria.id }
+
+      expect(card_names).to be_empty
+      expect(response.body).to include("O funcionário selecionado não está na folha desta competência")
+      expect(response.body).not_to include("Nenhum funcionário cadastrado")
+    end
+  end
+
   describe "GET /payroll uses the salary vigente na competência" do
     it "shows the salary that was in effect during an old competence, not the current one" do
       employee = create(:employee, name: "Histórico Salarial", salary_cents: 300_000, started_on: Date.new(2024, 1, 1))

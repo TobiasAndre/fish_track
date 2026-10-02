@@ -15,6 +15,12 @@ class PayrollController < ApplicationController
     # Atualização de um frame (cartão de um funcionário): renderiza só ele, em vez
     # de calcular a folha de todo mundo para descartar o resto.
     frame_employee_id = request.headers["Turbo-Frame"].to_s[/\Apayroll_employee_(\d+)\z/, 1]
+
+    # Filtro por funcionário: as opções são os funcionários desta competência
+    # (dispensáveis na atualização de um cartão, que descarta o cabeçalho).
+    @employee_options = frame_employee_id ? [] : @employees.to_a
+    @selected_employee_id = params[:employee_id].presence
+    @employees = @employees.where(id: @selected_employee_id) if @selected_employee_id
     @employees = @employees.where(id: frame_employee_id) if frame_employee_id
 
     @items_by_employee = PayrollItem.where(year: @year, month: @month)
