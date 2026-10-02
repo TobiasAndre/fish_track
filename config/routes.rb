@@ -54,6 +54,13 @@ Rails.application.routes.draw do
     resources :companies, only: %i[index new create edit update]
     resources :company_settings, only: %i[edit update]
     resources :activity_logs, only: %i[index show]
+    resource :backup, only: %i[show update] do
+      post :run
+      get :download
+    end
+    resource :google_drive_connection, only: %i[new destroy] do
+      get :callback
+    end
   end
 
   authenticate :user do

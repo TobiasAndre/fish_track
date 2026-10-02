@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -47,6 +47,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_100000) do
     t.index ["created_at"], name: "index_activity_logs_on_created_at"
     t.index ["resource_type", "resource_id"], name: "index_activity_logs_on_resource_type_and_resource_id"
     t.index ["user_id"], name: "index_activity_logs_on_user_id"
+  end
+
+  create_table "backup_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "drive_folder_id"
+    t.string "drive_folder_name", default: "Fish Track - Backups", null: false
+    t.string "frequency", default: "daily", null: false
+    t.string "google_account_email"
+    t.string "google_client_id"
+    t.text "google_client_secret"
+    t.text "google_refresh_token"
+    t.integer "month_day", default: 1, null: false
+    t.datetime "next_run_at"
+    t.boolean "schedule_enabled", default: false, null: false
+    t.string "time_of_day", default: "03:00", null: false
+    t.datetime "updated_at", null: false
+    t.integer "weekday", default: 1, null: false
+  end
+
+  create_table "backups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "drive_file_id"
+    t.string "drive_file_url"
+    t.text "error_message"
+    t.string "filename"
+    t.datetime "finished_at"
+    t.bigint "requested_by_id"
+    t.bigint "size_bytes"
+    t.datetime "started_at"
+    t.string "status", default: "pending", null: false
+    t.string "trigger", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_backups_on_created_at"
+    t.index ["status"], name: "index_backups_on_status"
   end
 
   create_table "batch_stockings", force: :cascade do |t|
