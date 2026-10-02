@@ -12,6 +12,12 @@ class PayrollItem < ApplicationRecord
   # indevidamente (desconto) as despesas de folha.
   FINANCIAL_ENTRY_ITEM_TYPES = %w[advance thirteenth_advance salary_payment].freeze
 
+  # Adiantamentos (inclusive cada parcela de um parcelado) entram no financeiro em
+  # aberto, com vencimento na data do lançamento: quem liquida é o usuário, no
+  # Financeiro, quando paga de fato. O pagamento de salário só é lançado depois
+  # de pago, então já nasce liquidado.
+  SETTLED_ON_CREATE_ITEM_TYPES = %w[salary_payment].freeze
+
   validates :amount_cents, numericality: { greater_than: 0 }
   validates :year, :month, :occurred_on, :item_type, presence: true
 
@@ -36,16 +42,18 @@ class PayrollItem < ApplicationRecord
     FINANCIAL_ENTRY_ITEM_TYPES.include?(item_type)
   end
 
+  def settled_on_create?
+    SETTLED_ON_CREATE_ITEM_TYPES.include?(item_type)
+  end
+
   def create_financial_entry!
-    # Um item de folha só é lançado quando de fato foi pago, então já nasce
-    # liquidado. A baixa nunca fica no futuro: se a competência ainda não
-    # chegou, usa a data de hoje.
+    # A baixa nunca fica no futuro: se a competência ainda não chegou, usa a data de hoje.
     FinancialEntry.create!(
       entry_type: "expense",
       stage: "general",
       occurred_on: occurred_on,
       due_on: occurred_on,
-      settled_on: [occurred_on, Date.current].min,
+      settled_on: (settled_on_create? ? [occurred_on, Date.current].min : nil),
       amount_cents: amount_cents,
       description: financial_description,
       notes: notes,
@@ -64,8 +72,9 @@ class PayrollItem < ApplicationRecord
       notes: notes
     )
 
-    # Folha só é lançada depois de paga: se o valor mudou, quita a diferença.
-    financial_entry.settle!([occurred_on, Date.current].min)
+    # O pagamento de salário só é lançado depois de pago: se o valor mudou, quita
+    # a diferença. Adiantamentos seguem a liquidação feita no Financeiro.
+    financial_entry.settle!([occurred_on, Date.current].min) if settled_on_create?
   end
 
   def remove_financial_entry!

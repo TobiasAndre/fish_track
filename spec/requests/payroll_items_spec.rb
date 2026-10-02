@@ -7,6 +7,19 @@ RSpec.describe "PayrollItems", type: :request do
   before { sign_in user }
 
   describe "POST /payroll_items" do
+    it "launches an installment advance as one pending financial entry per month, for manual settlement" do
+      post payroll_items_path, params: {
+        installments_count: 3,
+        payroll_item: { employee_id: employee.id, year: 2026, month: 9, amount_cents: 90_000, item_type: "advance" }
+      }
+
+      entries = FinancialEntry.order(:due_on)
+      expect(entries.map(&:due_on)).to eq([Date.new(2026, 9, 1), Date.new(2026, 10, 1), Date.new(2026, 11, 1)])
+      expect(entries.map(&:amount_cents)).to eq([30_000, 30_000, 30_000])
+      expect(entries).to all(be_pending)
+      expect(FinancialPayment.count).to eq(0)
+    end
+
     it "creates an advance and its linked financial entry" do
       expect do
         post payroll_items_path, params: {

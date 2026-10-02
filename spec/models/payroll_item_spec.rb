@@ -40,8 +40,8 @@ RSpec.describe PayrollItem, type: :model do
       expect(item.financial_entry.reload.amount_cents).to eq(75_000)
     end
 
-    it "keeps the financial entry settled when the item amount changes, paying the difference" do
-      item = create(:payroll_item, item_type: "advance", amount_cents: 50_000)
+    it "keeps a salary payment settled when its amount changes, paying the difference" do
+      item = create(:payroll_item, item_type: "salary_payment", amount_cents: 50_000)
 
       item.update!(amount_cents: 75_000)
 
@@ -49,6 +49,45 @@ RSpec.describe PayrollItem, type: :model do
       expect(entry).to be_settled
       expect(entry.paid_cents).to eq(75_000)
       expect(entry.payments.order(:id).map(&:amount_cents)).to eq([50_000, 25_000])
+    end
+
+    it "creates the salary payment entry already settled" do
+      item = create(:payroll_item, item_type: "salary_payment", occurred_on: Date.current)
+
+      expect(item.financial_entry).to be_settled
+      expect(item.financial_entry.settled_on).to eq(Date.current)
+    end
+
+    it "creates advances (normal and 13th) pending, due on the item date, for the user to settle in the Financeiro" do
+      %w[advance thirteenth_advance].each do |type|
+        item = create(:payroll_item, item_type: type, amount_cents: 50_000, occurred_on: Date.new(2026, 11, 1))
+        entry = item.financial_entry
+
+        expect(entry).to be_pending
+        expect(entry).to have_attributes(due_on: Date.new(2026, 11, 1), paid_cents: 0)
+        expect(entry.payments).to be_empty
+      end
+    end
+
+    it "keeps an advance pending when its amount changes" do
+      item = create(:payroll_item, item_type: "advance", amount_cents: 50_000)
+
+      item.update!(amount_cents: 75_000)
+
+      entry = item.financial_entry.reload
+      expect(entry).to be_pending
+      expect(entry.balance_cents).to eq(75_000)
+    end
+
+    it "reopens a settled advance when its amount goes up, leaving the difference to pay" do
+      item = create(:payroll_item, item_type: "advance", amount_cents: 50_000)
+      item.financial_entry.settle!
+
+      item.update!(amount_cents: 75_000)
+
+      entry = item.financial_entry.reload
+      expect(entry).to be_pending
+      expect(entry).to have_attributes(paid_cents: 50_000, balance_cents: 25_000)
     end
 
     it "removes the financial entry when the item is destroyed" do
