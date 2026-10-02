@@ -33,7 +33,8 @@ class FinancialEntriesController < ApplicationController
       else base
       end
 
-    ordered = scope.order(due_on: :desc, occurred_on: :desc, created_at: :desc)
+    # Ordem de lançamento: o último cadastrado primeiro (na tela e no PDF).
+    ordered = scope.order(created_at: :desc, id: :desc)
 
     # Totais do recorte atual (respeitam os filtros, menos a paginação).
     @total_income_cents  = scope.income.sum(:amount_cents)

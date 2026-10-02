@@ -150,6 +150,17 @@ RSpec.describe "FinancialEntries", type: :request do
   end
 
   describe "filtering by status" do
+    it "lists the entries in the order they were launched, the latest first, regardless of their dates" do
+      create(:financial_entry, description: "LancPrimeiro", occurred_on: Date.new(2026, 9, 20), due_on: Date.new(2026, 12, 1), created_at: 3.days.ago)
+      create(:financial_entry, description: "LancSegundo", occurred_on: Date.new(2026, 1, 5), due_on: Date.new(2026, 1, 5), created_at: 2.days.ago)
+      create(:financial_entry, description: "LancTerceiro", occurred_on: Date.new(2026, 6, 1), due_on: Date.new(2026, 7, 1), created_at: 1.day.ago)
+
+      get financial_entries_path
+
+      positions = %w[LancTerceiro LancSegundo LancPrimeiro].map { |description| response.body.index(description) }
+      expect(positions).to eq(positions.sort)
+    end
+
     it "returns only pending / overdue / settled entries" do
       create(:financial_entry, description: "LancFuturoAberto", due_on: Date.current.next_month, settled_on: nil)
       create(:financial_entry, description: "LancAtrasado", due_on: Date.current.prev_day, settled_on: nil)
