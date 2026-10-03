@@ -59,7 +59,7 @@ class PermissionCatalog
       build("silo_stock_entries", "Estoque de Ração"),
       build("water_quality_readings", "Qualidade de Água"),
       build("loading_events", "Carregamento"),
-      build("payroll", "Folha", controllers: %w[payroll payroll_items]),
+      build("payroll", "Folha", controllers: %w[payroll payroll_items payroll_statements]),
       build("financial_entries", "Financeiro", controllers: %w[financial_entries financial_payments]),
       build("orders", "Pedidos"),
       build("simulations", "Orçamentos")

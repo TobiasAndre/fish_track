@@ -32,6 +32,10 @@ Rails.application.routes.draw do
     to: "loading_reports#share_pdf",
     as: :shared_loading_report_pdf
 
+  get "shared/:tenant_name/payroll_statements/:id/:year/:month/:share_token",
+    to: "payroll_statements#share_pdf",
+    as: :shared_payroll_statement_pdf
+
   get "shared/:tenant_name/employees/:id/:share_token",
     to: "employees#share_termination_report",
     as: :shared_employee_termination_report_pdf
@@ -124,6 +128,7 @@ Rails.application.routes.draw do
     resource :payroll, only: [:show, :update], controller: "payroll"
 
     resources :payroll_items, only: [:create, :destroy]
+    resources :payroll_statements, only: :show
 
     resources :feeding_tables do
       member do

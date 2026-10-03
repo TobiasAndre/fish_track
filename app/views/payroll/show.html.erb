@@ -42,21 +42,22 @@
 
   <div class="mt-6 space-y-4">
     <% @employees.each do |emp| %>
-      <% items = (@items_by_employee[emp.id] || []) %>
-      <% advances = items.select { |i| i.item_type == "advance" } %>
-      <% thirteenth_advances = items.select { |i| i.item_type == "thirteenth_advance" } %>
-      <% bonuses = items.select { |i| i.item_type == "bonus" } %>
-      <% discounts = items.select { |i| i.item_type == "discount" } %>
-      <% salary_payment = items.find { |i| i.item_type == "salary_payment" } %>
-      <% total_adv_cents = advances.sum(&:amount_cents) %>
-      <% total_thirteenth_advance_cents = thirteenth_advances.sum(&:amount_cents) %>
-      <% total_bonus_cents = bonuses.sum(&:amount_cents) %>
-      <% total_discount_cents = discounts.sum(&:amount_cents) %>
-      <% terminated_this_month = emp.terminated? && emp.terminated_on.present? && emp.terminated_on.year == @year && emp.terminated_on.month == @month %>
-      <% salary_cents = terminated_this_month ? 0 : emp.salary_on(@competence_date).to_i %>
-      <% remaining_cents = [salary_cents + total_bonus_cents - total_adv_cents - total_discount_cents, 0].max %>
-      <% paid_cents = salary_payment&.amount_cents.to_i %>
-      <% outstanding_cents = [remaining_cents - paid_cents, 0].max %>
+      <%# Mesma conta do demonstrativo em PDF (PayrollStatement). %>
+      <% statement = PayrollStatement.new(emp, year: @year, month: @month, items: @items_by_employee[emp.id] || []) %>
+      <% advances = statement.advances %>
+      <% thirteenth_advances = statement.thirteenth_advances %>
+      <% bonuses = statement.bonuses %>
+      <% discounts = statement.discounts %>
+      <% salary_payment = statement.salary_payment %>
+      <% total_adv_cents = statement.total_advance_cents %>
+      <% total_thirteenth_advance_cents = statement.total_thirteenth_advance_cents %>
+      <% total_bonus_cents = statement.total_bonus_cents %>
+      <% total_discount_cents = statement.total_discount_cents %>
+      <% terminated_this_month = statement.terminated_this_month? %>
+      <% salary_cents = statement.salary_cents %>
+      <% remaining_cents = statement.remaining_cents %>
+      <% paid_cents = statement.paid_cents %>
+      <% outstanding_cents = statement.outstanding_cents %>
       <% emp_alerts = EmployeeAlerts.new(emp, reference_date: @competence_date).call %>
       <% available_vacations = emp.vacations.where(status: "available") %>
       <% scheduled_vacations = emp.vacations.where(status: "scheduled") %>
@@ -141,6 +142,24 @@
                         dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs font-medium transition" %>
               <% end %>
             <% end %>
+
+            <%# Demonstrativo do mês para enviar ao funcionário. %>
+            <div class="mt-2 flex items-center justify-end gap-2">
+              <%= link_to "📄 Demonstrativo", payroll_statement_path(emp, year: @year, month: @month, format: :pdf),
+                target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
+                title: "Demonstrativo de pagamento #{statement.competence_label} (PDF)",
+                class: "px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+                        hover:bg-gray-50 dark:hover:bg-gray-800 transition text-xs font-medium" %>
+
+              <% if (whatsapp_url = payroll_statement_whatsapp_url(emp, year: @year, month: @month)) %>
+                <%= link_to whatsapp_url,
+                  target: "_blank", rel: "noopener", data: { turbo_frame: "_top" },
+                  title: "Enviar o demonstrativo por WhatsApp",
+                  class: "text-gray-500 hover:text-green-600 transition" do %>
+                  <i class="fa-brands fa-whatsapp text-xl"></i>
+                <% end %>
+              <% end %>
+            </div>
           </div>
         </div>
 

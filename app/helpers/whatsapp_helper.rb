@@ -34,4 +34,23 @@ module WhatsappHelper
 
     whatsapp_share_url(message: message, url: pdf_url)
   end
+
+  # URL do WhatsApp para enviar ao funcionário o demonstrativo de pagamento da
+  # competência. Nil sem empresa na sessão, como no carregamento.
+  def payroll_statement_whatsapp_url(employee, year:, month:)
+    tenant_name = session[:tenant_name].presence
+    return if tenant_name.blank?
+
+    employee.regenerate_share_token if employee.share_token.blank?
+
+    company = current_company || Company.find_by(tenant_name: tenant_name)
+    message = "Demonstrativo de pagamento #{format('%02d', month)}/#{year} - #{employee.name}#{" (#{company.name})" if company}:"
+
+    pdf_url = shared_payroll_statement_pdf_url(
+      tenant_name: tenant_name, id: employee.id, year: year, month: month,
+      share_token: employee.share_token, format: :pdf
+    )
+
+    whatsapp_share_url(message: message, url: pdf_url)
+  end
 end

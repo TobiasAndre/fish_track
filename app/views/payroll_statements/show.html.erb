@@ -1,0 +1,140 @@
+<%
+  s = @statement
+  brl = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".") }
+  date = ->(value) { value.present? ? l(value) : "—" }
+  item_label = lambda do |item, base|
+    label = base.dup
+    label << " — parcela #{item.installment_number}/#{item.installments_count}" if item.installment_number && item.installments_count
+    label << " (#{item.notes})" if item.notes.present?
+    label
+  end
+  cell = "border: 1px solid #d1d5db; padding: 8px 12px;"
+  head = "#{cell} background: #f9fafb; text-align: left;"
+  section = "#{cell} background: #f3f4f6; font-weight: bold;"
+%>
+
+<div style="width: 100%; font-family: Arial, sans-serif; color: #111827; background: #ffffff; padding: 24px; box-sizing: border-box;">
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+    <tr>
+      <td style="border: none; vertical-align: top;">
+        <h1 style="font-size: 26px; margin: 0 0 8px 0;">Demonstrativo de pagamento</h1>
+
+        <div style="font-size: 14px; color: #4b5563; line-height: 1.5;">
+          <% if @company.present? %>
+            Empresa: <strong><%= @company.name %></strong><br>
+          <% end %>
+          Funcionário: <strong><%= @employee.name %></strong><br>
+          <% if @employee.role.present? %>
+            Cargo: <strong><%= @employee.role %></strong><br>
+          <% end %>
+          Competência: <strong><%= s.competence_label %></strong><br>
+          Admissão: <strong><%= date.call(@employee.started_on) %></strong>
+        </div>
+      </td>
+
+      <td style="border: none; text-align: right; vertical-align: top;">
+        <% if @company&.logo_url.present? %>
+          <img src="<%= @company.logo_url %>" alt="Logomarca" style="max-height: 80px; max-width: 200px;">
+        <% end %>
+      </td>
+    </tr>
+  </table>
+
+  <% if s.terminated_this_month? %>
+    <div style="margin-bottom: 16px; padding: 10px 12px; border: 1px solid #fcd34d; background: #fffbeb; font-size: 13px;">
+      Desligado em <%= l(@employee.terminated_on) %>. O salário do mês e as verbas rescisórias constam no relatório de acerto rescisório.
+    </div>
+  <% end %>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 24px;">
+    <thead>
+      <tr>
+        <th style="<%= head %>">Descrição</th>
+        <th style="<%= head %> width: 110px;">Data</th>
+        <th style="<%= head %> width: 140px; text-align: right;">Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="3" style="<%= section %>">Proventos</td></tr>
+      <tr>
+        <td style="<%= cell %>">Salário base</td>
+        <td style="<%= cell %>"><%= s.competence_label %></td>
+        <td style="<%= cell %> text-align: right;"><%= brl.call(s.salary_cents) %></td>
+      </tr>
+      <% s.bonuses.each do |item| %>
+        <tr>
+          <td style="<%= cell %>"><%= item_label.call(item, "Bônus") %></td>
+          <td style="<%= cell %>"><%= date.call(item.occurred_on) %></td>
+          <td style="<%= cell %> text-align: right;"><%= brl.call(item.amount_cents) %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <td colspan="2" style="<%= cell %> font-weight: bold;">Total de proventos</td>
+        <td style="<%= cell %> text-align: right; font-weight: bold;"><%= brl.call(s.earnings_cents) %></td>
+      </tr>
+
+      <tr><td colspan="3" style="<%= section %>">Descontos</td></tr>
+      <% s.advances.each do |item| %>
+        <tr>
+          <td style="<%= cell %>"><%= item_label.call(item, "Adiantamento") %></td>
+          <td style="<%= cell %>"><%= date.call(item.occurred_on) %></td>
+          <td style="<%= cell %> text-align: right;">- <%= brl.call(item.amount_cents) %></td>
+        </tr>
+      <% end %>
+      <% s.discounts.each do |item| %>
+        <tr>
+          <td style="<%= cell %>"><%= item_label.call(item, "Desconto") %></td>
+          <td style="<%= cell %>"><%= date.call(item.occurred_on) %></td>
+          <td style="<%= cell %> text-align: right;">- <%= brl.call(item.amount_cents) %></td>
+        </tr>
+      <% end %>
+      <% if s.advances.empty? && s.discounts.empty? %>
+        <tr><td colspan="3" style="<%= cell %> color: #6b7280;">Nenhum adiantamento ou desconto nesta competência.</td></tr>
+      <% end %>
+      <tr>
+        <td colspan="2" style="<%= cell %> font-weight: bold;">Total de descontos</td>
+        <td style="<%= cell %> text-align: right; font-weight: bold;">- <%= brl.call(s.deductions_cents) %></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+    <tr>
+      <td style="<%= cell %> background: #f9fafb; font-weight: bold;">Líquido do mês</td>
+      <td style="<%= cell %> width: 140px; text-align: right; font-weight: bold; font-size: 16px;"><%= brl.call(s.remaining_cents) %></td>
+    </tr>
+    <tr>
+      <td style="<%= cell %> background: #f9fafb;">
+        Pago
+        <% if s.salary_payment %>
+          em <%= l(s.salary_payment.occurred_on) %>
+        <% end %>
+      </td>
+      <td style="<%= cell %> text-align: right;"><%= brl.call(s.paid_cents) %></td>
+    </tr>
+    <tr>
+      <td style="<%= cell %> background: #f9fafb; font-weight: bold;">Saldo a receber</td>
+      <td style="<%= cell %> text-align: right; font-weight: bold;"><%= brl.call(s.outstanding_cents) %></td>
+    </tr>
+  </table>
+
+  <% if s.thirteenth_advances.any? %>
+    <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Adiantamento do 13º salário</div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px;">
+      <% s.thirteenth_advances.each do |item| %>
+        <tr>
+          <td style="<%= cell %>"><%= item_label.call(item, "Adiantamento 13º") %></td>
+          <td style="<%= cell %> width: 110px;"><%= date.call(item.occurred_on) %></td>
+          <td style="<%= cell %> width: 140px; text-align: right;"><%= brl.call(item.amount_cents) %></td>
+        </tr>
+      <% end %>
+    </table>
+    <p style="font-size: 12px; color: #6b7280; margin: 0 0 24px 0;">
+      Valores adiantados do 13º salário: não são descontados do salário do mês.
+    </p>
+  <% end %>
+
+  <p style="font-size: 11px; color: #9ca3af; margin-top: 32px;">
+    Emitido em <%= l(Time.current, format: "%d/%m/%Y %H:%M") %>.
+  </p>
+</div>
