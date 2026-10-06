@@ -49,8 +49,10 @@
     <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
       <div class="col-span-2">
         <label for="field_occurred_on" class="<%= label %>">Data</label>
+        <%# No Safari do iPhone o campo de data nativo ignora a largura e passa do card: sem a aparência nativa ele respeita o w-full (o calendário continua abrindo ao tocar). %>
         <input id="field_occurred_on" type="date" name="occurred_on" required data-field-biometry-target="occurredOn"
-               data-action="change->field-biometry#preview" class="<%= input %>">
+               data-action="change->field-biometry#preview"
+               class="<%= input %> block min-w-0 max-w-full appearance-none min-h-[2.75rem] [&::-webkit-date-and-time-value]:text-left">
       </div>
       <div>
         <label for="field_volume" class="<%= label %>">Volume</label>
