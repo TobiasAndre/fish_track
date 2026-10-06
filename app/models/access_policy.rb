@@ -12,7 +12,9 @@ class AccessPolicy
     %w[feeding_plans create_share] => "read",
     %w[batch_reports create_share] => "read",
     %w[loading_reports create_share] => "read",
-    %w[silo_stock_reports create_share] => "read"
+    %w[silo_stock_reports create_share] => "read",
+    # Remover uma foto faz parte de editar a biometria.
+    %w[biometry_photos destroy] => "edit"
   }.freeze
 
   # Ação do catálogo (read/write/edit/delete) que um request exige.

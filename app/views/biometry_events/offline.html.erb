@@ -9,6 +9,7 @@
      data-controller="field-biometry"
      data-field-biometry-data-url-value="<%= offline_data_biometry_events_path %>"
      data-field-biometry-sync-url-value="<%= sync_biometry_events_path %>"
+     data-field-biometry-sync-photo-url-value="<%= sync_photo_biometry_events_path %>"
      data-field-biometry-login-url-value="<%= offline_biometry_events_path %>">
 
   <div class="flex items-start justify-between gap-3">
@@ -79,6 +80,16 @@
     <div>
       <label for="field_notes" class="<%= label %>">Observações <span class="font-normal text-gray-400">opcional</span></label>
       <textarea id="field_notes" name="notes" rows="2" data-field-biometry-target="notes" class="<%= input %>"></textarea>
+    </div>
+
+    <div>
+      <label for="field_photos" class="<%= label %>">Fotos <span class="font-normal text-gray-400">opcional</span></label>
+      <input id="field_photos" type="file" accept="image/*" multiple data-field-biometry-target="photoInput"
+             data-action="change->field-biometry#addPhotos"
+             class="block w-full text-sm text-gray-700 dark:text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300">
+      <div data-field-biometry-target="photoPreviews" class="mt-3 flex flex-wrap gap-3"></div>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-field-biometry-target="photoHint"
+         data-default="Ficam guardadas no aparelho e vão junto com a biometria. Até 10 por biometria."></p>
     </div>
 
     <div class="rounded-lg bg-gray-50 dark:bg-gray-950 p-3 text-sm">

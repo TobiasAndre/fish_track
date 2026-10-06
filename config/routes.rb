@@ -101,7 +101,9 @@ Rails.application.routes.draw do
         get :offline
         get :offline_data
         post :sync
+        post :sync_photo
       end
+      resources :photos, only: :destroy, controller: "biometry_photos"
     end
     resources :mortality_events, only: %i[index new create edit update destroy]
     resources :feeding_events, only: %i[index new create edit update destroy]

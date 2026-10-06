@@ -8,7 +8,9 @@ Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
     policy.font_src    :self, :data, "https://cdnjs.cloudflare.com"
-    policy.img_src     :self, :data
+    # blob: = miniaturas das fotos escolhidas antes do envio; blob.squarecloud.dev =
+    # fotos da biometria guardadas no Blob da Square Cloud.
+    policy.img_src     :self, :data, :blob, "https://blob.squarecloud.dev"
     policy.object_src  :none
     policy.script_src  :self
     # `unsafe_inline` here (not on script_src) covers the app's many

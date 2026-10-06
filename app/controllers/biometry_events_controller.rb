@@ -1,5 +1,5 @@
 class BiometryEventsController < StockingEventPagesController
-  OFFLINE_ACTIONS = %i[offline offline_data sync].freeze
+  OFFLINE_ACTIONS = %i[offline offline_data sync sync_photo].freeze
 
   skip_before_action :load_batch_stockings, :load_selected_batch_stocking, :load_current_avg_weight,
     :load_loading_form_collections, only: OFFLINE_ACTIONS
@@ -30,6 +30,27 @@ class BiometryEventsController < StockingEventPagesController
     }
   end
 
+  # Recebe uma foto tirada offline, depois que a biometria dela já foi enviada
+  # (sync). Sem duplicar: a mesma foto (photo_uuid) reenviada só é confirmada.
+  def sync_photo
+    event = StockingEvent.find_by(client_uuid: params[:entry_uuid].to_s, event_type: "biometrics")
+    return render(json: { status: "error", errors: ["A biometria desta foto ainda não foi enviada."] }, status: :unprocessable_content) unless event
+
+    photo_uuid = params[:photo_uuid].to_s
+    return render(json: { status: "error", errors: ["Foto sem identificador."] }, status: :unprocessable_content) unless photo_uuid.match?(/\A[0-9a-f-]{36}\z/i)
+
+    if (existing = BiometryPhoto.find_by(client_uuid: photo_uuid))
+      return render(json: { status: "duplicate", id: existing.id })
+    end
+
+    photo = BiometryPhoto.attach!(event, params[:photo], client_uuid: photo_uuid)
+    render json: { status: "created", id: photo.id }
+  rescue BiometryPhoto::Error => e
+    render json: { status: "error", errors: [e.message] }, status: :unprocessable_content
+  rescue ActiveRecord::RecordNotUnique
+    render json: { status: "duplicate", id: BiometryPhoto.find_by(client_uuid: photo_uuid)&.id }
+  end
+
   # Recebe as biometrias lançadas offline. Responde o resultado de cada uma
   # (created / duplicate / error) para o aparelho tirar da fila o que entrou.
   def sync
@@ -44,7 +65,7 @@ class BiometryEventsController < StockingEventPagesController
 
     if @stocking_event.save
       redirect_to redirect_path_for(@stocking_event.batch_stocking_id),
-        notice: success_message
+        notice: success_message, alert: attach_photos(@stocking_event)
     else
       @selected_batch_stocking = @stocking_event.batch_stocking
       @events = filtered_events(@selected_batch_stocking&.id)
@@ -69,7 +90,7 @@ class BiometryEventsController < StockingEventPagesController
 
     if @stocking_event.save
       redirect_to redirect_path_for(@stocking_event.batch_stocking_id),
-        notice: "Biometria atualizada com sucesso."
+        notice: "Biometria atualizada com sucesso.", alert: attach_photos(@stocking_event)
     else
       @selected_batch_stocking = @stocking_event.batch_stocking
       @events = filtered_events(@selected_batch_stocking&.id)
@@ -115,6 +136,22 @@ class BiometryEventsController < StockingEventPagesController
       :feed_conversion,
       :notes
     )
+  end
+
+  # Guarda as fotos escolhidas no formulário. A biometria já foi salva: uma foto
+  # que falhar não desfaz o lançamento, só vira um aviso (devolvido para o flash).
+  def attach_photos(event)
+    uploads = Array(params[:photos]).select { |upload| upload.respond_to?(:original_filename) }
+    return nil if uploads.empty?
+
+    errors = uploads.filter_map do |upload|
+      BiometryPhoto.attach!(event, upload)
+      nil
+    rescue BiometryPhoto::Error => e
+      e.message
+    end
+
+    errors.any? ? "#{errors.size} foto(s) não foram guardadas: #{errors.uniq.join('; ')}." : nil
   end
 
   def offline_batch_stockings

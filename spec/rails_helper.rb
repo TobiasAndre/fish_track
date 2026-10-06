@@ -74,4 +74,9 @@ RSpec.configure do |config|
   config.after do
     Current.reset
   end
+
+  # Fotos guardadas pelo PhotoStorage::Local durante os testes.
+  config.after(:suite) do
+    FileUtils.rm_rf(Rails.root.join("tmp/test_uploads"))
+  end
 end

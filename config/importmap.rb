@@ -11,3 +11,4 @@ pin "sweetalert2" # @11.26.20
 pin "confirmations", to: "confirmations.js", preload: true
 pin "pwa", to: "pwa.js", preload: true
 pin "field_biometry_store", to: "field_biometry_store.js"
+pin "image_compress", to: "image_compress.js"

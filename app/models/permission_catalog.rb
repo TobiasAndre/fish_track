@@ -53,7 +53,7 @@ class PermissionCatalog
     ]),
     Group.new(label: "Lançamentos", resources: [
       build("batches", "Lotes", controllers: %w[batches stocking_events]),
-      build("biometry_events", "Biometria"),
+      build("biometry_events", "Biometria", controllers: %w[biometry_events biometry_photos]),
       build("mortality_events", "Mortalidade"),
       build("feeding_events", "Ração (arraçoamento lançado)"),
       build("silo_stock_entries", "Estoque de Ração"),

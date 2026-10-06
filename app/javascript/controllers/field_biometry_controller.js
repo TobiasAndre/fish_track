@@ -1,5 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
-import { fieldBiometryStore as store } from "field_biometry_store"
+import { fieldBiometryStore as store, fieldPhotoStore as photoStore } from "field_biometry_store"
+import { compressImage } from "image_compress"
+
+const MAX_PHOTOS = 10
 
 // Biometria em campo: lança biometrias sem internet e envia quando a conexão
 // volta.
@@ -9,19 +12,25 @@ import { fieldBiometryStore as store } from "field_biometry_store"
 // próprio (uuid); o servidor usa esse identificador para nunca gravar a mesma
 // biometria duas vezes, então reenviar é sempre seguro. Uma biometria só sai da
 // fila quando o servidor confirma.
+//
+// As fotos ficam no IndexedDB do aparelho (fieldPhotoStore), reduzidas. No envio
+// vai primeiro a biometria e depois cada foto, uma a uma; a biometria só sai da
+// fila quando a última foto chegar.
 export default class extends Controller {
   static targets = [
     "company", "connection", "message", "referenceInfo", "refreshButton",
     "form", "formTitle", "tank", "tankInfo", "occurredOn", "volume", "quantity", "totalWeight", "feed", "notes",
-    "previewList", "cancelEdit", "queueCount", "queueList", "syncButton", "sentCard", "sentList"
+    "previewList", "cancelEdit", "queueCount", "queueList", "syncButton", "sentCard", "sentList",
+    "photoInput", "photoPreviews", "photoHint"
   ]
 
-  static values = { dataUrl: String, syncUrl: String, loginUrl: String }
+  static values = { dataUrl: String, syncUrl: String, syncPhotoUrl: String, loginUrl: String }
 
   connect() {
     this.editingUuid = null
     this.csrfToken = null
     this.readyOffline = false
+    this.draftPhotos = []
 
     this.onOnline = () => {
       this.renderConnection()
@@ -97,8 +106,9 @@ export default class extends Controller {
 
   // ─── Lançamento ─────────────────────────────────────────────────────────────
 
-  save(event) {
+  async save(event) {
     event.preventDefault()
+    if (this.saving) return
 
     const reference = store.reference()
     if (!reference) {
@@ -113,33 +123,66 @@ export default class extends Controller {
       return
     }
 
-    const tank = this.findTank(values.batch_stocking_id)
-    const queue = store.queue()
-    const fields = { ...values, tank_label: tank ? this.tankLabel(tank) : `Tanque #${values.batch_stocking_id}`, error: null }
+    this.saving = true
+    try {
+      const tank = this.findTank(values.batch_stocking_id)
+      const queue = store.queue()
+      const fields = { ...values, tank_label: tank ? this.tankLabel(tank) : `Tanque #${values.batch_stocking_id}`, error: null }
+      const edited = Boolean(this.editingUuid)
+      const uuid = this.editingUuid || this.newUuid()
 
-    if (this.editingUuid) {
-      const index = queue.findIndex((entry) => entry.uuid === this.editingUuid)
-      if (index >= 0) queue[index] = { ...queue[index], ...fields }
-    } else {
-      queue.push({
-        uuid: this.newUuid(), tenant: reference.tenant, user_id: reference.user?.id,
-        created_at: new Date().toISOString(), ...fields
-      })
+      // As fotos vão primeiro para o aparelho; a biometria entra na fila com quantas couberam.
+      const lostPhotos = await this.storeDraftPhotos(uuid)
+      fields.photo_count = this.draftPhotos.filter((photo) => photo.stored).length
+
+      if (edited) {
+        const index = queue.findIndex((entry) => entry.uuid === uuid)
+        if (index >= 0) queue[index] = { ...queue[index], ...fields }
+      } else {
+        queue.push({ uuid, tenant: reference.tenant, user_id: reference.user?.id, created_at: new Date().toISOString(), ...fields })
+      }
+
+      store.saveQueue(queue)
+      this.resetForm({ keepDate: true })
+      this.renderQueue()
+
+      if (lostPhotos) {
+        this.showMessage(`Biometria salva, mas ${lostPhotos} foto(s) não couberam no aparelho (espaço cheio).`, "warning")
+      } else {
+        this.showMessage(edited ? "Biometria alterada no aparelho." : "Biometria salva no aparelho. Ela será enviada quando houver internet.", "success")
+      }
+    } finally {
+      this.saving = false
     }
-
-    store.saveQueue(queue)
-    const edited = Boolean(this.editingUuid)
-    this.resetForm({ keepDate: true })
-    this.renderQueue()
-    this.showMessage(edited ? "Biometria alterada no aparelho." : "Biometria salva no aparelho. Ela será enviada quando houver internet.", "success")
 
     if (navigator.onLine) this.sync({ quiet: true })
   }
 
-  edit(event) {
-    const entry = store.queue().find((item) => item.uuid === event.params.uuid)
-    if (!entry) return
+  // Grava no IndexedDB as fotos novas do formulário. Devolve quantas falharam.
+  async storeDraftPhotos(entryUuid) {
+    let failed = 0
 
+    for (const photo of this.draftPhotos.filter((item) => !item.stored)) {
+      try {
+        await photoStore.put({
+          id: photo.id, entry_uuid: entryUuid, blob: photo.blob, name: photo.name, type: photo.type,
+          size: photo.blob.size, created_at: new Date().toISOString()
+        })
+        photo.stored = true
+      } catch {
+        failed += 1
+      }
+    }
+
+    this.draftPhotos = this.draftPhotos.filter((photo) => photo.stored)
+    return failed
+  }
+
+  async edit(event) {
+    const entry = store.queue().find((item) => item.uuid === event.params.uuid)
+    if (!entry || entry.event_synced) return
+
+    this.resetForm({ keepDate: true })
     this.editingUuid = entry.uuid
     this.tankTarget.value = String(entry.batch_stocking_id)
     this.occurredOnTarget.value = entry.occurred_on
@@ -151,6 +194,14 @@ export default class extends Controller {
     this.formTitleTarget.textContent = "Editar biometria (ainda não enviada)"
     this.cancelEditTarget.hidden = false
     this.preview()
+
+    try {
+      const photos = await photoStore.forEntry(entry.uuid)
+      this.draftPhotos = photos.map((photo) => ({ id: photo.id, blob: photo.blob, name: photo.name, type: photo.type, stored: true }))
+    } catch {
+      this.draftPhotos = []
+    }
+    this.renderPhotoPreviews()
     this.formTarget.scrollIntoView({ behavior: "smooth" })
   }
 
@@ -158,12 +209,83 @@ export default class extends Controller {
     this.resetForm({ keepDate: true })
   }
 
-  remove(event) {
-    if (!window.confirm("Excluir esta biometria do aparelho? Ela não será enviada.")) return
+  async remove(event) {
+    const entry = store.queue().find((item) => item.uuid === event.params.uuid)
+    if (!entry) return
 
-    store.saveQueue(store.queue().filter((entry) => entry.uuid !== event.params.uuid))
-    if (this.editingUuid === event.params.uuid) this.resetForm({ keepDate: true })
+    const question = entry.event_synced
+      ? "A biometria já foi enviada; desistir das fotos que faltam enviar? Elas serão apagadas do aparelho."
+      : "Excluir esta biometria do aparelho? Ela e as fotos dela não serão enviadas."
+    if (!window.confirm(question)) return
+
+    await photoStore.deleteForEntry(entry.uuid).catch(() => {})
+    store.saveQueue(store.queue().filter((item) => item.uuid !== entry.uuid))
+    if (entry.event_synced) store.addSent([{ ...entry, photo_count: 0, sent_at: new Date().toISOString() }])
+    if (this.editingUuid === entry.uuid) this.resetForm({ keepDate: true })
     this.renderQueue()
+    this.renderSent()
+  }
+
+  // ─── Fotos do formulário ────────────────────────────────────────────────────
+
+  async addPhotos() {
+    const chosen = [...this.photoInputTarget.files]
+    this.photoInputTarget.value = ""
+    if (!chosen.length) return
+
+    const room = MAX_PHOTOS - this.draftPhotos.length
+    const accepted = chosen.slice(0, Math.max(room, 0))
+    this.photoHintTarget.textContent = "Preparando as fotos…"
+
+    for (const file of accepted) {
+      const blob = await compressImage(file)
+      this.draftPhotos.push({ id: this.newUuid(), blob, name: blob.name || file.name || "foto.jpg", type: blob.type || "image/jpeg", stored: false })
+    }
+
+    this.renderPhotoPreviews()
+    this.photoHintTarget.textContent = accepted.length < chosen.length
+      ? `Limite de ${MAX_PHOTOS} fotos por biometria: ${chosen.length - accepted.length} ficaram de fora.`
+      : this.photoHintTarget.dataset.default
+  }
+
+  async removePhoto(event) {
+    const index = Number(event.params.index)
+    const photo = this.draftPhotos[index]
+    if (!photo) return
+
+    if (photo.stored) {
+      await photoStore.delete(photo.id).catch(() => {})
+      const queue = store.queue()
+      const entry = queue.find((item) => item.uuid === this.editingUuid)
+      if (entry) {
+        entry.photo_count = Math.max((entry.photo_count || 1) - 1, 0)
+        store.saveQueue(queue)
+        this.renderQueue()
+      }
+    }
+
+    this.draftPhotos.splice(index, 1)
+    this.renderPhotoPreviews()
+  }
+
+  renderPhotoPreviews() {
+    this.photoPreviewsTarget.querySelectorAll("img").forEach((img) => URL.revokeObjectURL(img.src))
+
+    this.photoPreviewsTarget.replaceChildren(...this.draftPhotos.map((photo, index) => {
+      const wrapper = this.element_("div", "relative")
+      const img = this.element_("img", "h-20 w-20 rounded-lg object-cover border border-gray-200 dark:border-gray-700")
+      img.src = URL.createObjectURL(photo.blob)
+      img.alt = "Foto da biometria"
+
+      const button = this.element_("button", "absolute -top-2 -right-2 h-6 w-6 rounded-full bg-gray-900/80 text-xs text-white", "✕")
+      button.type = "button"
+      button.title = "Tirar esta foto"
+      button.dataset.action = "field-biometry#removePhoto"
+      button.dataset.fieldBiometryIndexParam = index
+
+      wrapper.append(img, button)
+      return wrapper
+    }))
   }
 
   // ─── Envio ──────────────────────────────────────────────────────────────────
@@ -184,73 +306,149 @@ export default class extends Controller {
 
     this.syncing = true
     this.renderQueue()
+    const summary = { biometries: 0, photos: 0 }
 
     try {
       if (!this.csrfToken && !(await this.refresh({ quiet: true }))) return
 
-      const entries = this.sendableEntries()
-      if (!entries.length) return
-
-      const response = await fetch(this.syncUrlValue, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": this.csrfToken },
-        body: JSON.stringify({ entries: entries.map((entry) => this.payload(entry)) })
-      })
-
-      if (response.status === 401 || response.redirected) {
-        this.sessionExpired()
-        return
-      }
-
-      if (response.status === 403) {
-        this.showMessage("Seu perfil de acesso não permite lançar biometria.", "error")
-        return
-      }
-
-      if (!response.ok) {
-        this.csrfToken = null
-        this.showMessage("O servidor não aceitou o envio. Nada foi perdido: tente de novo.", "error")
-        return
-      }
-
-      const { results } = await response.json()
-      this.applyResults(results || [])
+      if (!(await this.syncBiometries(summary))) return
+      if (!(await this.syncPhotos(summary))) return
     } catch {
       this.showMessage("A conexão caiu durante o envio. Nada foi perdido: tente de novo.", "error")
+      return
     } finally {
+      this.finishSynced()
       this.syncing = false
       this.renderQueue()
     }
+
+    this.reportSync(summary)
   }
 
-  applyResults(results) {
-    const byUuid = new Map(results.map((result) => [result.uuid, result]))
+  // Envia as biometrias que ainda não chegaram. Devolve false se o envio parou.
+  async syncBiometries(summary) {
+    const entries = this.sendableEntries().filter((entry) => !entry.event_synced)
+    if (!entries.length) return true
+
+    const response = await fetch(this.syncUrlValue, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": this.csrfToken },
+      body: JSON.stringify({ entries: entries.map((entry) => this.payload(entry)) })
+    })
+
+    if (!this.responseUsable(response)) return false
+
+    const { results } = await response.json()
+    const byUuid = new Map((results || []).map((result) => [result.uuid, result]))
     const queue = store.queue()
-    const sent = []
-    const remaining = []
 
     queue.forEach((entry) => {
       const result = byUuid.get(entry.uuid)
+      if (!result) return
 
-      if (result && (result.status === "created" || result.status === "duplicate")) {
-        sent.push({ ...entry, sent_at: new Date().toISOString() })
-      } else if (result && result.status === "error") {
-        remaining.push({ ...entry, error: (result.errors || []).join(" ") || "Não foi possível gravar." })
-      } else {
-        remaining.push(entry)
+      if (result.status === "created" || result.status === "duplicate") {
+        entry.event_synced = true
+        entry.error = null
+        summary.biometries += 1
+      } else if (result.status === "error") {
+        entry.error = (result.errors || []).join(" ") || "Não foi possível gravar."
       }
     })
 
-    store.saveQueue(remaining)
-    if (sent.length) store.addSent(sent)
-    this.renderSent()
+    store.saveQueue(queue)
+    return true
+  }
 
-    const failed = remaining.filter((entry) => entry.error).length
+  // Depois da biometria, as fotos dela, uma de cada vez. Devolve false se o envio parou.
+  async syncPhotos(summary) {
+    for (const entry of this.sendableEntries().filter((item) => item.event_synced && item.photo_count > 0)) {
+      const photos = await photoStore.forEntry(entry.uuid)
+
+      for (const photo of photos) {
+        const form = new FormData()
+        form.append("entry_uuid", entry.uuid)
+        form.append("photo_uuid", photo.id)
+        form.append("photo", new File([photo.blob], photo.name || "foto.jpg", { type: photo.type || "image/jpeg" }))
+
+        const response = await fetch(this.syncPhotoUrlValue, {
+          method: "POST", credentials: "same-origin",
+          headers: { Accept: "application/json", "X-CSRF-Token": this.csrfToken },
+          body: form
+        })
+
+        if (response.status === 401 || response.redirected || response.status === 403) return this.responseUsable(response)
+
+        const data = await response.json().catch(() => ({}))
+        const queue = store.queue()
+        const stored = queue.find((item) => item.uuid === entry.uuid)
+
+        if (data.status === "created" || data.status === "duplicate") {
+          await photoStore.delete(photo.id)
+          if (stored) {
+            stored.photo_count = Math.max((stored.photo_count || 1) - 1, 0)
+            stored.photo_error = null
+          }
+          summary.photos += 1
+          store.saveQueue(queue)
+        } else {
+          if (stored) stored.photo_error = (data.errors || []).join(" ") || "A foto não foi aceita."
+          store.saveQueue(queue)
+          if (!response.ok && response.status !== 422) {
+            this.csrfToken = null
+            return false
+          }
+          break
+        }
+      }
+    }
+
+    return true
+  }
+
+  // Biometria enviada e sem fotos pendentes: sai da fila e vai para "enviadas".
+  finishSynced() {
+    const queue = store.queue()
+    const done = queue.filter((entry) => entry.event_synced && !(entry.photo_count > 0))
+    if (!done.length) return
+
+    store.saveQueue(queue.filter((entry) => !done.includes(entry)))
+    store.addSent(done.map((entry) => ({ ...entry, sent_at: new Date().toISOString() })))
+    this.renderSent()
+  }
+
+  reportSync(summary) {
+    const queue = store.queue()
+    const failed = queue.filter((entry) => entry.error).length
+    const photoProblems = queue.filter((entry) => entry.photo_error).length
     const parts = []
-    if (sent.length) parts.push(`${sent.length} biometria(s) enviada(s).`)
-    if (failed) parts.push(`${failed} com problema: corrija ou exclua e envie de novo.`)
-    if (parts.length) this.showMessage(parts.join(" "), failed ? "warning" : "success")
+
+    if (summary.biometries) parts.push(`${summary.biometries} biometria(s) enviada(s).`)
+    if (summary.photos) parts.push(`${summary.photos} foto(s) enviada(s).`)
+    if (failed) parts.push(`${failed} biometria(s) com problema: corrija ou exclua e envie de novo.`)
+    if (photoProblems) parts.push(`${photoProblems} biometria(s) com foto não aceita: veja abaixo.`)
+    if (parts.length) this.showMessage(parts.join(" "), failed || photoProblems ? "warning" : "success")
+  }
+
+  // Trata sessão expirada, falta de permissão e token inválido. true = pode seguir.
+  responseUsable(response) {
+    if (response.status === 401 || response.redirected) {
+      this.sessionExpired()
+      return false
+    }
+
+    if (response.status === 403) {
+      this.showMessage("Seu perfil de acesso não permite lançar biometria.", "error")
+      return false
+    }
+
+    if (!response.ok) {
+      this.csrfToken = null
+      this.showMessage("O servidor não aceitou o envio. Nada foi perdido: tente de novo.", "error")
+      return false
+    }
+
+    return true
   }
 
   // Só as biometrias da empresa e do usuário logados neste aparelho.
@@ -388,6 +586,9 @@ export default class extends Controller {
     if (options.keepDate) this.tankTarget.value = tank
     this.formTitleTarget.textContent = "Nova biometria"
     this.cancelEditTarget.hidden = true
+    this.draftPhotos = []
+    this.renderPhotoPreviews()
+    this.photoHintTarget.textContent = this.photoHintTarget.dataset.default
     this.preview()
   }
 
@@ -509,11 +710,19 @@ export default class extends Controller {
       item.appendChild(this.element_("p", "text-xs text-gray-500 dark:text-gray-400",
         `${this.formatDate(entry.occurred_on)} · Qtd ${this.formatIntegerBR(entry.quantity)} · Peso ${this.formatDecimalBR(Number(entry.total_weight_kg))} kg · Volume ${this.formatIntegerBR(entry.volume)}`))
 
+      if (entry.photo_count > 0) {
+        item.appendChild(this.element_("p", "text-xs text-gray-500 dark:text-gray-400", `📷 ${entry.photo_count} foto(s) no aparelho`))
+      }
+
       if (!this.belongsTo(entry, reference)) {
         item.appendChild(this.element_("p", "text-xs text-amber-700 dark:text-amber-300",
           reference ? "Lançada por outro usuário ou em outra empresa: entre com a conta que lançou para enviar." : "Entre no sistema com internet para enviar."))
       } else if (entry.error) {
         item.appendChild(this.element_("p", "text-xs text-red-700 dark:text-red-300", `Não foi gravada: ${entry.error}`))
+      } else if (entry.photo_error) {
+        item.appendChild(this.element_("p", "text-xs text-red-700 dark:text-red-300", `Biometria enviada, mas uma foto não foi aceita: ${entry.photo_error}`))
+      } else if (entry.event_synced) {
+        item.appendChild(this.element_("p", "text-xs text-gray-500 dark:text-gray-400", "Biometria enviada; faltam as fotos"))
       } else {
         item.appendChild(this.element_("p", "text-xs text-gray-500 dark:text-gray-400", "Aguardando envio"))
       }
@@ -523,7 +732,8 @@ export default class extends Controller {
       editButton.type = "button"
       editButton.dataset.action = "field-biometry#edit"
       editButton.dataset.fieldBiometryUuidParam = entry.uuid
-      const removeButton = this.element_("button", "text-sm text-red-600 dark:text-red-400", "Excluir")
+      editButton.hidden = Boolean(entry.event_synced)
+      const removeButton = this.element_("button", "text-sm text-red-600 dark:text-red-400", entry.event_synced ? "Desistir das fotos" : "Excluir")
       removeButton.type = "button"
       removeButton.dataset.action = "field-biometry#remove"
       removeButton.dataset.fieldBiometryUuidParam = entry.uuid

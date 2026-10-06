@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -84,6 +84,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
     t.index ["product_id"], name: "index_batches_on_product_id"
     t.index ["started_on"], name: "index_batches_on_started_on"
     t.index ["status", "stage"], name: "index_batches_on_status_and_stage"
+  end
+
+  create_table "biometry_photos", force: :cascade do |t|
+    t.string "blob_object_id", null: false
+    t.integer "byte_size"
+    t.string "client_uuid"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename"
+    t.bigint "stocking_event_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["client_uuid"], name: "index_biometry_photos_on_client_uuid", unique: true
+    t.index ["stocking_event_id"], name: "index_biometry_photos_on_stocking_event_id"
   end
 
   create_table "companies", force: :cascade do |t|
@@ -621,6 +635,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
   add_foreign_key "batch_stockings", "ponds"
   add_foreign_key "batch_stockings", "suppliers"
   add_foreign_key "batches", "products"
+  add_foreign_key "biometry_photos", "stocking_events", on_delete: :cascade
   add_foreign_key "employee_salary_changes", "employees"
   add_foreign_key "employee_vacations", "employees"
   add_foreign_key "employees", "units"

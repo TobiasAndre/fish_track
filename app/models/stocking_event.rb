@@ -2,6 +2,7 @@ class StockingEvent < ApplicationRecord
   include Loggable
 
   belongs_to :batch_stocking
+  has_many :biometry_photos, -> { in_order }, dependent: :destroy
   belongs_to :customer, optional: true
   belongs_to :integrated, optional: true
   belongs_to :payment_method, optional: true
