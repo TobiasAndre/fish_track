@@ -7,11 +7,17 @@
 // aparelho compartilhado depois do logout. Só ficam em cache os arquivos
 // estáticos (assets versionados, ícones e a página offline).
 //
+// A exceção são as telas de campo (FIELD_PAGES, ex.: biometria em campo): são
+// só a estrutura da tela, sem dados nem token (layout offline_app), e precisam
+// abrir sem internet. Ficam em cache junto com os arquivos que usam; os dados
+// que mostram vêm do próprio aparelho.
+//
 // A versão muda sozinha quando a página offline ou algum ícone mudam.
 const VERSION = "<%= Digest::MD5.hexdigest(%w[offline.html icons/icon-192.png icons/icon-512.png icons/icon-maskable-512.png].map { |f| Rails.public_path.join(f).read(mode: "rb") }.join)[0, 12] %>"
 const CACHE = `fishtrack-static-${VERSION}`
 const OFFLINE_URL = "/offline.html"
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"]
+const FIELD_PAGES = ["/biometry_events/offline"]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)))
@@ -32,6 +38,22 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+
+  if (request.mode === "navigate" && FIELD_PAGES.includes(url.pathname)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Só guarda a tela de verdade (sessão expirada redireciona para o login).
+          if (response.ok && !response.redirected) {
+            const copy = response.clone()
+            caches.open(CACHE).then((cache) => cache.put(url.pathname, copy))
+          }
+          return response
+        })
+        .catch(() => caches.match(url.pathname).then((cached) => cached || caches.match(OFFLINE_URL)))
+    )
+    return
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)))
@@ -54,4 +76,29 @@ self.addEventListener("fetch", (event) => {
       })
     )
   }
+})
+
+// A tela de campo pede para guardar ela mesma e os arquivos que usa (CSS e
+// módulos JS), para abrir sem internet já na próxima vez.
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "cache-field-page") return
+
+  const urls = (event.data.urls || [])
+    .map((value) => new URL(value, self.location.origin))
+    .filter((url) => url.origin === self.location.origin &&
+      (FIELD_PAGES.includes(url.pathname) || url.pathname.startsWith("/assets/") || url.pathname.startsWith("/icons/")))
+    .map((url) => (FIELD_PAGES.includes(url.pathname) ? url.pathname : url.href))
+
+  event.waitUntil(
+    caches.open(CACHE)
+      .then((cache) => Promise.all(urls.map((url) => {
+        if (!FIELD_PAGES.includes(url)) return cache.add(url).catch(() => null)
+
+        // A tela em si: só guarda se veio de verdade (sessão expirada redireciona para o login).
+        return fetch(url, { credentials: "same-origin" })
+          .then((response) => (response.ok && !response.redirected ? cache.put(url, response) : null))
+          .catch(() => null)
+      })))
+      .then(() => event.source?.postMessage({ type: "field-page-cached" }))
+  )
 })

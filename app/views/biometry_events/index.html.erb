@@ -345,6 +345,14 @@
           </p>
         </div>
 
+        <% if can?("biometry_events", :write) %>
+          <%# Tela que funciona sem internet: lançar em campo e enviar depois. Navegação completa (sem Turbo) para o service worker guardá-la. %>
+          <%= link_to "📶 Biometria em campo (offline)", offline_biometry_events_path,
+                data: { turbo: false },
+                title: "Lance biometrias sem internet e envie quando a conexão voltar",
+                class: "inline-flex items-center justify-center rounded-lg border border-indigo-300 dark:border-indigo-800 px-3 py-2 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950" %>
+        <% end %>
+
         <%= form_with url: biometry_events_path, method: :get, local: true,
               class: "flex flex-wrap items-end gap-2", data: { controller: "auto-submit" } do %>
           <div class="w-40">

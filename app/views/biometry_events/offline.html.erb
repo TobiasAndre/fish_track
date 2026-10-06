@@ -1,0 +1,112 @@
+<% content_for :title, "Biometria em campo - Fish Track" %>
+<%
+  input = "w-full rounded-lg border px-3 py-2 text-base bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  label = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+  card = "rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4"
+%>
+
+<div class="max-w-xl mx-auto p-4 space-y-4"
+     data-controller="field-biometry"
+     data-field-biometry-data-url-value="<%= offline_data_biometry_events_path %>"
+     data-field-biometry-sync-url-value="<%= sync_biometry_events_path %>"
+     data-field-biometry-login-url-value="<%= offline_biometry_events_path %>">
+
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold">Biometria em campo</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400" data-field-biometry-target="company"></p>
+    </div>
+    <span data-field-biometry-target="connection" class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"></span>
+  </div>
+
+  <div data-field-biometry-target="message" hidden class="rounded-lg border px-3 py-2 text-sm"></div>
+
+  <div class="<%= card %> text-sm space-y-2">
+    <p data-field-biometry-target="referenceInfo" class="text-gray-600 dark:text-gray-300"></p>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" data-action="field-biometry#refresh" data-field-biometry-target="refreshButton"
+              class="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50">
+        Atualizar tanques
+      </button>
+      <a href="<%= biometry_events_path %>" data-turbo="false"
+         class="rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:underline">
+        Voltar ao sistema
+      </a>
+    </div>
+  </div>
+
+  <form data-turbo="false" data-field-biometry-target="form" data-action="submit->field-biometry#save" class="<%= card %> space-y-4" novalidate>
+    <h2 class="text-base font-semibold" data-field-biometry-target="formTitle">Nova biometria</h2>
+
+    <div>
+      <label for="field_batch_stocking" class="<%= label %>">Tanque</label>
+      <select id="field_batch_stocking" name="batch_stocking_id" required data-field-biometry-target="tank"
+              data-action="change->field-biometry#preview" class="<%= input %>"></select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-field-biometry-target="tankInfo"></p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label for="field_occurred_on" class="<%= label %>">Data</label>
+        <input id="field_occurred_on" type="date" name="occurred_on" required data-field-biometry-target="occurredOn"
+               data-action="change->field-biometry#preview" class="<%= input %>">
+      </div>
+      <div>
+        <label for="field_volume" class="<%= label %>">Volume</label>
+        <input id="field_volume" type="text" inputmode="numeric" name="volume" required data-field-biometry-target="volume"
+               data-action="input->field-biometry#formatInteger" class="<%= input %>">
+      </div>
+      <div>
+        <label for="field_quantity" class="<%= label %>">Quantidade</label>
+        <input id="field_quantity" type="text" inputmode="numeric" name="quantity" required data-field-biometry-target="quantity"
+               data-action="input->field-biometry#formatInteger" class="<%= input %>">
+      </div>
+      <div>
+        <label for="field_total_weight" class="<%= label %>">Peso (kg)</label>
+        <input id="field_total_weight" type="text" inputmode="decimal" name="total_weight_kg" required data-field-biometry-target="totalWeight"
+               data-action="input->field-biometry#formatDecimal" class="<%= input %>">
+      </div>
+      <div>
+        <label for="field_feed" class="<%= label %>">Ração (kg) <span class="font-normal text-gray-400">opcional</span></label>
+        <input id="field_feed" type="text" inputmode="decimal" name="feed_kg" data-field-biometry-target="feed"
+               data-action="input->field-biometry#formatDecimal" class="<%= input %>">
+      </div>
+    </div>
+
+    <div>
+      <label for="field_notes" class="<%= label %>">Observações <span class="font-normal text-gray-400">opcional</span></label>
+      <textarea id="field_notes" name="notes" rows="2" data-field-biometry-target="notes" class="<%= input %>"></textarea>
+    </div>
+
+    <div class="rounded-lg bg-gray-50 dark:bg-gray-950 p-3 text-sm">
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">Prévia — os valores finais são calculados ao enviar.</p>
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-1" data-field-biometry-target="previewList"></dl>
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit" class="flex-1 rounded-lg bg-indigo-600 px-4 py-3 text-base font-medium text-white hover:bg-indigo-700">
+        Salvar no aparelho
+      </button>
+      <button type="button" hidden data-field-biometry-target="cancelEdit" data-action="field-biometry#cancelEdit"
+              class="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-3 text-base">
+        Cancelar
+      </button>
+    </div>
+  </form>
+
+  <div class="<%= card %> space-y-3">
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-base font-semibold">Aguardando envio <span data-field-biometry-target="queueCount" class="text-gray-500"></span></h2>
+      <button type="button" data-action="field-biometry#sync" data-field-biometry-target="syncButton"
+              class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
+        Enviar agora
+      </button>
+    </div>
+    <ul data-field-biometry-target="queueList" class="divide-y divide-gray-100 dark:divide-gray-800"></ul>
+  </div>
+
+  <div class="<%= card %> space-y-2" data-field-biometry-target="sentCard" hidden>
+    <h2 class="text-base font-semibold">Enviadas recentemente</h2>
+    <ul data-field-biometry-target="sentList" class="divide-y divide-gray-100 dark:divide-gray-800 text-sm"></ul>
+  </div>
+</div>

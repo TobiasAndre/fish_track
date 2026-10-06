@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<%# Layout das telas que funcionam sem internet (biometria em campo). O service
+    worker guarda a página para abrir offline, então ela não pode levar dados da
+    empresa ou do usuário nem o token do formulário: tudo isso vem por JSON e
+    fica no aparelho (ver offline_biometry_controller.js). %>
+<html lang="pt-BR" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "Fish Track" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <link rel="icon" href="/icons/icon-192.png" type="image/png">
+    <%= csp_meta_tag %>
+    <script nonce="<%= content_security_policy_nonce %>">
+      (() => {
+        const saved = localStorage.getItem("theme")
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+        document.documentElement.classList.toggle("dark", saved ? saved === "dark" : systemDark)
+      })()
+    </script>
+    <%= stylesheet_link_tag "tailwind" %>
+    <%= stylesheet_link_tag "application" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <%= yield %>
+  </body>
+</html>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -506,6 +506,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_100000) do
     t.decimal "avg_weight_g", precision: 10, scale: 2
     t.bigint "batch_stocking_id", null: false
     t.decimal "biomass", precision: 12, scale: 3
+    t.string "client_uuid"
     t.datetime "created_at", null: false
     t.bigint "customer_id"
     t.string "event_type", null: false
@@ -539,6 +540,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_100000) do
     t.decimal "weight_gain_kg", precision: 12, scale: 3
     t.index ["batch_stocking_id", "occurred_on"], name: "idx_stocking_events_on_stocking_and_date"
     t.index ["batch_stocking_id"], name: "index_stocking_events_on_batch_stocking_id"
+    t.index ["client_uuid"], name: "index_stocking_events_on_client_uuid", unique: true
     t.index ["customer_id"], name: "index_stocking_events_on_customer_id"
     t.index ["event_type"], name: "index_stocking_events_on_event_type"
     t.index ["feeding_brand_id"], name: "index_stocking_events_on_feeding_brand_id"

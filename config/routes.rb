@@ -94,7 +94,15 @@ Rails.application.routes.draw do
       collection { post :create_share }
     end
     resources :batch_results, only: [:index]
-    resources :biometry_events, only: %i[index new create edit update destroy]
+    resources :biometry_events, only: %i[index new create edit update destroy] do
+      # Biometria em campo (offline): tela que funciona sem internet, dados dos
+      # tanques para guardar no aparelho e envio do que foi lançado offline.
+      collection do
+        get :offline
+        get :offline_data
+        post :sync
+      end
+    end
     resources :mortality_events, only: %i[index new create edit update destroy]
     resources :feeding_events, only: %i[index new create edit update destroy]
     resources :silo_stock_entries, only: %i[index create edit update destroy]
