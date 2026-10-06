@@ -45,8 +45,9 @@
       <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-field-biometry-target="tankInfo"></p>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div>
+    <%# Data na linha inteira (o campo de data do celular é largo e invadia o Volume); depois Volume + Quantidade e Peso + Ração. %>
+    <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
+      <div class="col-span-2">
         <label for="field_occurred_on" class="<%= label %>">Data</label>
         <input id="field_occurred_on" type="date" name="occurred_on" required data-field-biometry-target="occurredOn"
                data-action="change->field-biometry#preview" class="<%= input %>">
