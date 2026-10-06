@@ -17,6 +17,16 @@ module ApplicationHelper
     end
   end
 
+  # Valor decimal para um campo de formulário no formato brasileiro, sem zeros
+  # à direita: 12.5 -> "12,5"; 1234.5 -> "1.234,5". Os campos que formatam a
+  # digitação em pt-BR tratam "." como milhar, então o valor salvo precisa
+  # chegar a eles nesse formato (e não "12.5").
+  def decimal_field_value(value, precision: 3)
+    return nil if value.blank?
+
+    number_with_precision(value, precision: precision, separator: ",", delimiter: ".", strip_insignificant_zeros: true)
+  end
+
   def enum_t(model, enum_name, value: nil)
     value ||= model.public_send(enum_name)
 

@@ -43,7 +43,7 @@
         url: @stocking_event.persisted? ? biometry_event_path(@stocking_event) : biometry_events_path,
         method: @stocking_event.persisted? ? :patch : :post,
         local: true,
-        data: { controller: "biometry-form", turbo_action: "replace" },
+        data: { controller: "biometry-form", turbo_action: "replace", action: "submit->biometry-form#normalizeBeforeSubmit" },
         class: "space-y-4" do |f| %>
 
         <%= f.hidden_field :batch_stocking_id, value: @selected_batch_stocking.id %>
@@ -116,6 +116,7 @@
           <div>
             <%= f.label :total_weight_kg, "Peso (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.text_field :total_weight_kg, required: true,
+              value: decimal_field_value(@stocking_event.total_weight_kg),
               inputmode: "decimal",
               data: {
                 "biometry-form-target": "totalWeight",
@@ -183,6 +184,7 @@
           <div>
             <%= f.label :feed_kg, "Ração (kg)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
             <%= f.text_field :feed_kg,
+              value: decimal_field_value(@stocking_event.feed_kg),
               inputmode: "decimal",
               data: {
                 "biometry-form-target": "feedKg",

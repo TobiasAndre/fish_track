@@ -37,6 +37,15 @@ export default class extends Controller {
     this.recalculate()
   }
 
+  // Nos campos de peso, "." é sempre separador de milhar (a digitação só aceita
+  // vírgula como decimal). O servidor lê "1.234" sem vírgula como 1,234, então
+  // envia sem os pontos: "1.234" -> "1234", "1.234,5" -> "1234,5".
+  normalizeBeforeSubmit() {
+    [this.hasTotalWeightTarget && this.totalWeightTarget, this.hasFeedKgTarget && this.feedKgTarget]
+      .filter(Boolean)
+      .forEach((input) => { input.value = input.value.replace(/\./g, "") })
+  }
+
   recalculate() {
     const quantity = this.parsePtBrNumber(this.quantityValue())
     const totalWeightKg = this.parsePtBrNumber(this.totalWeightValue())
