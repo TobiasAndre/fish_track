@@ -62,6 +62,38 @@ RSpec.describe "Biometry photos", type: :request do
       expect(event.biometry_photos.reload).to eq([kept])
     end
 
+    describe "gallery" do
+      def gallery_buttons
+        Nokogiri::HTML(response.body).css("button[data-action='photo-gallery#open']")
+      end
+
+      it "puts a photos button before the edit action of a biometry with photos, in the batch history" do
+        with_photos = create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 10, 1))
+        first = BiometryPhoto.attach!(with_photos, photo)
+        second = BiometryPhoto.attach!(with_photos, photo)
+        create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 10, 2))
+
+        get biometry_events_path(batch_stocking_id: batch_stocking.id)
+
+        expect(gallery_buttons.size).to eq(1)
+        button = gallery_buttons.first
+        expect(JSON.parse(button["data-photo-gallery-photos-param"])).to eq([first.url, second.url])
+        expect(button["data-photo-gallery-title-param"]).to eq("Biometria de 01/10/2026")
+        expect(button["title"]).to eq("Ver fotos (2)")
+        expect(button.next_element["title"]).to eq("Editar")
+        expect(Nokogiri::HTML(response.body).at_css("[data-controller~='photo-gallery'] dialog[data-photo-gallery-target='dialog']")).to be_present
+      end
+
+      it "also offers it in the overview of active batches" do
+        event = create(:stocking_event, :biometrics, batch_stocking: batch_stocking)
+        BiometryPhoto.attach!(event, photo)
+
+        get biometry_events_path
+
+        expect(gallery_buttons.size).to eq(1)
+      end
+    end
+
     it "shows the photos under each biometry in the history" do
       event = create(:stocking_event, :biometrics, batch_stocking: batch_stocking)
       stored = BiometryPhoto.attach!(event, photo)

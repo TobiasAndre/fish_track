@@ -1,4 +1,4 @@
-<div class="max-w-5xl mx-auto space-y-4">
+<div class="max-w-5xl mx-auto space-y-4" data-controller="photo-gallery" data-action="keydown@window->photo-gallery#keydown">
   <% if @selected_batch_stocking.present? %>
     <div>
       <%= link_to biometry_events_path,
@@ -340,6 +340,7 @@
                   </td>
                   <td class="py-2 pr-4 text-right">
                     <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                      <%= render "biometry_events/gallery_button", event: event %>
                       <% if can?("biometry_events", :edit) %>
                       <%= link_to edit_biometry_event_path(event),
                         class: "text-gray-500 hover:text-indigo-600 transition",
@@ -559,6 +560,7 @@
                         </td>
                         <td class="py-2 pr-4 text-right">
                           <div class="flex justify-end gap-2 opacity-60 hover:opacity-100 transition">
+                            <%= render "biometry_events/gallery_button", event: event %>
                             <% if can?("biometry_events", :edit) %>
                             <%= link_to edit_biometry_event_path(event),
                               data: { turbo_frame: "_top" },
@@ -602,4 +604,6 @@
     </div>
     <% end %>
   <% end %>
+
+  <%= render "biometry_events/gallery_dialog" %>
 </div>

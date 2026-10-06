@@ -1,0 +1,26 @@
+<%# Janela da galeria de fotos de uma biometria (uma por página; preenchida pelo photo_gallery_controller). %>
+<dialog data-photo-gallery-target="dialog" data-action="click->photo-gallery#backdrop"
+        class="m-auto w-[min(64rem,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] rounded-2xl p-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-2xl backdrop:bg-black/70">
+  <div class="flex items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+    <div>
+      <h2 class="text-sm font-semibold" data-photo-gallery-target="title"></h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400" data-photo-gallery-target="counter"></p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a data-photo-gallery-target="original" href="#" target="_blank" rel="noopener" data-turbo="false"
+         class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Abrir original</a>
+      <button type="button" data-action="photo-gallery#close" title="Fechar (Esc)"
+              class="h-8 w-8 rounded-full text-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">✕</button>
+    </div>
+  </div>
+
+  <div class="relative flex items-center justify-center bg-gray-950 px-12 py-4">
+    <button type="button" data-photo-gallery-target="previous" data-action="photo-gallery#previous" title="Anterior (←)"
+            class="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/15 text-xl text-white hover:bg-white/30">‹</button>
+    <img data-photo-gallery-target="image" alt="Foto ampliada da biometria" class="max-h-[65vh] max-w-full object-contain rounded-lg">
+    <button type="button" data-photo-gallery-target="next" data-action="photo-gallery#next" title="Próxima (→)"
+            class="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/15 text-xl text-white hover:bg-white/30">›</button>
+  </div>
+
+  <div data-photo-gallery-target="thumbnails" class="flex gap-2 overflow-x-auto px-4 py-3"></div>
+</dialog>

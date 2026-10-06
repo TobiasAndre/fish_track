@@ -191,7 +191,7 @@ class BiometryEventsController < StockingEventPagesController
 
     @active_batch_stockings =
       BatchStocking
-        .includes(:batch, :pond, :biometry_events)
+        .includes(:batch, :pond, biometry_events: :biometry_photos)
         .joins(:batch, pond: :unit)
         .where(batches: { status: "active" })
 

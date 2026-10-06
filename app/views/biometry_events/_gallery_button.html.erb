@@ -1,0 +1,10 @@
+<%# Abre a galeria das fotos da biometria (photo_gallery_controller). Só aparece quando ela tem fotos. %>
+<% photos = event.biometry_photos %>
+<% if photos.any? %>
+  <button type="button"
+          class="text-gray-500 hover:text-indigo-600 transition"
+          title="Ver fotos (<%= photos.size %>)"
+          data-action="photo-gallery#open"
+          data-photo-gallery-photos-param="<%= photos.map(&:url).to_json %>"
+          data-photo-gallery-title-param="Biometria de <%= event.occurred_on.present? ? l(event.occurred_on) : "—" %>">📷</button>
+<% end %>
