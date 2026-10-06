@@ -1,0 +1,13 @@
+<%# Indicador de um lote ativo. No celular vira um quadradinho de grade (rótulo pequeno em cima, valor embaixo); a partir de sm volta a ser a etiqueta "Rótulo: valor". %>
+<%
+  tones = {
+    neutral: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    expense: "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300",
+    revenue: "bg-green-50 text-green-800 dark:bg-green-950/40 dark:text-green-300"
+  }
+  tone = local_assigns.fetch(:tone, :neutral)
+%>
+<span class="flex min-w-0 flex-col rounded-lg px-2 py-1.5 sm:inline-flex sm:flex-row sm:items-center sm:py-1 text-xs <%= tones.fetch(tone) %>">
+  <span class="truncate text-[11px] opacity-75 sm:text-xs sm:opacity-100"><%= label %><span class="hidden sm:inline">:</span></span>
+  <span class="truncate text-sm font-semibold sm:ml-1 sm:text-xs sm:font-normal"><%= value %></span>
+</span>

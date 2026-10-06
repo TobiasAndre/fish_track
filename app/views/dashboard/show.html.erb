@@ -1,5 +1,5 @@
 <div class="max-w-6xl mx-auto">
-  <div class="flex items-start justify-between gap-4">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
     <div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Dashboard</h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
@@ -10,12 +10,12 @@
     <div class="flex gap-2">
       <% if can?("batches", :read) %>
         <%= link_to "Lotes", batches_path,
-          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+          class: "flex-1 sm:flex-none text-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                   hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
       <% end %>
       <% if can?("ponds", :read) %>
         <%= link_to "Tanques", ponds_path,
-          class: "px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+          class: "flex-1 sm:flex-none text-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                   hover:bg-gray-50 dark:hover:bg-gray-800 transition" %>
       <% end %>
     </div>
@@ -110,60 +110,37 @@
                 </p>
               </div>
 
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium
+              <%# A seção já é "Lotes ativos": no celular a etiqueta só tomaria espaço. %>
+              <span class="hidden sm:inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium
                            bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300">
                 Ativo
               </span>
             </div>
 
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Atual: <%= current_quantity.positive? ? number_with_delimiter(current_quantity, delimiter: ".") : "—" %>
-              </span>
-
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Biomassa: <%= current_biomass.positive? ? number_with_precision(current_biomass, precision: 2, separator: ",", delimiter: ".") : "—" %>
-              </span>
-
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Ganho: <%= latest_biometry&.weight_gain_kg.present? ? number_with_precision(latest_biometry.weight_gain_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
-              </span>
-
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                GPD: <%= latest_biometry&.gpd.present? ? number_with_precision(latest_biometry.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
-              </span>
-
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Peso: <%= b.avg_weight_g ? "#{number_with_precision(b.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
-              </span>
-            </div>
-
-            <div class="mt-2 flex flex-wrap gap-2">
+            <%# No celular os indicadores ficam numa grade (3 por linha; despesa e faturamento lado a lado); a partir de sm, etiquetas em linha. %>
+            <div class="mt-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+              <%= render "dashboard/batch_metric", label: "Atual",
+                    value: current_quantity.positive? ? number_with_delimiter(current_quantity, delimiter: ".") : "—" %>
+              <%= render "dashboard/batch_metric", label: "Biomassa",
+                    value: current_biomass.positive? ? number_with_precision(current_biomass, precision: 2, separator: ",", delimiter: ".") : "—" %>
+              <%= render "dashboard/batch_metric", label: "Ganho",
+                    value: latest_biometry&.weight_gain_kg.present? ? number_with_precision(latest_biometry.weight_gain_kg, precision: 2, separator: ",", delimiter: ".") : "—" %>
+              <%= render "dashboard/batch_metric", label: "GPD",
+                    value: latest_biometry&.gpd.present? ? number_with_precision(latest_biometry.gpd, precision: 3, separator: ",", delimiter: ".") : "—" %>
+              <%= render "dashboard/batch_metric", label: "Peso",
+                    value: b.avg_weight_g ? "#{number_with_precision(b.avg_weight_g, precision: 2, separator: ",", delimiter: ".")}g" : "—" %>
               <% if see_loadings %>
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                Carregado: <%= batch_figures.loaded_quantity.positive? ? number_with_delimiter(batch_figures.loaded_quantity, delimiter: ".") : "—" %>
-              </span>
-
-              <% end %>
-
-              <% if see_finance %>
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300">
-                Despesa: <%= number_to_currency(batch_figures.expense_cents / 100.0) %>
-              </span>
-
-              <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs
-                           bg-green-50 text-green-800 dark:bg-green-950/40 dark:text-green-300">
-                Faturamento: <%= number_to_currency(batch_figures.revenue_cents / 100.0) %>
-              </span>
+                <%= render "dashboard/batch_metric", label: "Carregado",
+                      value: batch_figures.loaded_quantity.positive? ? number_with_delimiter(batch_figures.loaded_quantity, delimiter: ".") : "—" %>
               <% end %>
             </div>
+
+            <% if see_finance %>
+            <div class="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <%= render "dashboard/batch_metric", label: "Despesa", value: number_to_currency(batch_figures.expense_cents / 100.0), tone: :expense %>
+              <%= render "dashboard/batch_metric", label: "Faturamento", value: number_to_currency(batch_figures.revenue_cents / 100.0), tone: :revenue %>
+            </div>
+            <% end %>
           <% end %>
         <% end %>
 
