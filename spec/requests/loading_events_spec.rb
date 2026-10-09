@@ -446,7 +446,7 @@ RSpec.describe "LoadingEvents", type: :request do
 
       get print_loading_event_path(event)
 
-      expect(response.body).to include("Fornecedor")
+      expect(response.body).to include("Forn. Alevinos:")
       expect(response.body).to include(supplier.name)
     end
 

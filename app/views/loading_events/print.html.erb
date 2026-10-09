@@ -21,7 +21,7 @@
           <% end %>
 
           <% if @stocking_event.supplier.present? %>
-            Fornecedor: <strong><%= @stocking_event.supplier.name %></strong><br>
+            Forn. Alevinos: <strong><%= @stocking_event.supplier.name %></strong><br>
           <% end %>
 
           Data: <strong><%= @stocking_event.occurred_on.present? ? l(@stocking_event.occurred_on) : "—" %></strong>
