@@ -139,6 +139,19 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.body).not_to include("R$  1.250,00") # stale combined total is gone
     end
 
+    it "puts the WhatsApp button in the same row as the other buttons, submitting the share form with the filters" do
+      get loading_reports_path(batch_id: batch.id)
+
+      page = Nokogiri::HTML(response.body)
+      whatsapp = page.at_css("button[title='Compartilhar no WhatsApp']")
+      row = page.at_css("input[type='submit'][value='Filtrar']").parent
+
+      expect(whatsapp.parent).to eq(row)
+      share_form = page.at_css("form##{whatsapp['form']}")
+      expect(share_form["action"]).to eq(create_share_loading_reports_path)
+      expect(share_form.at_css("input[name='batch_id']")["value"]).to eq(batch.id.to_s)
+    end
+
     it "renders a PDF" do
       create(:stocking_event, :loading, batch_stocking: batch_stocking)
 
