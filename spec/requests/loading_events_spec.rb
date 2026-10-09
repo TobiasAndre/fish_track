@@ -99,6 +99,28 @@ RSpec.describe "LoadingEvents", type: :request do
       expect(badge.text).to include("800")
     end
 
+    it "shows the current fish per m², in green, next to the biomass on each tank of the active batches listing" do
+      pond.update!(capacity: 1000)
+      create(:stocking_event, :loading, batch_stocking: batch_stocking,
+        total_weight_kg: 1.0, avg_weight_g: 5.0, occurred_on: Date.current) # 200 loaded -> 800 fish
+
+      get loading_events_path
+
+      badges = Nokogiri::HTML(response.body).css("span.bg-emerald-100")
+      density = badges.find { |span| span.text.include?("Peixes/m² atual") }
+      expect(density.text.squish).to eq("Peixes/m² atual: 0,80") # 800 / 1.000 m²
+      expect(density.previous_element.text).to include("Biomassa")
+    end
+
+    it "leaves the fish per m² out when the tank has no area" do
+      pond.update_columns(capacity: 0)
+      batch_stocking
+
+      get loading_events_path
+
+      expect(response.body).not_to include("Peixes/m² atual")
+    end
+
     it "shows payment term, due date and payment method on one row, with notes on the row below" do
       create(:payment_term, name: "30 dias", days: 30)
 

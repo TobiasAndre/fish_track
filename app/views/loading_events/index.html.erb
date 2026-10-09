@@ -514,6 +514,15 @@
                       </span>
                     <% end %>
 
+                    <%# Densidade atual (saldo ÷ área do tanque), em verde como o saldo; mesma conta do resumo da tela de lançamento. %>
+                    <% pond_area = batch_stocking.pond&.capacity.to_f %>
+                    <% if saldo_atual.present? && pond_area.positive? %>
+                      <span class="inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                        Peixes/m² atual:
+                        <span class="ml-1 font-medium"><%= number_with_precision(saldo_atual.to_f / pond_area, precision: 2, separator: ",", delimiter: ".") %></span>
+                      </span>
+                    <% end %>
+
                     <span class="inline-flex items-center rounded-lg bg-indigo-50 px-2 py-1 text-xs text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                       <%= events.count %> carregamento(s)
                     </span>
