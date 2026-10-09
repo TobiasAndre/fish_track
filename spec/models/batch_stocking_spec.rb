@@ -107,5 +107,32 @@ RSpec.describe BatchStocking, type: :model do
 
       expect(batch_stocking.current_biomass_kg.to_f).to eq(6.0) # (1000 * 6g) / 1000
     end
+
+    # Caso do tanque 0: biometria a 59,72 g e, semanas depois, carregamentos de
+    # peixes já com 81-84 g. Antes, a biomassa zerava com 12.391 peixes no tanque.
+    it "takes the weight measured at a loading as the tank's current avg weight, so the remaining fish keep a biomass" do
+      batch_stocking = create(:batch_stocking, quantity: 105_000, avg_weight_g: 37.0, stocked_on: Date.new(2026, 8, 20))
+      create(:stocking_event, :biometrics, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 9, 22),
+        volume: 105_000, quantity: 100, total_weight_kg: 5.972) # 59,72 g
+      [[26_193, 84], [34_570, 83], [31_846, 81]].each do |quantity, avg_weight_g|
+        create(:stocking_event, :loading, batch_stocking: batch_stocking, occurred_on: Date.new(2026, 10, 6),
+          total_weight_kg: (quantity * avg_weight_g / 1000.0).round(1), avg_weight_g: avg_weight_g)
+      end
+
+      batch_stocking.reload
+
+      expect(batch_stocking.current_quantity).to eq(12_391)
+      expect(batch_stocking.current_biomass_kg.to_f).to be_within(0.5).of(12_391 * 81 / 1000.0) # ~1.003,7 kg a 81 g
+    end
+
+    it "recalculates the balance when the stocked quantity is edited" do
+      batch_stocking = create(:batch_stocking, quantity: 300_000, avg_weight_g: 30.0, stocked_on: 10.days.ago.to_date)
+      create(:stocking_event, :mortality, batch_stocking: batch_stocking, quantity: 1_000, occurred_on: 1.day.ago.to_date)
+
+      batch_stocking.update!(quantity: 250_000)
+
+      expect(batch_stocking.reload.current_quantity).to eq(249_000)
+      expect(batch_stocking.current_biomass_kg.to_f).to eq(7_470.0) # 249.000 x 30 g
+    end
   end
 end

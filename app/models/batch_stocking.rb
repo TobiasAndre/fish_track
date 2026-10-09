@@ -27,6 +27,9 @@ class BatchStocking < ApplicationRecord
 
   before_validation :initialize_current_fields, on: :create
   after_commit :create_initial_biometry_event, on: :create
+  # Editar o alojamento (quantidade, peso ou data) muda o ponto de partida do saldo.
+  after_update_commit :recalculate_current_balance!,
+    if: -> { saved_change_to_quantity? || saved_change_to_avg_weight_g? || saved_change_to_stocked_on? }
 
   def display_name
     "#{pond.unit.name} • Lote: #{batch.name} • Tanque: #{pond.name}"
@@ -70,14 +73,16 @@ class BatchStocking < ApplicationRecord
         current_biomass_value = [current_biomass_value, 0.to_d].max
 
       when "loading"
-        loaded_quantity = event.quantity.to_i
-        avg_weight = event_avg_weight_for(event, current_avg_weight)
+        # O peso médio do carregamento é uma pesagem real dos peixes do tanque:
+        # passa a ser o peso médio atual. Sem isso, peixes que cresceram desde a
+        # última biometria saem com o peso real, mas os que ficam continuam com o
+        # peso antigo, e a biomassa chega a zero com peixes no tanque.
+        current_avg_weight = event.avg_weight_g.to_d if event.avg_weight_g.to_d.positive?
 
-        current_quantity_value -= loaded_quantity
+        current_quantity_value -= event.quantity.to_i
         current_quantity_value = [current_quantity_value, 0].max
 
-        current_biomass_value -= (loaded_quantity.to_d * avg_weight.to_d) / 1000
-        current_biomass_value = [current_biomass_value, 0.to_d].max
+        current_biomass_value = (current_quantity_value.to_d * current_avg_weight.to_d) / 1000
       end
     end
 
