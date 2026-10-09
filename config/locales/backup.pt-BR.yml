@@ -1,0 +1,12 @@
+pt-BR:
+  activerecord:
+    attributes:
+      backup_setting:
+        google_client_id: Client ID
+        google_client_secret: Client Secret
+        drive_folder_name: Pasta no Google Drive
+        schedule_enabled: Backup automático
+        frequency: Frequência
+        time_of_day: Horário
+        weekday: Dia da semana
+        month_day: Dia do mês
