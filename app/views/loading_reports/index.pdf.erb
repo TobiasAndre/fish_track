@@ -124,24 +124,24 @@
   <tbody>
     <tr>
       <th scope="row">Data inicial</th>
-      <td><%= params[:start_date].presence || "-" %></td>
+      <td><%= @filters[:start_date].presence || "-" %></td>
 
       <th scope="row">Data final</th>
-      <td><%= params[:end_date].presence || "-" %></td>
+      <td><%= @filters[:end_date].presence || "-" %></td>
 
       <th scope="row">Produtor</th>
-      <td><%= @integrateds.find_by(id: params[:integrated_id])&.name || "Todos" %></td>
+      <td><%= @integrateds.find_by(id: @filters[:integrated_id])&.name || "Todos" %></td>
     </tr>
 
     <tr>
       <th scope="row">Lote</th>
-      <td><%= @batches.find_by(id: params[:batch_id])&.name || "Todos" %></td>
+      <td><%= @batches.find_by(id: @filters[:batch_id])&.name || "Todos" %></td>
 
       <th scope="row">Tanque</th>
-      <td><%= @ponds.find_by(id: params[:pond_id])&.name || "Todos" %></td>
+      <td><%= @ponds.find_by(id: @filters[:pond_id])&.name || "Todos" %></td>
 
       <th scope="row">Cliente</th>
-      <td><%= @customers.find_by(id: params[:customer_id])&.name || "Todos" %></td>
+      <td><%= @customers.find_by(id: @filters[:customer_id])&.name || "Todos" %></td>
     </tr>
   </tbody>
 </table>

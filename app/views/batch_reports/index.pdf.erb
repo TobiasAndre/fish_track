@@ -154,13 +154,13 @@
     <tbody>
       <tr>
         <th scope="row">Tipo de evento</th>
-        <td><%= params[:event_type].presence || "Todos" %></td>
+        <td><%= @filters[:event_type].presence || "Todos" %></td>
 
         <th scope="row">Data inicial</th>
-        <td><%= params[:start_date].presence || "-" %></td>
+        <td><%= @filters[:start_date].presence || "-" %></td>
 
         <th scope="row">Data final</th>
-        <td><%= params[:end_date].presence || "-" %></td>
+        <td><%= @filters[:end_date].presence || "-" %></td>
       </tr>
     </tbody>
   </table>

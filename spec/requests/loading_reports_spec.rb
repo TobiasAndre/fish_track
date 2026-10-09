@@ -176,6 +176,24 @@ RSpec.describe "LoadingReports", type: :request do
       expect(response.content_type).to eq("application/pdf")
     end
 
+    it "prints the filters saved in the share, not the (empty) ones of the link" do
+      sign_out user
+      allow_any_instance_of(WickedPdf).to receive(:pdf_from_string) { |_pdf, html, _options| html }
+      report_share = create(:report_share, report_type: "loading_report", filters: {
+        start_date: "2026-10-01", end_date: "2026-10-06", batch_id: batch.id.to_s, pond_id: pond.id.to_s,
+        customer_id: customer.id.to_s, integrated_id: integrated.id.to_s
+      })
+
+      get shared_loading_report_pdf_path(
+        tenant_name: "public", id: report_share.id, share_token: report_share.share_token, format: :pdf
+      )
+
+      filters = Nokogiri::HTML(response.body).css("table").first.text.squish
+      expect(filters).to include("Data inicial 2026-10-01", "Data final 2026-10-06")
+      expect(filters).to include("Produtor #{integrated.name}", "Lote #{batch.name}", "Tanque #{pond.name}", "Cliente #{customer.name}")
+      expect(filters).not_to include("Todos")
+    end
+
     it "is not found with an invalid share_token" do
       report_share = create(:report_share, report_type: "loading_report")
 

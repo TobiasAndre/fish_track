@@ -40,6 +40,9 @@ class LoadingReportsController < ApplicationController
   private
 
   def load_loading_report(filters)
+    # Os filtros usados, para o PDF mostrá-los: no link compartilhado eles vêm do
+    # ReportShare, não da URL.
+    @filters = filters.to_h.with_indifferent_access
     @batches = Batch.order(:name)
     @ponds = Pond.includes(:unit).joins(:unit).order("units.name ASC, ponds.order_number ASC, ponds.name ASC")
     @integrateds = Integrated.order(:name)

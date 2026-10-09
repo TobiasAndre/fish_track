@@ -35,6 +35,9 @@ class BatchReportsController < ApplicationController
   private
 
   def load_batch_report(filters)
+    # Os filtros usados, para o PDF mostrá-los: no link compartilhado eles vêm do
+    # ReportShare, não da URL.
+    @filters = filters.to_h.with_indifferent_access
     @batches = Batch.order(:name)
     @batch = Batch.includes(batch_stockings: [:pond, :stocking_events]).find_by(id: filters[:batch_id])
 

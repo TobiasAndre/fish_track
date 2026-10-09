@@ -62,6 +62,21 @@ RSpec.describe "BatchReports", type: :request do
       expect(response.content_type).to eq("application/pdf")
     end
 
+    it "prints the filters saved in the share, not the (empty) ones of the link" do
+      sign_out user
+      allow_any_instance_of(WickedPdf).to receive(:pdf_from_string) { |_pdf, html, _options| html }
+      batch = create(:batch, pond: pond)
+      report_share = create(:report_share, report_type: "batch_report",
+        filters: { batch_id: batch.id, event_type: "biometrics", start_date: "2026-09-01", end_date: "2026-09-30" })
+
+      get shared_batch_report_pdf_path(
+        tenant_name: "public", id: report_share.id, share_token: report_share.share_token, format: :pdf
+      )
+
+      text = Nokogiri::HTML(response.body).text.squish
+      expect(text).to include("Tipo de evento biometrics", "Data inicial 2026-09-01", "Data final 2026-09-30")
+    end
+
     it "is not found with an invalid share_token" do
       report_share = create(:report_share, report_type: "batch_report")
 
