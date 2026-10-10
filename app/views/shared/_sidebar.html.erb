@@ -269,11 +269,35 @@
       </p>
       <% end %>
 
-      <% if can?("batch_reports", :read) %><%= link_to "Relatório de Lote", batch_reports_path %><% end %>
-      <% if can?("loading_reports", :read) %><%= link_to "Relatório de Carregamentos", loading_reports_path %><% end %>
-      <% if can?("silo_stock_reports", :read) %><%= link_to "Estoque de Ração", silo_stock_reports_path %><% end %>
-      <% if can?("batch_results", :read) %><%= link_to "Resultado por Lote", batch_results_path %><% end %>
-      <% if can?("feeding_plans", :read) %><%= link_to "Arraçoamento", feeding_plans_path %><% end %>
+      <% if can?("batch_reports", :read) %>
+      <%= link_to batch_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_reports' ? selected_menu : unselected_menu}" do %>
+        <span>📦</span><span class="text-sm font-medium">Lotes</span>
+      <% end %>
+      <% end %>
+
+      <% if can?("loading_reports", :read) %>
+      <%= link_to loading_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'loading_reports' ? selected_menu : unselected_menu}" do %>
+        <span>🚚</span><span class="text-sm font-medium">Carregamentos</span>
+      <% end %>
+      <% end %>
+
+      <% if can?("silo_stock_reports", :read) %>
+      <%= link_to silo_stock_reports_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'silo_stock_reports' ? selected_menu : unselected_menu}" do %>
+        <span>🛢️</span><span class="text-sm font-medium">Estoque de Ração</span>
+      <% end %>
+      <% end %>
+
+      <% if can?("batch_results", :read) %>
+      <%= link_to batch_results_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'batch_results' ? selected_menu : unselected_menu}" do %>
+        <span>📈</span><span class="text-sm font-medium">Resultado por Lote</span>
+      <% end %>
+      <% end %>
+
+      <% if can?("feeding_plans", :read) %>
+      <%= link_to feeding_plans_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 #{controller_name == 'feeding_plans' ? selected_menu : unselected_menu}" do %>
+        <span>🍚</span><span class="text-sm font-medium">Arraçoamento</span>
+      <% end %>
+      <% end %>
 
       <% if system_admin? %>
         <div class="my-3 border-t border-gray-200 dark:border-gray-800"></div>
